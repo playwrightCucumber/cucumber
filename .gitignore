@@ -1,0 +1,29 @@
+# Node modules
+node_modules/
+
+# Test artifacts
+screenshots/
+videos/
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist/
+build/
+
+# Test reports
+test-results/
+playwright-report/

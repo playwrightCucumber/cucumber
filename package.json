@@ -1,0 +1,39 @@
+{
+  "name": "web-automation-framework",
+  "version": "1.0.0",
+  "description": "Web Automation Framework with OOP and Gherkin Style for Chronicle",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts'",
+    "test:p0": "NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts' --tags '@p0'",
+    "test:p1": "NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts' --tags '@p1'",
+    "test:p2": "NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts' --tags '@p2'",
+    "test:login": "NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts' --tags '@login'",
+    "test:roi": "NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts' --tags '@roi'",
+    "test:smoke": "NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts' --tags '@smoke'",
+    "test:parallel": "NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts' --parallel 3",
+    "test:debug": "NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts' --format 'html:cucumber-report.html'"
+  },
+  "keywords": [
+    "automation",
+    "testing",
+    "cucumber",
+    "gherkin",
+    "playwright",
+    "chronicle"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@cucumber/cucumber": "^10.9.0",
+    "@playwright/test": "^1.41.2",
+    "@types/node": "^20.11.24",
+    "chai": "^4.4.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}
