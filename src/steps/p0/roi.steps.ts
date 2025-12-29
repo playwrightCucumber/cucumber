@@ -123,9 +123,18 @@ Then('I should see certificate number {string} in ROI form', { timeout: 10000 },
   }
 });
 
-Then('I should see notes {string} in ROI form', { timeout: 10000 }, async function (expectedNotes: string) {
-  const isValid = await roiPage.verifyNotesInForm(expectedNotes);
-  if (!isValid) {
-    throw new Error(`❌ Verification failed: Notes "${expectedNotes}" not found in ROI form. Check logs above for details.`);
+// Activity Notes steps
+When('I add activity note {string}', { timeout: 10000 }, async function (noteText: string) {
+  await roiPage.addActivityNote(noteText);
+});
+
+Then('I should see activity note {string}', { timeout: 10000 }, async function (expectedNote: string) {
+  const isVisible = await roiPage.verifyActivityNote(expectedNote);
+  if (!isVisible) {
+    throw new Error(`❌ Verification failed: Activity note "${expectedNote}" not found. Check logs above for details.`);
   }
+});
+
+When('I edit activity note {string} to {string}', { timeout: 15000 }, async function (oldText: string, newText: string) {
+  await roiPage.editActivityNote(oldText, newText);
 });

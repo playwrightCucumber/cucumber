@@ -118,11 +118,36 @@ Feature: ROI Management
     And I fill ROI form with following details
       | fee             | 2000            |
       | certificateNumber | CERT-EDIT-001 |
-      | notes           | Updated ROI details |
     And I save the ROI
     Then the plot status should be "RESERVED"
     When I click Edit ROI button
     Then I should see fee "2000" in ROI form
     And I should see certificate number "CERT-EDIT-001" in ROI form
-    # Note: Notes field validation skipped - known issue: notes not persisted on edit
+    And I add activity note "Updated ROI details"
+    And I save the ROI
+    When I click Edit ROI button
+    And I should see activity note "Updated ROI details"
+
+  @edit-activity-note @p0
+  Scenario: Edit existing activity note in ROI
+    When I navigate to all plots page
+    And I open the filter dialog
+    And I select reserved filter
+    And I apply the filter plot
+    And I expand section "a"
+    And I select the first reserved plot
+    And I click Edit ROI button
+    # First, add a note that we will edit later
+    And I add activity note "Original note to be edited"
+    And I save the ROI
+    # Now edit the note
+    When I click Edit ROI button
+    And I edit activity note "Original note to be edited" to "EDITED: Note has been updated successfully"
+    # Verify edit worked before saving
+    Then I should see activity note "EDITED: Note has been updated successfully"
+    # Now save
+    And I save the ROI
+    # Verify the edited note persists
+    When I click Edit ROI button
+    Then I should see activity note "EDITED: Note has been updated successfully"
 

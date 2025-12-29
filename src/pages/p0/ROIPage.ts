@@ -147,24 +147,6 @@ export class ROIPage {
       this.logger.info('Certificate number entered successfully');
     }
 
-    // Fill Notes if provided
-    if (roiData.notes) {
-      this.logger.info(`Entering notes: ${roiData.notes}`);
-      try {
-        // Try data-testid selector first
-        await this.page.fill(RoiSelectors.notesInput, roiData.notes, { timeout: 5000 });
-      } catch (e) {
-        // Fallback: use label or placeholder for edit page
-        try {
-          await this.page.getByLabel(/notes/i).fill(roiData.notes, { timeout: 5000 });
-        } catch (e2) {
-          // Last resort: find textarea
-          await this.page.locator('textarea').first().fill(roiData.notes);
-        }
-      }
-      this.logger.info('Notes entered successfully');
-    }
-
     this.logger.success('ROI form filled successfully');
   }
 
@@ -290,21 +272,155 @@ export class ROIPage {
     
     try {
       // Try data-testid selector first (for add page)
+      this.logger.info('Attempting to click Save button using data-testid selector');
       await this.page.click(RoiSelectors.saveButton, { timeout: 5000 });
+      this.logger.info('Save button clicked successfully (data-testid)');
     } catch (e) {
       // Fallback: look for any button with "Save" text (for edit page)
       try {
+        this.logger.info('Data-testid failed, trying getByRole with /save/i');
         await this.page.getByRole('button', { name: /save/i }).first().click({ timeout: 5000 });
+        this.logger.info('Save button clicked successfully (getByRole)');
       } catch (e2) {
         // Last resort: look for button with save icon or similar
+        this.logger.info('getByRole failed, trying locator with has-text');
         await this.page.locator('button:has-text("Save")').first().click();
+        this.logger.info('Save button clicked successfully (has-text)');
       }
     }
     
+    this.logger.info('Waiting for URL redirect to plot detail page...');
     // Wait for save to complete and redirect back to plot detail
     await this.page.waitForURL(`**${RoiUrls.plotDetailPattern}**`, { timeout: 30000 });
     await this.page.waitForTimeout(2000); // Wait for status update
     this.logger.success('ROI saved successfully');
+  }
+
+  /**
+   * Add activity note in Activity section of Edit ROI page
+   * @param noteText - Text of the note to add
+   */
+  async addActivityNote(noteText: string): Promise<void> {
+    this.logger.info(`Adding activity note: ${noteText}`);
+    
+    try {
+      // Wait for Activity section to be visible
+      const notesInput = this.page.locator(RoiSelectors.activityNotesInput);
+      await notesInput.waitFor({ state: 'visible', timeout: 5000 });
+      
+      // Fill note in Activity Notes textbox
+      await notesInput.fill(noteText);
+      this.logger.info('Note text entered');
+      
+      // Click send button - verified with MCP Playwright testing
+      await this.page.waitForTimeout(500);
+      
+      const sendButton = this.page.locator(RoiSelectors.activityNotesSendButton);
+      await sendButton.waitFor({ state: 'visible', timeout: 5000 });
+      await sendButton.click();
+      this.logger.info('Send button clicked');
+      
+      
+      // Wait for note to appear in activity list
+      await this.page.waitForTimeout(2000);
+      
+      this.logger.success(`Activity note added: ${noteText}`);
+    } catch (error) {
+      this.logger.error(`Failed to add activity note: ${error}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Edit existing activity note in Activity section
+   * @param oldText - Original text of the note to find
+   * @param newText - New text to replace
+   */
+  async editActivityNote(oldText: string, newText: string): Promise<void> {
+    this.logger.info(`Editing activity note from "${oldText}" to "${newText}"`);
+    
+    try {
+      // Wait for Activity section to be visible
+      await this.page.waitForTimeout(1000);
+      
+      // Find the note by text and click its three dots menu
+      const noteElement = this.page.getByText(oldText, { exact: false }).first();
+      await noteElement.waitFor({ state: 'visible', timeout: 5000 });
+      
+      // Find the three dots menu icon for this note
+      // The menu icon is typically next to or within the same parent as the note text
+      const threeDotsMenu = this.page.locator(RoiSelectors.activityNoteThreeDotsMenu).first();
+      await threeDotsMenu.click();
+      this.logger.info('Three dots menu clicked');
+      
+      // Wait for menu to appear and click Edit
+      await this.page.waitForTimeout(500);
+      const editMenuItem = this.page.getByRole('menuitem', { name: 'Edit' });
+      await editMenuItem.click();
+      this.logger.info('Edit menu item clicked');
+      
+      // Wait for edit textarea to appear
+      await this.page.waitForTimeout(500);
+      const editTextarea = this.page.locator(RoiSelectors.activityNoteEditTextarea).first();
+      await editTextarea.waitFor({ state: 'visible', timeout: 5000 });
+      
+      // Clear and fill with new text
+      await editTextarea.fill(newText);
+      this.logger.info('New text entered in edit mode');
+      
+      // Instead of clicking save button (which is unreliable), press Enter to save
+      // Most edit-in-place interfaces save on Enter key
+      await this.page.waitForTimeout(500);
+      await editTextarea.press('Enter');
+      this.logger.info('Pressed Enter to save edit');
+      
+      // Wait longer for save to complete and note to appear in list
+      await this.page.waitForTimeout(3000);
+      
+      this.logger.success(`Activity note edited successfully`);
+    } catch (error) {
+      this.logger.error(`Failed to edit activity note: ${error}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Verify activity note exists in Activity Notes list
+   * @param expectedNote - Expected note text
+   */
+  async verifyActivityNote(expectedNote: string): Promise<boolean> {
+    this.logger.info(`Verifying activity note: ${expectedNote}`);
+    
+    try {
+      // Wait a bit for activity section to load
+      await this.page.waitForTimeout(1000);
+      
+      // Look for the note text - use count() to handle multiple matches
+      const noteLocator = this.page.getByText(expectedNote, { exact: false });
+      const noteCount = await noteLocator.count();
+      
+      this.logger.info(`Found ${noteCount} elements with text "${expectedNote}"`);
+      
+      if (noteCount > 0) {
+        // Check if at least one is visible
+        const firstNote = noteLocator.first();
+        const isVisible = await firstNote.isVisible({ timeout: 3000 }).catch(() => false);
+        
+        if (isVisible) {
+          this.logger.success(`✓ Activity note verified: ${expectedNote}`);
+          return true;
+        } else {
+          this.logger.success(`✓ Activity note found in page (might be scrolled): ${expectedNote}`);
+          return true;
+        }
+      } else {
+        this.logger.info(`❌ Activity note not found: ${expectedNote}`);
+        return false;
+      }
+    } catch (error) {
+      this.logger.error(`Failed to verify activity note: ${error}`);
+      return false;
+    }
   }
 
   /**
@@ -489,53 +605,6 @@ export class ROIPage {
       return isMatch;
     } catch (e) {
       this.logger.error(`Failed to verify certificate: ${e}`);
-      return false;
-    }
-  }
-
-  /**
-   * Verify notes field value in ROI form
-   * @param expectedNotes - Expected notes text
-   */
-  async verifyNotesInForm(expectedNotes: string): Promise<boolean> {
-    this.logger.info(`Verifying notes in form: ${expectedNotes}`);
-    
-    try {
-      // Try multiple selectors to find notes input
-      let notesValue: string | null = null;
-      
-      try {
-        notesValue = await this.page.locator(RoiSelectors.notesInput).inputValue({ timeout: 3000 });
-        this.logger.info(`[Method 1] Got notes using RoiSelectors.notesInput inputValue: "${notesValue}"`);
-      } catch (e) {
-        this.logger.info('[Method 1] Failed, trying getByLabel');
-        try {
-          notesValue = await this.page.getByLabel(/notes/i).inputValue({ timeout: 3000 });
-          this.logger.info(`[Method 2] Got notes using getByLabel inputValue: "${notesValue}"`);
-        } catch (e2) {
-          this.logger.info('[Method 2] Failed, trying textarea with inputValue');
-          try {
-            notesValue = await this.page.locator('textarea').first().inputValue();
-            this.logger.info(`[Method 3] Got notes using textarea inputValue: "${notesValue}"`);
-          } catch (e3) {
-            this.logger.info('[Method 3] Failed, trying textarea with textContent');
-            // Try using textContent for textarea
-            notesValue = await this.page.locator('textarea').first().textContent();
-            this.logger.info(`[Method 4] Got notes using textarea textContent: "${notesValue}"`);
-          }
-        }
-      }
-      
-      const isMatch = notesValue?.trim() === expectedNotes;
-      if (isMatch) {
-        this.logger.success(`✓ Notes verified: ${notesValue}`);
-      } else {
-        this.logger.info(`❌ Notes mismatch - Expected: "${expectedNotes}", Got: "${notesValue}"`);
-      }
-      
-      return isMatch;
-    } catch (e) {
-      this.logger.error(`Failed to verify notes: ${e}`);
       return false;
     }
   }

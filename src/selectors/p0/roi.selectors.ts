@@ -80,8 +80,17 @@ export const RoiSelectors = {
   roiApplicantAddButton: 'button:has-text("add")',
   roiApplicantCancelButton: 'button:has-text("cancel")',
   
-  // ROI Form - Notes
-  notesInput: '[data-testid="roi-form-input-add-notes-0"]',
+  // Activity Notes
+  activityNotesInput: '[data-testid="user-log-activity-textarea-add-notes"]',
+  activityNotesSendButton: '[data-testid="user-log-activity-div-input-note-container"] mat-icon', // Send icon button
+  activityNotesContainer: '[data-testid="user-log-activity-div-input-note-container"]',
+  
+  // Activity Notes - Edit
+  activityNoteThreeDotsMenu: '.mat-icon.mat-menu-trigger', // Three dots menu for each note
+  activityNoteEditMenuItem: 'menuitem:has-text("Edit")', // Edit menu item
+  activityNoteEditTextarea: 'textarea', // Textarea in edit mode
+  activityNoteEditSaveButton: 'mat-icon:nth-child(1)', // First mat-icon in edit mode (save/check)
+  activityNoteEditCancelButton: 'mat-icon:nth-child(2)', // Second mat-icon in edit mode (cancel/close)
 };
 
 export const RoiUrls = {
