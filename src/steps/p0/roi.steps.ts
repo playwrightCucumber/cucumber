@@ -108,3 +108,24 @@ Then('I should see both ROI holder {string} and applicant {string}', { timeout: 
     throw new Error(`❌ Verification failed: Either holder "${holderName}" or applicant "${applicantName}" not found with correct labels. Check logs above for details.`);
   }
 });
+
+Then('I should see fee {string} in ROI form', { timeout: 10000 }, async function (expectedFee: string) {
+  const isValid = await roiPage.verifyFeeInForm(expectedFee);
+  if (!isValid) {
+    throw new Error(`❌ Verification failed: Fee "${expectedFee}" not found in ROI form. Check logs above for details.`);
+  }
+});
+
+Then('I should see certificate number {string} in ROI form', { timeout: 10000 }, async function (expectedCertificate: string) {
+  const isValid = await roiPage.verifyCertificateInForm(expectedCertificate);
+  if (!isValid) {
+    throw new Error(`❌ Verification failed: Certificate number "${expectedCertificate}" not found in ROI form. Check logs above for details.`);
+  }
+});
+
+Then('I should see notes {string} in ROI form', { timeout: 10000 }, async function (expectedNotes: string) {
+  const isValid = await roiPage.verifyNotesInForm(expectedNotes);
+  if (!isValid) {
+    throw new Error(`❌ Verification failed: Notes "${expectedNotes}" not found in ROI form. Check logs above for details.`);
+  }
+});

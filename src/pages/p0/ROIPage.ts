@@ -411,4 +411,132 @@ export class ROIPage {
       return false;
     }
   }
+
+  /**
+   * Verify fee field value in ROI form
+   * @param expectedFee - Expected fee value
+   */
+  async verifyFeeInForm(expectedFee: string): Promise<boolean> {
+    this.logger.info(`Verifying fee in form: ${expectedFee}`);
+    
+    try {
+      // Wait for form to load
+      await this.page.waitForTimeout(2000);
+      
+      // Try multiple selectors to find fee input
+      let feeValue: string | null = null;
+      
+      try {
+        feeValue = await this.page.locator(RoiSelectors.feeInput).inputValue({ timeout: 3000 });
+      } catch (e) {
+        try {
+          feeValue = await this.page.getByLabel(/fee/i).inputValue({ timeout: 3000 });
+        } catch (e2) {
+          feeValue = await this.page.locator('input[type="number"]').first().inputValue();
+        }
+      }
+      
+      const isMatch = feeValue === expectedFee;
+      if (isMatch) {
+        this.logger.success(`✓ Fee verified: ${feeValue}`);
+      } else {
+        this.logger.info(`❌ Fee mismatch - Expected: ${expectedFee}, Got: ${feeValue}`);
+      }
+      
+      return isMatch;
+    } catch (e) {
+      this.logger.error(`Failed to verify fee: ${e}`);
+      return false;
+    }
+  }
+
+  /**
+   * Verify certificate number field value in ROI form
+   * @param expectedCertificate - Expected certificate number
+   */
+  async verifyCertificateInForm(expectedCertificate: string): Promise<boolean> {
+    this.logger.info(`Verifying certificate number in form: ${expectedCertificate}`);
+    
+    try {
+      // Try multiple selectors to find certificate input
+      let certValue: string | null = null;
+      
+      try {
+        certValue = await this.page.locator(RoiSelectors.certificateNumberInput).inputValue({ timeout: 3000 });
+      } catch (e) {
+        try {
+          certValue = await this.page.getByLabel(/certificate/i).inputValue({ timeout: 3000 });
+        } catch (e2) {
+          // Find text input that contains certificate value
+          const inputs = await this.page.locator('input[type="text"]').all();
+          for (const input of inputs) {
+            const val = await input.inputValue();
+            if (val === expectedCertificate) {
+              certValue = val;
+              break;
+            }
+          }
+        }
+      }
+      
+      const isMatch = certValue === expectedCertificate;
+      if (isMatch) {
+        this.logger.success(`✓ Certificate number verified: ${certValue}`);
+      } else {
+        this.logger.info(`❌ Certificate mismatch - Expected: ${expectedCertificate}, Got: ${certValue}`);
+      }
+      
+      return isMatch;
+    } catch (e) {
+      this.logger.error(`Failed to verify certificate: ${e}`);
+      return false;
+    }
+  }
+
+  /**
+   * Verify notes field value in ROI form
+   * @param expectedNotes - Expected notes text
+   */
+  async verifyNotesInForm(expectedNotes: string): Promise<boolean> {
+    this.logger.info(`Verifying notes in form: ${expectedNotes}`);
+    
+    try {
+      // Try multiple selectors to find notes input
+      let notesValue: string | null = null;
+      
+      try {
+        notesValue = await this.page.locator(RoiSelectors.notesInput).inputValue({ timeout: 3000 });
+        this.logger.info(`[Method 1] Got notes using RoiSelectors.notesInput inputValue: "${notesValue}"`);
+      } catch (e) {
+        this.logger.info('[Method 1] Failed, trying getByLabel');
+        try {
+          notesValue = await this.page.getByLabel(/notes/i).inputValue({ timeout: 3000 });
+          this.logger.info(`[Method 2] Got notes using getByLabel inputValue: "${notesValue}"`);
+        } catch (e2) {
+          this.logger.info('[Method 2] Failed, trying textarea with inputValue');
+          try {
+            notesValue = await this.page.locator('textarea').first().inputValue();
+            this.logger.info(`[Method 3] Got notes using textarea inputValue: "${notesValue}"`);
+          } catch (e3) {
+            this.logger.info('[Method 3] Failed, trying textarea with textContent');
+            // Try using textContent for textarea
+            notesValue = await this.page.locator('textarea').first().textContent();
+            this.logger.info(`[Method 4] Got notes using textarea textContent: "${notesValue}"`);
+          }
+        }
+      }
+      
+      const isMatch = notesValue?.trim() === expectedNotes;
+      if (isMatch) {
+        this.logger.success(`✓ Notes verified: ${notesValue}`);
+      } else {
+        this.logger.info(`❌ Notes mismatch - Expected: "${expectedNotes}", Got: "${notesValue}"`);
+      }
+      
+      return isMatch;
+    } catch (e) {
+      this.logger.error(`Failed to verify notes: ${e}`);
+      return false;
+    }
+  }
 }
