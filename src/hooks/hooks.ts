@@ -65,13 +65,20 @@ After(async function(scenario) {
       await this.page.close();
       Logger.info('Page closed for scenario');
       
-      // Rename video file with scenario name
+      // Rename video file with scenario name, environment, and status
       if (videoPath) {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
         const sanitizedName = this.scenarioName
           ? this.scenarioName.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 50)
           : 'test';
-        const newVideoPath = path.join(path.dirname(videoPath), `${sanitizedName}_${timestamp}.webm`);
+        
+        // Get environment from BASE_URL
+        const env = process.env.BASE_URL?.includes('staging') ? 'stag' : 'prod';
+        
+        // Get status prefix
+        const statusPrefix = status === 'PASSED' ? 'pass' : 'fail';
+        
+        const newVideoPath = path.join(path.dirname(videoPath), `${statusPrefix}_${env}_${sanitizedName}_${timestamp}.webm`);
         
         // Wait a bit for video to finish writing
         await new Promise(resolve => setTimeout(resolve, 500));

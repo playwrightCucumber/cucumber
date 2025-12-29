@@ -89,8 +89,8 @@ export const RoiSelectors = {
   activityNoteThreeDotsMenu: '.mat-icon.mat-menu-trigger', // Three dots menu for each note
   activityNoteEditMenuItem: 'menuitem:has-text("Edit")', // Edit menu item
   activityNoteEditTextarea: 'textarea', // Textarea in edit mode
-  activityNoteEditSaveButton: 'mat-icon:nth-child(1)', // First mat-icon in edit mode (save/check)
-  activityNoteEditCancelButton: 'mat-icon:nth-child(2)', // Second mat-icon in edit mode (cancel/close)
+  activityNoteEditSaveButton: 'mat-icon[svgicon="check-edit"]', // Save/check button in edit mode
+  activityNoteEditCancelButton: 'mat-icon[svgicon="close"]', // Cancel/close button in edit mode
 };
 
 export const RoiUrls = {

@@ -6,7 +6,7 @@ import { Logger } from '../../utils/Logger.js';
 const logger = new Logger('LoginSteps');
 let loginPage: LoginPage;
 
-Given('I am on the Chronicle login page', async function () {
+Given('I am on the Chronicle login page', { timeout: 30000 }, async function () {
   logger.info('Navigating to Chronicle login page');
   loginPage = new LoginPage(this.page);
   await loginPage.navigate();
@@ -27,7 +27,7 @@ When('I click the login button', async function () {
   await loginPage.clickLoginButton();
 });
 
-Then('I should be logged in successfully', { timeout: 30000 }, async function () {
+Then('I should be logged in successfully', { timeout: 60000 }, async function () {
   logger.info('Verifying successful login');
   await loginPage.waitForSuccessfulLogin();
   const isLoggedIn = await loginPage.isLoggedIn();

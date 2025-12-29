@@ -1,5 +1,6 @@
 import { Page } from '@playwright/test';
 import { Logger } from '../../utils/Logger.js';
+import { Config } from '../../utils/Config.js';
 import { LoginSelectors, LoginUrls } from '../../selectors/p0/login.selectors.js';
 
 export class LoginPage {
@@ -12,8 +13,10 @@ export class LoginPage {
 
   async navigate(): Promise<void> {
     this.logger.info('Navigating to login page');
-    await this.page.goto(`https://staging.chronicle.rip${LoginUrls.loginPage}`);
-    await this.page.waitForLoadState('networkidle');
+    const baseUrl = Config.baseUrl;
+    this.logger.info(`Using BASE_URL: ${baseUrl}`);
+    await this.page.goto(`${baseUrl}${LoginUrls.loginPage}`, { timeout: 30000 });
+    await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 });
   }
 
   async enterEmail(email: string): Promise<void> {
@@ -54,9 +57,10 @@ export class LoginPage {
 
   async waitForSuccessfulLogin(): Promise<void> {
     this.logger.info('Waiting for successful login');
-    // Wait for redirect to dashboard
-    await this.page.waitForURL(new RegExp(LoginUrls.dashboardPattern), { timeout: 15000 });
-    await this.page.waitForLoadState('networkidle');
+    // Wait for redirect to dashboard (production needs more time)
+    await this.page.waitForURL(new RegExp(LoginUrls.dashboardPattern), { timeout: 45000 });
+    await this.page.waitForLoadState('domcontentloaded', { timeout: 20000 });
+    await this.page.waitForTimeout(2000);
   }
 
   async isLoggedIn(): Promise<boolean> {

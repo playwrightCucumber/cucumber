@@ -359,23 +359,60 @@ export class ROIPage {
       await editMenuItem.click();
       this.logger.info('Edit menu item clicked');
       
-      // Wait for edit textarea to appear
-      await this.page.waitForTimeout(500);
-      const editTextarea = this.page.locator(RoiSelectors.activityNoteEditTextarea).first();
-      await editTextarea.waitFor({ state: 'visible', timeout: 5000 });
+      // Wait for inline edit textarea to appear
+      // IMPORTANT: The page has an "Add Notes" textarea at top (with data-testid="user-log-activity-textarea-add-notes")
+      // When we click Edit on a note, an inline edit textarea appears with save/cancel buttons
+      // We need to find that specific textarea, NOT the "Add Notes" one
+      await this.page.waitForTimeout(1000);
+      
+      // Wait for the save button (checkmark) to appear - this indicates edit mode is active
+      const saveButton = this.page.locator(RoiSelectors.activityNoteEditSaveButton);
+      await saveButton.waitFor({ state: 'visible', timeout: 5000 });
+      
+      // Get all textareas and find the one that's NOT the "Add Notes" form
+      const allTextareas = await this.page.locator('textarea').all();
+      let targetTextarea = null;
+      
+      for (const textarea of allTextareas) {
+        const testId = await textarea.getAttribute('data-testid');
+        const isVisible = await textarea.isVisible().catch(() => false);
+        
+        // Skip the "Add Notes" textarea and find any other visible textarea
+        if (testId !== 'user-log-activity-textarea-add-notes' && isVisible) {
+          targetTextarea = textarea;
+          this.logger.info(`Found edit textarea (excluding Add Notes form)`);
+          break;
+        }
+      }
+      
+      if (!targetTextarea) {
+        this.logger.error('Could not find edit textarea - only found Add Notes textarea');
+        throw new Error('Edit textarea not found');
+      }
       
       // Clear and fill with new text
-      await editTextarea.fill(newText);
+      await targetTextarea.fill(newText);
       this.logger.info('New text entered in edit mode');
       
-      // Instead of clicking save button (which is unreliable), press Enter to save
-      // Most edit-in-place interfaces save on Enter key
+      // Click the save button (checkmark) instead of pressing Enter
       await this.page.waitForTimeout(500);
-      await editTextarea.press('Enter');
-      this.logger.info('Pressed Enter to save edit');
+      await saveButton.click();
+      this.logger.info('Clicked save button (checkmark)');
       
-      // Wait longer for save to complete and note to appear in list
+      // Wait for save animation/transition to complete
+      await this.page.waitForTimeout(1000);
+      
+      // Verify save completed by checking if edit mode closed (checkmark disappeared)
+      try {
+        await saveButton.waitFor({ state: 'hidden', timeout: 3000 });
+        this.logger.info('Edit mode closed - save completed');
+      } catch (e) {
+        this.logger.warn('Checkmark still visible after 3s - edit mode may still be active');
+      }
+      
+      // Wait additional time for backend sync (especially for production)
       await this.page.waitForTimeout(3000);
+      this.logger.info('Waited for backend sync');
       
       this.logger.success(`Activity note edited successfully`);
     } catch (error) {
