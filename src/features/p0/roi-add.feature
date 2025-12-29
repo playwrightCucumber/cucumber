@@ -11,7 +11,7 @@ Feature: ROI Management
     And I click the login button
     Then I should be logged in successfully
 
-  @add-roi @smoke
+  @add-roi @smoke @p0
   Scenario: Add ROI to vacant plot and verify status change to Reserved
     When I navigate to all plots page
     And I open the filter dialog
@@ -29,7 +29,7 @@ Feature: ROI Management
     And I save the ROI
     Then the plot status should be "RESERVED"
 
-  @add-roi-holder @roi-holder
+  @add-roi @roi-holder @p0
   Scenario: Add ROI with person ROI holder to vacant plot
     When I navigate to all plots page
     And I open the filter dialog
@@ -53,7 +53,7 @@ Feature: ROI Management
     Then the plot status should be "RESERVED"
     And I should see ROI holder "John Doe" in the ROI tab
 
-  @add-roi-applicant @roi-applicant
+  @add-roi @roi-applicant @p0
   Scenario: Add ROI with person ROI applicant to vacant plot
     When I navigate to all plots page
     And I open the filter dialog
@@ -77,7 +77,7 @@ Feature: ROI Management
     Then the plot status should be "RESERVED"
     And I should see ROI applicant "Jane Smith" in the ROI tab
 
-  @add-roi-holder-applicant @roi-holder-applicant
+  @add-roi @roi-holder-applicant @p0
   Scenario: Add ROI with both ROI holder and applicant to vacant plot
     When I navigate to all plots page
     And I open the filter dialog
@@ -106,7 +106,7 @@ Feature: ROI Management
     Then the plot status should be "RESERVED"
     And I should see both ROI holder "John Doe" and applicant "Jane Smith"
 
-  @edit-roi @roi-edit
+  @edit-roi @p0
   Scenario: Edit ROI details on reserved plot
     When I navigate to all plots page
     And I open the filter dialog
