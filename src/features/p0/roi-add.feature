@@ -151,3 +151,16 @@ Feature: ROI Management
     When I click Edit ROI button
     Then I should see activity note "EDITED: Note has been updated successfully"
 
+  @search-roi-holder @p0
+  Scenario: Search person and verify ROI holder in plot
+    # Navigate to plot list page where search is available
+    When I navigate to all plots page
+    # Search for existing person in global search
+    When I search for "sandiaga uno salahuddin" in global search
+    # Verify search result shows plot with person name and ROI Holder role
+    Then I should see search result with plot "B F 13"
+    # Click on search result to navigate to plot detail
+    When I click on search result plot "B F 13"
+    # Verify person exists in ROI tab with ROI HOLDER role
+    Then I should see ROI holder "Sandiaga Uno Salahuddin" in the ROI tab
+

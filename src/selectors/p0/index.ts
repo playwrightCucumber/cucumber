@@ -6,3 +6,4 @@
 export * from './login.selectors.js';
 export * from './roi.selectors.js';
 export * from './interment.selectors.js';
+export * from './search.selectors.js';

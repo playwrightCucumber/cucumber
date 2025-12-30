@@ -330,6 +330,50 @@ export class ROIPage {
   }
 
   /**
+   * Search and select existing person as ROI holder
+   * @param personName - Full name of the person to search and select
+   */
+  async searchAndSelectRoiHolder(personName: string): Promise<void> {
+    this.logger.info(`Searching and selecting ROI holder: ${personName}`);
+    
+    // Click Add ROI Holder button to open the person input/dialog
+    this.logger.info('Clicking Add ROI Holder button');
+    await this.page.click(RoiSelectors.addRoiHolderButton);
+    await this.page.waitForTimeout(1000);
+    
+    // Type person name in the search input (first name field acts as search)
+    this.logger.info(`Typing search query: ${personName}`);
+    await this.page.fill(RoiSelectors.roiHolderFirstNameInput, personName);
+    await this.page.waitForTimeout(2000); // Wait for search results to appear
+    
+    // Wait for search results dropdown/list to appear
+    this.logger.info('Waiting for search results to appear...');
+    
+    // Click on the matching person from search results
+    // Based on screenshot, results appear in a dropdown with person name and role label
+    try {
+      // Try to find the person in mat-option or similar dropdown
+      const personOption = this.page.locator('mat-option, .mat-option, [role="option"]').filter({ hasText: personName }).first();
+      
+      await personOption.waitFor({ state: 'visible', timeout: 5000 });
+      this.logger.info(`Found person "${personName}" in search results, clicking...`);
+      await personOption.click();
+      
+      // Wait for selection to complete
+      await this.page.waitForTimeout(1000);
+      
+      // Wait for background process to complete (production needs time to attach person to ROI)
+      this.logger.info('Waiting 5s for person to be fully attached...');
+      await this.page.waitForTimeout(5000);
+      
+      this.logger.success(`ROI holder "${personName}" selected successfully from search`);
+    } catch (e) {
+      this.logger.error(`Failed to find or select person "${personName}" from search results`);
+      throw new Error(`Person "${personName}" not found in search results or click failed: ${e}`);
+    }
+  }
+
+  /**
    * Save ROI form (works for both add and edit)
    */
   async saveRoi(): Promise<void> {
