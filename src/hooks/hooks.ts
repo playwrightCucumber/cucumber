@@ -1,4 +1,4 @@
-import { Before, After, BeforeAll, AfterAll } from '@cucumber/cucumber';
+import { Before, After, BeforeAll, AfterAll, setDefaultTimeout } from '@cucumber/cucumber';
 import { BrowserManager } from '../core/BrowserManager.js';
 import { Logger } from '../utils/Logger.js';
 import * as fs from 'fs';
@@ -10,6 +10,10 @@ import * as path from 'path';
 
 BeforeAll(async function() {
   Logger.info('Starting test execution...');
+  
+  // Set default step timeout to 60 seconds (production is slow)
+  setDefaultTimeout(60000);
+  Logger.info('Default step timeout set to 60s');
   
   // Create screenshots directory if it doesn't exist
   const screenshotsDir = path.join(process.cwd(), 'screenshots');

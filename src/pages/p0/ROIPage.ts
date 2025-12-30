@@ -22,17 +22,39 @@ export class ROIPage {
       await this.page.waitForSelector(RoiSelectors.addRoiButton, { state: 'visible', timeout: 5000 });
       this.logger.info('Add ROI button found, clicking...');
       await this.page.click(RoiSelectors.addRoiButton);
-      // Give time for page to load
-      await this.page.waitForTimeout(3000);
+      
+      // Wait for navigation to add ROI page (production is slower than staging)
+      this.logger.info('Waiting for navigation to Add ROI form...');
+      try {
+        await this.page.waitForURL('**/manage/add/roi', { timeout: 15000 });
+        this.logger.info('✓ Navigated to Add ROI form page');
+      } catch (e) {
+        this.logger.warn('URL navigation timeout, continuing anyway...');
+      }
+      
+      // Wait for network to settle after navigation (production needs this)
+      try {
+        await this.page.waitForLoadState('networkidle', { timeout: 30000 });
+        this.logger.info('✓ Add ROI page loaded - network idle');
+      } catch (e) {
+        this.logger.warn('Network idle timeout after 30s, continuing anyway');
+      }
       
       const currentUrl = this.page.url();
-      this.logger.info(`Current URL after click: ${currentUrl}`);
-      this.logger.success('Add ROI button clicked');
+      this.logger.info(`Current URL after navigation: ${currentUrl}`);
+      this.logger.success('Add ROI button clicked and form loaded');
     } catch (e) {
       // Fallback: try text-based selector
       this.logger.info('Trying fallback selector: button with text "Add ROI"');
       await this.page.getByRole('button', { name: /add roi/i }).click();
-      await this.page.waitForTimeout(3000);
+      
+      // Wait for navigation with fallback selector too
+      try {
+        await this.page.waitForURL('**/manage/add/roi', { timeout: 15000 });
+        await this.page.waitForLoadState('networkidle', { timeout: 30000 });
+      } catch (e2) {
+        this.logger.warn('Fallback navigation wait failed, continuing...');
+      }
       
       const currentUrl = this.page.url();
       this.logger.info(`Current URL after click (fallback): ${currentUrl}`);
@@ -58,11 +80,23 @@ export class ROIPage {
     // For add page: check roiFormTitle, for edit page: check URL contains "edit"
     const currentUrl = this.page.url();
     const isEditMode = currentUrl.includes('/edit/');
+    this.logger.info(`Current URL: ${currentUrl}, Edit mode: ${isEditMode}`);
     
     try {
       if (isEditMode) {
-        // Edit mode: wait for page to load by checking for form elements
-        await this.page.waitForSelector('mat-select', { state: 'visible', timeout: 10000 });
+        // Edit mode: wait for network idle first, then check form elements
+        this.logger.info('Waiting for edit page to load completely (network idle with 30s timeout)...');
+        
+        try {
+          await this.page.waitForLoadState('networkidle', { timeout: 30000 });
+          this.logger.info('Network idle reached');
+        } catch (e) {
+          this.logger.warn('Network idle timeout after 30s, checking for form elements anyway');
+        }
+        
+        // Then wait for form elements to be visible
+        this.logger.info('Waiting for mat-select elements to be visible...');
+        await this.page.waitForSelector('mat-select', { state: 'visible', timeout: 15000 });
         this.logger.info('ROI edit form loaded successfully');
       } else {
         // Add mode: wait for form title
@@ -70,25 +104,48 @@ export class ROIPage {
         this.logger.info('ROI form loaded successfully');
       }
     } catch (e) {
-      this.logger.error(`ROI form failed to load (${isEditMode ? 'edit' : 'add'} mode)`);
+      this.logger.error(`ROI form failed to load (${isEditMode ? 'edit' : 'add'} mode): ${e}`);
       throw new Error('ROI form failed to load');
     }
-    
-    // Additional wait for form elements to initialize
-    await this.page.waitForTimeout(2000);
 
     // Fill Right Type if provided
     if (roiData.rightType) {
       this.logger.info(`Selecting Right Type: ${roiData.rightType}`);
       // Right Type is the second mat-select (index 1, after Event Type)
       const matSelects = await this.page.locator('mat-select').all();
-      await matSelects[1].click();
-      await this.page.waitForTimeout(1000);
       
-      // Click the option (Cremation, Burial, Both, or Unassigned)
-      await this.page.getByRole('option', { name: roiData.rightType, exact: true }).click();
-      await this.page.waitForTimeout(500);
-      this.logger.info(`Right Type selected: ${roiData.rightType}`);
+      // Wait for mat-select to be clickable with retry logic (production is very slow)
+      let rightTypeSelected = false;
+      for (let attempt = 1; attempt <= 3 && !rightTypeSelected; attempt++) {
+        try {
+          this.logger.info(`Right Type selection attempt ${attempt}/3`);
+          
+          await matSelects[1].waitFor({ state: 'visible', timeout: 10000 });
+          this.logger.info('Right Type dropdown visible');
+          
+          await this.page.waitForTimeout(1000); // Wait for Angular to initialize
+          
+          await matSelects[1].click();
+          this.logger.info('Right Type dropdown clicked');
+          
+          await this.page.waitForTimeout(2000); // Wait for options to appear
+          
+          // Click the option (Cremation, Burial, Both, or Unassigned)
+          await this.page.getByRole('option', { name: roiData.rightType, exact: true }).click();
+          await this.page.waitForTimeout(500);
+          
+          this.logger.success(`Right Type selected: ${roiData.rightType}`);
+          rightTypeSelected = true;
+        } catch (e) {
+          this.logger.warn(`Right Type selection attempt ${attempt} failed: ${e}`);
+          if (attempt === 3) {
+            this.logger.error('Failed to select Right Type after 3 attempts');
+            throw new Error(`Failed to select Right Type: ${roiData.rightType}`);
+          }
+          // Wait before retry
+          await this.page.waitForTimeout(2000);
+        }
+      }
     }
 
     // Fill Term of Right if provided
@@ -191,6 +248,10 @@ export class ROIPage {
     await this.page.getByRole('button', { name: 'add', exact: true }).click();
     await this.page.waitForTimeout(1000);
     
+    // Wait for background process to complete (production needs time to attach person to ROI)
+    this.logger.info('Waiting 5s for person to be fully created and attached...');
+    await this.page.waitForTimeout(5000);
+    
     this.logger.success('ROI holder person added successfully');
   }
 
@@ -260,6 +321,10 @@ export class ROIPage {
     this.logger.info('Clicking Add button to save ROI applicant');
     await this.page.getByRole('button', { name: 'add', exact: true }).click();
     await this.page.waitForTimeout(1000);
+    
+    // Wait for background process to complete (production needs time to attach person to ROI)
+    this.logger.info('Waiting 5s for person to be fully created and attached...');
+    await this.page.waitForTimeout(5000);
     
     this.logger.success('ROI applicant person added successfully');
   }
@@ -429,8 +494,10 @@ export class ROIPage {
     this.logger.info(`Verifying activity note: ${expectedNote}`);
     
     try {
-      // Wait a bit for activity section to load
-      await this.page.waitForTimeout(1000);
+      // Wait longer for activity section and notes to fully load from backend
+      // Production needs more time than staging
+      await this.page.waitForTimeout(5000);
+      this.logger.info('Waited 5s for activity notes to load');
       
       // Look for the note text - use count() to handle multiple matches
       const noteLocator = this.page.getByText(expectedNote, { exact: false });
@@ -466,8 +533,14 @@ export class ROIPage {
   async clickRoiTab(): Promise<void> {
     this.logger.info('Clicking ROI tab');
     await this.page.getByRole('tab', { name: /roi/i }).click();
-    await this.page.waitForTimeout(1000);
-    this.logger.success('ROI tab opened');
+    
+    // Wait for network idle instead of static timeout (max 30s)
+    try {
+      await this.page.waitForLoadState('networkidle', { timeout: 30000 });
+      this.logger.success('ROI tab opened - network idle');
+    } catch (e) {
+      this.logger.warn('ROI tab network idle timeout after 30s, continuing anyway');
+    }
   }
 
   /**
@@ -487,11 +560,27 @@ export class ROIPage {
       this.logger.info('EDIT ROI button found');
       
       await this.page.getByRole('button', { name: /EDIT ROI/i }).click();
-      await this.page.waitForTimeout(3000);
+      
+      // Wait for navigation to edit page (URL should change to include '/edit/')
+      this.logger.info('Waiting for navigation to edit page...');
+      try {
+        await this.page.waitForURL('**/edit/roi/**', { timeout: 10000 });
+        this.logger.success('Navigated to edit page');
+      } catch (e) {
+        this.logger.warn('URL did not change to edit page within 10s, continuing anyway');
+      }
+      
+      // Wait for network to settle after navigation
+      try {
+        await this.page.waitForLoadState('networkidle', { timeout: 30000 });
+        this.logger.info('Edit page loaded - network idle');
+      } catch (e) {
+        this.logger.warn('Network idle timeout after 30s, continuing anyway');
+      }
       
       const currentUrl = this.page.url();
-      this.logger.info(`Current URL after click: ${currentUrl}`);
-      this.logger.success('EDIT ROI button clicked');
+      this.logger.info(`Current URL after navigation: ${currentUrl}`);
+      this.logger.success('EDIT ROI button clicked and page loaded');
     } catch (e) {
       this.logger.error('EDIT ROI button not found or not clickable');
       throw new Error('Failed to click EDIT ROI button');
@@ -510,6 +599,20 @@ export class ROIPage {
     await this.clickRoiTab();
     
     const typeLabel = personType === 'holder' ? 'ROI HOLDER' : 'ROI APPLICANT';
+    
+    // Wait for person name to appear on the page (production is much slower)
+    // Use a generous timeout since ROI content takes time to load
+    this.logger.info(`Waiting for "${personName}" to appear in ROI tab (30s timeout)...`);
+    try {
+      await this.page.waitForSelector(`text=${personName}`, { state: 'visible', timeout: 30000 });
+      this.logger.info(`✓ Found "${personName}" on the page`);
+    } catch (e) {
+      this.logger.error(`❌ Timeout waiting for "${personName}" to appear after 30s`);
+      const pageText = await this.page.locator('body').textContent();
+      const roiSection = pageText?.substring(0, 500) || 'Unable to get page text';
+      this.logger.info(`Page content preview: ${roiSection}`);
+      return false;
+    }
     
     // Find all person cards that contain the person name
     const personCards = await this.page.locator(`text=${personName}`).locator('..').all();
