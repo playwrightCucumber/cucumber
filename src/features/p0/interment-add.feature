@@ -45,3 +45,15 @@ Feature: Interment Management
     And I save the Interment
     Then I should see deceased "Jane Smith" in the Interment tab
     And I should see interment type "Cremated"
+
+  @advanced-search-plot @smoke @p0
+  Scenario: Advanced search plot by Section, Row, and Number and verify plot details in sidebar
+    When I click Advanced search button
+    And I select section "A" in advanced search
+    And I select row "A" in advanced search
+    And I enter plot number "1" in advanced search
+    And I click Search button in advanced search
+    Then I should see search results containing "A A 1"
+    When I click on plot "A A 1" from search results
+    Then I should see plot sidebar with plot ID "A A 1"
+    And I should see plot details sidebar
