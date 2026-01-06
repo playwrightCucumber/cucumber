@@ -40,7 +40,11 @@ export const AdvanceSearchPlotSelectors = {
   searchResultsHeading: 'h3:has-text("plots found")',
   searchResultsSubheading: 'p:has-text("cemeteries")',
   searchByBoundariesSwitch: '[role="switch"]',
-  closeAdvanceSearchButton: 'button:has-text("close advance search")',
+  closeAdvanceSearchButton: 'button[data-testid="search-advance-advance-search-result-button-close-advance-search"]',
+  // Plot detail in sidebar result
+  plotDetailContainer: 'div[data-testid="search-advance-advance-search-result-div-content-title"]',
+  plotDetailText: 'div[data-testid="search-advance-advance-search-result-div-content-title"] > span:first-child',
+  cemeteryNameText: 'div[data-testid="search-advance-advance-search-result-div-content-title"] > span:last-child',
 
   // No results message
   noResultsMessage: 'generic:has-text("No results at this place")',

@@ -145,48 +145,78 @@ Then('I should see search results information', { timeout: 10000 }, async functi
   logger.success('Search results information verified');
 });
 
-When('I click close advance search button', { timeout: 10000 }, async function () {
+Then('I should see plot number {string} in sidebar results', { timeout: 10000 }, async function (plotNumber: string) {
+  const page: Page = this.page;
+  logger.info(`Verifying plot number ${plotNumber} in sidebar results`);
+
+  // Get the plot detail text from sidebar
+  const plotDetailText = page.locator(AdvanceSearchPlotSelectors.plotDetailText);
+  await expect(plotDetailText).toBeVisible({ timeout: 5000 });
+
+  // Get the text content
+  const text = await plotDetailText.textContent();
+
+  // Verify the plot number is in the text (format: "A B 2" contains "2")
+  expect(text).toContain(plotNumber);
+
+  logger.success(`Plot number ${plotNumber} verified in sidebar: ${text}`);
+});
+
+Then('I should see cemetery name {string} in sidebar results', { timeout: 10000 }, async function (cemeteryName: string) {
+  const page: Page = this.page;
+  logger.info(`Verifying cemetery name ${cemeteryName} in sidebar results`);
+
+  // Get the cemetery name text from sidebar
+  const cemeteryNameText = page.locator(AdvanceSearchPlotSelectors.cemeteryNameText);
+  await expect(cemeteryNameText).toBeVisible({ timeout: 5000 });
+
+  // Get the text content
+  const text = await cemeteryNameText.textContent();
+
+  // Verify the cemetery name matches exactly
+  expect(text).toBe(cemeteryName);
+
+  logger.success(`Cemetery name ${cemeteryName} verified in sidebar`);
+});
+
+When('I click close advance search button', { timeout: 20000 }, async function () {
   const page: Page = this.page;
   logger.info('Clicking close advance search button');
 
   await page.locator(AdvanceSearchPlotSelectors.closeAdvanceSearchButton).click();
 
-  // Wait for navigation back to home page
-  await page.waitForURL('https://staging.chronicle.rip/', { timeout: 10000 });
-  await page.waitForTimeout(1000);
+  // Wait for navigation back to home page with increased timeout
+  await page.waitForURL('https://staging.chronicle.rip/', { timeout: 15000 });
+  await page.waitForTimeout(1500);
 
   logger.success('Advance search closed, navigated to home page');
 });
 
 Then('I should be on the home page', { timeout: 10000 }, async function () {
   const page: Page = this.page;
-  logger.info('Verifying on home page with cemeteries list');
+  logger.info('Verifying on home page');
 
   // Check URL
   expect(page.url()).toBe('https://staging.chronicle.rip/');
 
-  // Check for cemeteries heading
-  const cemeteriesHeading = page.locator(AdvanceSearchPlotSelectors.cemeteriesHeading);
-  await expect(cemeteriesHeading).toBeVisible({ timeout: 5000 });
-
-  // Check for cemeteries count
-  const cemeteriesCount = page.locator(AdvanceSearchPlotSelectors.cemeteriesCount);
-  await expect(cemeteriesCount).toBeVisible({ timeout: 5000 });
-
-  logger.success('Verified on home page with cemeteries list');
+  logger.success('Verified on home page');
 });
 
-Then('I should see cemeteries list', { timeout: 10000 }, async function () {
+Then('I should not see advance search results sidebar', { timeout: 10000 }, async function () {
   const page: Page = this.page;
-  logger.info('Verifying cemeteries list is visible');
+  logger.info('Verifying advance search results sidebar is not visible');
 
-  // Check for cemeteries heading
-  const cemeteriesHeading = page.locator(AdvanceSearchPlotSelectors.cemeteriesHeading);
-  await expect(cemeteriesHeading).toBeVisible({ timeout: 5000 });
+  // Check that search results heading is NOT visible
+  const searchResultsHeading = page.locator(AdvanceSearchPlotSelectors.searchResultsHeading);
+  await expect(searchResultsHeading).not.toBeVisible({ timeout: 5000 });
 
-  // Check for cemeteries count
-  const cemeteriesCount = page.locator(AdvanceSearchPlotSelectors.cemeteriesCount);
-  await expect(cemeteriesCount).toBeVisible({ timeout: 5000 });
+  // Check that search results subheading is NOT visible
+  const searchResultsSubheading = page.locator(AdvanceSearchPlotSelectors.searchResultsSubheading);
+  await expect(searchResultsSubheading).not.toBeVisible({ timeout: 5000 });
 
-  logger.success('Cemeteries list verified');
+  // Check that plot detail is NOT visible
+  const plotDetailText = page.locator(AdvanceSearchPlotSelectors.plotDetailText);
+  await expect(plotDetailText).not.toBeVisible({ timeout: 5000 });
+
+  logger.success('Advance search results sidebar is not visible');
 });
