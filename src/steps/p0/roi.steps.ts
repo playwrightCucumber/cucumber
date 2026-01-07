@@ -2,7 +2,6 @@ import { When, Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 import { PlotPage } from '../../pages/p0/PlotPage.js';
 import { ROIPage } from '../../pages/p0/ROIPage.js';
-import { SearchSelectors } from '../../selectors/p0/search.selectors.js';
 import { replacePlaceholdersInObject, replacePlaceholders } from '../../utils/TestDataHelper.js';
 
 // Initialize page objects
@@ -217,81 +216,4 @@ Then('I should see activity note {string}', { timeout: 10000 }, async function (
 
 When('I edit activity note {string} to {string}', { timeout: 15000 }, async function (oldText: string, newText: string) {
   await roiPage.editActivityNote(oldText, newText);
-});
-
-// Global search steps
-When('I search for {string} in global search', { timeout: 15000 }, async function (searchQuery: string) {
-  const page = this.page;
-  
-  // Find and click search input in header
-  const searchInput = page.locator('input[type="text"][placeholder*="Search" i], input[data-testid*="search" i]').first();
-  await searchInput.click();
-  await searchInput.fill(searchQuery);
-  
-  // Wait for search API call to complete and results to appear (production is slower)
-  await page.waitForTimeout(3000);
-  
-  // Wait for search results panel (generous timeout for production)
-  const searchResultPanel = page.locator('cl-search-person-item').first();
-  await searchResultPanel.waitFor({ state: 'visible', timeout: 10000 });
-  
-  this.searchQuery = searchQuery;
-});
-
-Then('I should see search result with plot {string}', { timeout: 10000 }, async function (plotName: string) {
-  const page = this.page;
-  
-  // Wait for search result item containing the plot name
-  const searchResultItem = page.locator('cl-search-person-item').filter({ hasText: plotName });
-  await searchResultItem.waitFor({ state: 'visible', timeout: 5000 });
-  
-  // Verify plot name is visible
-  const plotNameVisible = await searchResultItem.locator(`text=${plotName}`).isVisible();
-  expect(plotNameVisible).toBeTruthy();
-  
-  // Verify ROI Holder role is shown in search results
-  const roiHolderText = searchResultItem.locator('text=/.*\(ROI Holder\).*/i');
-  const hasRoiHolder = await roiHolderText.count() > 0;
-  expect(hasRoiHolder).toBeTruthy();
-  
-  this.selectedPlotFromSearch = plotName;
-});
-
-When('I click on search result plot {string}', { timeout: 20000 }, async function (plotName: string) {
-  const page = this.page;
-  
-  // Click on the search result item
-  const searchResult = page.locator('cl-search-person-item').filter({ hasText: plotName }).first();
-  await searchResult.click();
-  
-  // Wait for navigation to plot detail page with query params
-  // Note: When clicking from search results, the default active tab is EVENTS (not INTERMENTS)
-  await page.waitForURL(`**/${encodeURIComponent(plotName)}**`, { timeout: 10000 });
-  await page.waitForLoadState('domcontentloaded');
-  
-  // Wait for tab list to be visible
-  await page.locator('[role="tablist"]').waitFor({ state: 'visible', timeout: 8000 });
-  
-  // Click ROI tab directly using getByRole (more reliable than filter)
-  const roiTab = page.getByRole('tab', { name: 'ROI' });
-  await roiTab.waitFor({ state: 'visible', timeout: 5000 });
-  await roiTab.click();
-  
-  // Verify ROI tab is actually selected after click
-  await page.waitForTimeout(500);
-  const isSelected = await roiTab.getAttribute('aria-selected');
-  
-  if (isSelected !== 'true') {
-    // Tab click didn't work, try again
-    console.log('ROI tab not selected, clicking again...');
-    await roiTab.click();
-    await page.waitForTimeout(500);
-  }
-  
-  // Wait 2 seconds for ROI data to load completely
-  await page.waitForTimeout(2000);
-  
-  // Initialize page objects if needed
-  if (!plotPage) plotPage = new PlotPage(page);
-  if (!roiPage) roiPage = new ROIPage(page);
 });
