@@ -6,8 +6,8 @@ Feature: Interment Management
 
   Background:
     Given I am on the Chronicle login page
-    When I enter email "faris+astanaorg@chronicle.rip"
-    And I enter password "12345"
+    When I enter email "<TEST_EMAIL>"
+    And I enter password "<TEST_PASSWORD>"
     And I click the login button
     Then I should be logged in successfully
 
@@ -21,12 +21,12 @@ Feature: Interment Management
     And I select the first vacant plot
     When I click Add Interment button
     And I fill interment form with following details
-      | firstName     | John   |
-      | lastName      | Doe    |
-      | intermentType | Burial |
+      | firstName     | <TEST_INTERMENT_FIRSTNAME> |
+      | lastName      | <TEST_INTERMENT_LASTNAME>  |
+      | intermentType | <TEST_INTERMENT_TYPE>      |
     And I save the Interment
-    Then I should see deceased "John Doe" in the Interment tab
-    And I should see interment type "Burial"
+    Then I should see deceased "<TEST_INTERMENT_FIRSTNAME> <TEST_INTERMENT_LASTNAME>" in the Interment tab
+    And I should see interment type "<TEST_INTERMENT_TYPE>"
 
   @edit-interment @smoke @p0
   Scenario: Edit existing Interment in occupied plot and verify changes
@@ -39,12 +39,12 @@ Feature: Interment Management
     And I click on Interments tab
     When I click Edit Interment button
     And I update interment form with following details
-      | firstName     | Jane    |
-      | lastName      | Smith   |
-      | intermentType | Cremated |
+      | firstName     | <TEST_INTERMENT_EDIT_FIRSTNAME> |
+      | lastName      | <TEST_INTERMENT_EDIT_LASTNAME>  |
+      | intermentType | <TEST_INTERMENT_EDIT_TYPE>      |
     And I save the Interment
-    Then I should see deceased "Jane Smith" in the Interment tab
-    And I should see interment type "Cremated"
+    Then I should see deceased "<TEST_INTERMENT_EDIT_FIRSTNAME> <TEST_INTERMENT_EDIT_LASTNAME>" in the Interment tab
+    And I should see interment type "<TEST_INTERMENT_EDIT_TYPE>"
 
   @advanced-search-plot @smoke @p0
   Scenario: Advanced search plot by Section, Row, and Number and verify plot details in sidebar

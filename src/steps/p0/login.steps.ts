@@ -2,6 +2,7 @@ import { Given, When, Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 import { LoginPage } from '../../pages/p0/LoginPage.js';
 import { Logger } from '../../utils/Logger.js';
+import { replacePlaceholders } from '../../utils/TestDataHelper.js';
 
 const logger = new Logger('LoginSteps');
 let loginPage: LoginPage;
@@ -13,13 +14,15 @@ Given('I am on the Chronicle login page', { timeout: 30000 }, async function () 
 });
 
 When('I enter email {string}', async function (email: string) {
-  logger.info(`Entering email: ${email}`);
-  await loginPage.enterEmail(email);
+  const actualEmail = replacePlaceholders(email);
+  logger.info(`Entering email: ${actualEmail}`);
+  await loginPage.enterEmail(actualEmail);
 });
 
 When('I enter password {string}', async function (password: string) {
+  const actualPassword = replacePlaceholders(password);
   logger.info('Entering password');
-  await loginPage.enterPassword(password);
+  await loginPage.enterPassword(actualPassword);
 });
 
 When('I click the login button', async function () {
@@ -35,15 +38,17 @@ Then('I should be logged in successfully', { timeout: 60000 }, async function ()
 });
 
 Then('I should see the organization name {string}', { timeout: 10000 }, async function (expectedOrgName: string) {
-  logger.info(`Verifying organization name: ${expectedOrgName}`);
+  const actualOrgName = replacePlaceholders(expectedOrgName);
+  logger.info(`Verifying organization name: ${actualOrgName}`);
   const orgName = await loginPage.getOrganizationName();
-  expect(orgName?.toLowerCase()).toContain(expectedOrgName.toLowerCase());
+  expect(orgName?.toLowerCase()).toContain(actualOrgName.toLowerCase());
 });
 
 Then('I should see my email {string}', { timeout: 10000 }, async function (expectedEmail: string) {
-  logger.info(`Verifying user email: ${expectedEmail}`);
+  const actualEmail = replacePlaceholders(expectedEmail);
+  logger.info(`Verifying user email: ${actualEmail}`);
   const userEmail = await loginPage.getUserEmail();
-  expect(userEmail).toContain(expectedEmail);
+  expect(userEmail).toContain(actualEmail);
 });
 
 Then('I should see an error message', async function () {

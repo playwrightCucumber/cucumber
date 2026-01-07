@@ -8,12 +8,12 @@ Feature: Login to Chronicle
 
   @p0 @login @smoke
   Scenario: Successful login with valid credentials
-    When I enter email "faris+astanaorg@chronicle.rip"
-    And I enter password "12345"
+    When I enter email "<TEST_EMAIL>"
+    And I enter password "<TEST_PASSWORD>"
     And I click the login button
     Then I should be logged in successfully
-    And I should see the organization name "astana tegal gundul"
-    And I should see my email "faris+astanaorg@chronicle.rip"
+    And I should see the organization name "<TEST_ORG_NAME>"
+    And I should see my email "<TEST_EMAIL>"
 
   @p0 @login @negative
   Scenario: Login with invalid credentials
@@ -24,12 +24,12 @@ Feature: Login to Chronicle
 
   @p0 @login @negative
   Scenario: Login with empty email
-    When I enter password "12345"
+    When I enter password "<TEST_PASSWORD>"
     And I click the login button
     Then the login button should be disabled
 
   @p0 @login @negative
   Scenario: Login with empty password
-    When I enter email "faris+astanaorg@chronicle.rip"
+    When I enter email "<TEST_EMAIL>"
     And I click the login button
     Then the login button should be disabled

@@ -3,6 +3,7 @@ import { expect } from '@playwright/test';
 import { PlotPage } from '../../pages/p0/PlotPage.js';
 import { ROIPage } from '../../pages/p0/ROIPage.js';
 import { SearchSelectors } from '../../selectors/p0/search.selectors.js';
+import { replacePlaceholdersInObject, replacePlaceholders } from '../../utils/TestDataHelper.js';
 
 // Initialize page objects
 let plotPage: PlotPage;
@@ -63,7 +64,8 @@ When('I click Edit ROI button', { timeout: 15000 }, async function () {
 
 When('I fill ROI form with following details', { timeout: 30000 }, async function (dataTable: any) {
   const roiData = dataTable.rowsHash(); // For vertical tables with key-value pairs
-  await roiPage.fillRoiForm(roiData);
+  const actualData = replacePlaceholdersInObject(roiData);
+  await roiPage.fillRoiForm(actualData);
 });
 
 When('I select the first vacant plot', { timeout: 15000 }, async function () {
@@ -86,12 +88,14 @@ When('I select the first occupied plot', { timeout: 15000 }, async function () {
 
 When('I add ROI holder person with following details', { timeout: 15000 }, async function (dataTable: any) {
   const holderData = dataTable.rowsHash(); // For vertical tables with key-value pairs
-  await roiPage.addRoiHolderPerson(holderData);
+  const actualData = replacePlaceholdersInObject(holderData);
+  await roiPage.addRoiHolderPerson(actualData as any);
 });
 
 When('I add ROI applicant person with following details', { timeout: 15000 }, async function (dataTable: any) {
   const applicantData = dataTable.rowsHash(); // For vertical tables with key-value pairs
-  await roiPage.addRoiApplicantPerson(applicantData);
+  const actualData = replacePlaceholdersInObject(applicantData);
+  await roiPage.addRoiApplicantPerson(actualData as any);
 });
 
 When('I search and select ROI holder {string}', { timeout: 15000 }, async function (personName: string) {
@@ -128,6 +132,7 @@ When('I save the ROI', { timeout: 35000 }, async function () {
 });
 
 Then('I should see ROI holder {string} in the ROI tab', { timeout: 20000 }, async function (holderName: string) {
+  const actualName = replacePlaceholders(holderName);
   const page = this.page;
   
   // Wait for ROI content to load after tab click
@@ -144,34 +149,37 @@ Then('I should see ROI holder {string} in the ROI tab', { timeout: 20000 }, asyn
   // Get page content and verify both name and role exist
   const pageContent = await page.content();
   
-  const hasName = pageContent.includes(holderName);
+  const hasName = pageContent.includes(actualName);
   const hasRole = pageContent.toUpperCase().includes('ROI HOLDER');
   
   if (!hasName) {
     // Debug: show what's on page
     const bodyText = await page.locator('body').textContent();
     console.log('Page content preview:', bodyText?.substring(0, 500));
-    throw new Error(`❌ ROI holder "${holderName}" not found on page`);
+    throw new Error(`❌ ROI holder "${actualName}" not found on page`);
   }
   
   if (!hasRole) {
     throw new Error(`❌ Label "ROI HOLDER" not found on page`);
   }
   
-  console.log(`✓ ROI holder verified: "${holderName}" with label "ROI HOLDER"`);
+  console.log(`✓ ROI holder verified: "${actualName}" with label "ROI HOLDER"`);
 });
 
 Then('I should see ROI applicant {string} in the ROI tab', { timeout: 15000 }, async function (applicantName: string) {
-  const isVisible = await roiPage.verifyRoiPerson(applicantName, 'applicant');
+  const actualName = replacePlaceholders(applicantName);
+  const isVisible = await roiPage.verifyRoiPerson(actualName, 'applicant');
   if (!isVisible) {
-    throw new Error(`❌ Verification failed: ROI applicant "${applicantName}" not found or label "ROI APPLICANT" missing. Check logs above for details.`);
+    throw new Error(`❌ Verification failed: ROI applicant "${actualName}" not found or label "ROI APPLICANT" missing. Check logs above for details.`);
   }
 });
 
 Then('I should see both ROI holder {string} and applicant {string}', { timeout: 15000 }, async function (holderName: string, applicantName: string) {
-  const isVisible = await roiPage.verifyRoiHolderAndApplicant(holderName, applicantName);
+  const actualHolder = replacePlaceholders(holderName);
+  const actualApplicant = replacePlaceholders(applicantName);
+  const isVisible = await roiPage.verifyRoiHolderAndApplicant(actualHolder, actualApplicant);
   if (!isVisible) {
-    throw new Error(`❌ Verification failed: Either holder "${holderName}" or applicant "${applicantName}" not found with correct labels. Check logs above for details.`);
+    throw new Error(`❌ Verification failed: Either holder "${actualHolder}" or applicant "${actualApplicant}" not found with correct labels. Check logs above for details.`);
   }
 });
 

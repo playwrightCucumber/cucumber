@@ -6,8 +6,8 @@ Feature: ROI Management
 
   Background:
     Given I am on the Chronicle login page
-    When I enter email "faris+astanaorg@chronicle.rip"
-    And I enter password "12345"
+    When I enter email "<TEST_EMAIL>"
+    And I enter password "<TEST_PASSWORD>"
     And I click the login button
     Then I should be logged in successfully
 
@@ -21,11 +21,11 @@ Feature: ROI Management
     And I select the first vacant plot
     When I click Add ROI button
     And I fill ROI form with following details
-      | rightType       | Cremation       |
-      | termOfRight     | 25 Years        |
-      | fee             | 1000            |
-      | certificateNumber | CERT-TEST-001 |
-      | notes           | Test ROI for automation |
+      | rightType         | <TEST_ROI_RIGHT_TYPE> |
+      | termOfRight       | <TEST_ROI_TERM>       |
+      | fee               | <TEST_ROI_FEE>        |
+      | certificateNumber | <TEST_ROI_CERT>       |
+      | notes             | <TEST_ROI_NOTES>      |
     And I save the ROI
     Then the plot status should be "RESERVED"
 
@@ -39,19 +39,19 @@ Feature: ROI Management
     And I select the first vacant plot
     When I click Add ROI button
     And I fill ROI form with following details
-      | rightType       | Cremation       |
-      | termOfRight     | 25 Years        |
-      | fee             | 1000            |
-      | certificateNumber | CERT-TEST-002 |
-      | notes           | Test ROI with person holder |
+      | rightType         | Cremation           |
+      | termOfRight       | 25 Years            |
+      | fee               | 1000                |
+      | certificateNumber | <TEST_ROI_CERT_2>   |
+      | notes             | Test ROI with person holder |
     And I add ROI holder person with following details
-      | firstName | John                 |
-      | lastName  | Doe                  |
-      | phone     | +1234567890          |
-      | email     | john.doe@example.com |
+      | firstName | <TEST_ROI_HOLDER_FIRSTNAME> |
+      | lastName  | <TEST_ROI_HOLDER_LASTNAME>  |
+      | phone     | <TEST_ROI_HOLDER_PHONE>     |
+      | email     | john.doe@example.com        |
     And I save the ROI
     Then the plot status should be "RESERVED"
-    And I should see ROI holder "John Doe" in the ROI tab
+    And I should see ROI holder "<TEST_ROI_HOLDER_FIRSTNAME> <TEST_ROI_HOLDER_LASTNAME>" in the ROI tab
 
   @add-roi @roi-applicant @p0
   Scenario: Add ROI with person ROI applicant to vacant plot

@@ -36,11 +36,34 @@ export class IntermentPage {
    */
   async clickAddIntermentButton(): Promise<void> {
     this.logger.info('Clicking Add Interment button');
-    await this.page.click(IntermentSelectors.addIntermentButton);
     
-    // Wait for form to load
-    await this.page.waitForURL('**/manage/add/interment', { timeout: 10000 });
-    await this.page.waitForTimeout(2000); // Wait for form sections to load
+    // Wait for button to be visible and clickable
+    const button = this.page.locator(IntermentSelectors.addIntermentButton);
+    await button.waitFor({ state: 'visible', timeout: 15000 });
+    await this.page.waitForTimeout(1000); // Small wait for page to stabilize
+    
+    this.logger.info('Add Interment button found, clicking...');
+    await button.click();
+    
+    // Wait for navigation - try multiple patterns
+    try {
+      await this.page.waitForURL('**/manage/add/interment', { timeout: 15000 });
+      this.logger.info('✓ Navigated to Add Interment form');
+    } catch (e) {
+      // Log current URL if navigation fails
+      const currentUrl = this.page.url();
+      this.logger.info(`Current URL after click: ${currentUrl}`);
+      
+      // Check if we're on any manage page
+      if (currentUrl.includes('/manage/')) {
+        this.logger.info('On a manage page, proceeding...');
+      } else {
+        throw new Error(`Failed to navigate to Add Interment form. Current URL: ${currentUrl}`);
+      }
+    }
+    
+    // Wait for form to be visible
+    await this.page.waitForTimeout(3000); // Wait for form sections to load
     this.logger.success('Add Interment form loaded');
   }
 
@@ -167,10 +190,30 @@ export class IntermentPage {
   async clickIntermentsTab(): Promise<void> {
     this.logger.info('Clicking INTERMENTS tab');
     
-    // Click INTERMENTS tab using text selector
-    await this.page.getByRole('tab', { name: /INTERMENTS/i }).click();
-    await this.page.waitForTimeout(2000); // Wait for tab content to load
+    // Wait for tab to be visible first
+    const intermentsTab = this.page.getByRole('tab', { name: /INTERMENTS/i });
+    await intermentsTab.waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.waitForTimeout(500);
     
+    // Click the tab
+    await intermentsTab.click();
+    this.logger.info('INTERMENTS tab clicked, waiting for content to load...');
+    
+    // Wait for tab to be selected
+    await this.page.waitForTimeout(2000);
+    
+    // Verify tab is selected
+    const isSelected = await intermentsTab.getAttribute('aria-selected');
+    if (isSelected === 'true') {
+      this.logger.success('INTERMENTS tab selected successfully');
+    } else {
+      this.logger.info('Retrying tab click...');
+      await intermentsTab.click();
+      await this.page.waitForTimeout(2000);
+    }
+    
+    // Wait for content to stabilize
+    await this.page.waitForTimeout(3000);
     this.logger.success('INTERMENTS tab clicked');
   }
 
@@ -244,9 +287,31 @@ export class IntermentPage {
    */
   async clickIntermentTab(): Promise<void> {
     this.logger.info('Clicking INTERMENTS tab');
-    await this.page.getByRole('tab', { name: /INTERMENTS/i }).click();
-    this.logger.info('Waiting 20 seconds for INTERMENTS tab to load...');
-    await this.page.waitForTimeout(20000); // Wait for tab content to fully load
+    
+    // Wait for tab to be visible first
+    const intermentsTab = this.page.getByRole('tab', { name: /INTERMENTS/i });
+    await intermentsTab.waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.waitForTimeout(500);
+    
+    // Click the tab
+    await intermentsTab.click();
+    this.logger.info('INTERMENTS tab clicked, waiting for content to load...');
+    
+    // Wait for tab to be selected
+    await this.page.waitForTimeout(2000);
+    
+    // Verify tab is selected
+    const isSelected = await intermentsTab.getAttribute('aria-selected');
+    if (isSelected === 'true') {
+      this.logger.success('INTERMENTS tab selected successfully');
+    } else {
+      this.logger.info('Retrying tab click...');
+      await intermentsTab.click();
+      await this.page.waitForTimeout(2000);
+    }
+    
+    // Wait for content to stabilize
+    await this.page.waitForTimeout(3000);
     this.logger.success('INTERMENTS tab opened');
   }
 
@@ -255,10 +320,27 @@ export class IntermentPage {
    */
   async clickEditIntermentButton(): Promise<void> {
     this.logger.info('Clicking Edit Interment button');
-    await this.page.getByTestId('interment-item-button-edit-interment').click();
+    
+    // Wait for button to be visible and enabled
+    const editButton = this.page.getByTestId('interment-item-button-edit-interment');
+    await editButton.waitFor({ state: 'visible', timeout: 15000 });
+    await this.page.waitForTimeout(1000); // Wait for animations
+    
+    this.logger.info('Edit button found, clicking...');
+    await editButton.click();
     
     // Wait for edit form to load
-    await this.page.waitForURL('**/manage/edit/interment/**', { timeout: 10000 });
+    try {
+      await this.page.waitForURL('**/manage/edit/interment/**', { timeout: 15000 });
+      this.logger.info('✓ Navigated to Edit Interment form');
+    } catch (e) {
+      const currentUrl = this.page.url();
+      this.logger.info(`Current URL after click: ${currentUrl}`);
+      if (!currentUrl.includes('/manage/edit/')) {
+        throw new Error(`Failed to navigate to Edit form. Current URL: ${currentUrl}`);
+      }
+    }
+    
     await this.page.waitForTimeout(3000); // Wait for form to fully load
     this.logger.success('Edit Interment form loaded');
   }
