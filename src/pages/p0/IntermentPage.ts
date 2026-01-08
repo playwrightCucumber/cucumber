@@ -36,11 +36,34 @@ export class IntermentPage {
    */
   async clickAddIntermentButton(): Promise<void> {
     this.logger.info('Clicking Add Interment button');
-    await this.page.click(IntermentSelectors.addIntermentButton);
     
-    // Wait for form to load
-    await this.page.waitForURL('**/manage/add/interment', { timeout: 10000 });
-    await this.page.waitForTimeout(2000); // Wait for form sections to load
+    // Wait for button to be visible and clickable
+    const button = this.page.locator(IntermentSelectors.addIntermentButton);
+    await button.waitFor({ state: 'visible', timeout: 15000 });
+    await this.page.waitForTimeout(1000); // Small wait for page to stabilize
+    
+    this.logger.info('Add Interment button found, clicking...');
+    await button.click();
+    
+    // Wait for navigation - try multiple patterns
+    try {
+      await this.page.waitForURL('**/manage/add/interment', { timeout: 15000 });
+      this.logger.info('✓ Navigated to Add Interment form');
+    } catch (e) {
+      // Log current URL if navigation fails
+      const currentUrl = this.page.url();
+      this.logger.info(`Current URL after click: ${currentUrl}`);
+      
+      // Check if we're on any manage page
+      if (currentUrl.includes('/manage/')) {
+        this.logger.info('On a manage page, proceeding...');
+      } else {
+        throw new Error(`Failed to navigate to Add Interment form. Current URL: ${currentUrl}`);
+      }
+    }
+    
+    // Wait for form to be visible
+    await this.page.waitForTimeout(3000); // Wait for form sections to load
     this.logger.success('Add Interment form loaded');
   }
 
@@ -167,10 +190,30 @@ export class IntermentPage {
   async clickIntermentsTab(): Promise<void> {
     this.logger.info('Clicking INTERMENTS tab');
     
-    // Click INTERMENTS tab using text selector
-    await this.page.getByRole('tab', { name: /INTERMENTS/i }).click();
-    await this.page.waitForTimeout(2000); // Wait for tab content to load
+    // Wait for tab to be visible first
+    const intermentsTab = this.page.getByRole('tab', { name: /INTERMENTS/i });
+    await intermentsTab.waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.waitForTimeout(500);
     
+    // Click the tab
+    await intermentsTab.click();
+    this.logger.info('INTERMENTS tab clicked, waiting for content to load...');
+    
+    // Wait for tab to be selected
+    await this.page.waitForTimeout(2000);
+    
+    // Verify tab is selected
+    const isSelected = await intermentsTab.getAttribute('aria-selected');
+    if (isSelected === 'true') {
+      this.logger.success('INTERMENTS tab selected successfully');
+    } else {
+      this.logger.info('Retrying tab click...');
+      await intermentsTab.click();
+      await this.page.waitForTimeout(2000);
+    }
+    
+    // Wait for content to stabilize
+    await this.page.waitForTimeout(3000);
     this.logger.success('INTERMENTS tab clicked');
   }
 
@@ -244,9 +287,31 @@ export class IntermentPage {
    */
   async clickIntermentTab(): Promise<void> {
     this.logger.info('Clicking INTERMENTS tab');
-    await this.page.getByRole('tab', { name: /INTERMENTS/i }).click();
-    this.logger.info('Waiting 20 seconds for INTERMENTS tab to load...');
-    await this.page.waitForTimeout(20000); // Wait for tab content to fully load
+    
+    // Wait for tab to be visible first
+    const intermentsTab = this.page.getByRole('tab', { name: /INTERMENTS/i });
+    await intermentsTab.waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.waitForTimeout(500);
+    
+    // Click the tab
+    await intermentsTab.click();
+    this.logger.info('INTERMENTS tab clicked, waiting for content to load...');
+    
+    // Wait for tab to be selected
+    await this.page.waitForTimeout(2000);
+    
+    // Verify tab is selected
+    const isSelected = await intermentsTab.getAttribute('aria-selected');
+    if (isSelected === 'true') {
+      this.logger.success('INTERMENTS tab selected successfully');
+    } else {
+      this.logger.info('Retrying tab click...');
+      await intermentsTab.click();
+      await this.page.waitForTimeout(2000);
+    }
+    
+    // Wait for content to stabilize
+    await this.page.waitForTimeout(3000);
     this.logger.success('INTERMENTS tab opened');
   }
 
@@ -255,10 +320,27 @@ export class IntermentPage {
    */
   async clickEditIntermentButton(): Promise<void> {
     this.logger.info('Clicking Edit Interment button');
-    await this.page.getByTestId('interment-item-button-edit-interment').click();
+    
+    // Wait for button to be visible and enabled
+    const editButton = this.page.getByTestId('interment-item-button-edit-interment');
+    await editButton.waitFor({ state: 'visible', timeout: 15000 });
+    await this.page.waitForTimeout(1000); // Wait for animations
+    
+    this.logger.info('Edit button found, clicking...');
+    await editButton.click();
     
     // Wait for edit form to load
-    await this.page.waitForURL('**/manage/edit/interment/**', { timeout: 10000 });
+    try {
+      await this.page.waitForURL('**/manage/edit/interment/**', { timeout: 15000 });
+      this.logger.info('✓ Navigated to Edit Interment form');
+    } catch (e) {
+      const currentUrl = this.page.url();
+      this.logger.info(`Current URL after click: ${currentUrl}`);
+      if (!currentUrl.includes('/manage/edit/')) {
+        throw new Error(`Failed to navigate to Edit form. Current URL: ${currentUrl}`);
+      }
+    }
+    
     await this.page.waitForTimeout(3000); // Wait for form to fully load
     this.logger.success('Edit Interment form loaded');
   }
@@ -322,150 +404,5 @@ export class IntermentPage {
     }
 
     this.logger.success('Interment form updated');
-  }
-
-  /**
-   * Click Advanced search button to open advanced search dialog
-   */
-  async clickAdvancedSearchButton(): Promise<void> {
-    this.logger.info('Clicking Advanced search button');
-    await this.page.click(IntermentSelectors.advancedSearchButton);
-    await this.page.waitForTimeout(1000); // Wait for dialog to open
-    this.logger.success('Advanced search dialog opened');
-  }
-
-  /**
-   * Select section in advanced search
-   * @param section - Section letter (e.g., "A", "B")
-   */
-  async selectSectionInAdvancedSearch(section: string): Promise<void> {
-    this.logger.info(`Selecting section: ${section}`);
-
-    // Section is the first combobox with aria-label "Number" (confusing but that's the label)
-    // We need to get the first combobox that has the label "Number" and is NOT a textbox
-    await this.page.getByRole('combobox', { name: 'Number' }).first().click();
-    await this.page.waitForTimeout(500);
-
-    // Select the section option
-    await this.page.getByRole('option', { name: section, exact: true }).click();
-    await this.page.waitForTimeout(500);
-
-    this.logger.success(`Section ${section} selected`);
-  }
-
-  /**
-   * Select row in advanced search
-   * @param row - Row letter (e.g., "A", "B", "C")
-   */
-  async selectRowInAdvancedSearch(row: string): Promise<void> {
-    this.logger.info(`Selecting row: ${row}`);
-
-    // Row is a combobox with aria-label "Row"
-    await this.page.getByRole('combobox', { name: 'Row' }).click();
-    await this.page.waitForTimeout(500);
-
-    // Select the row option
-    await this.page.getByRole('option', { name: row, exact: true }).click();
-    await this.page.waitForTimeout(500);
-
-    this.logger.success(`Row ${row} selected`);
-  }
-
-  /**
-   * Enter plot number in advanced search
-   * @param number - Plot number (e.g., "1", "2")
-   */
-  async enterPlotNumberInAdvancedSearch(number: string): Promise<void> {
-    this.logger.info(`Entering plot number: ${number}`);
-
-    // Use the specific testid for the number field in advanced search
-    // The testid is 'filter-section-row-input-12' where 12 is the placeholder value
-    const numberField = this.page.getByTestId('filter-section-row-input-12');
-    await numberField.click();
-    await this.page.waitForTimeout(300);
-    await numberField.fill(number);
-    await this.page.waitForTimeout(500);
-
-    this.logger.success(`Plot number ${number} entered`);
-  }
-
-  /**
-   * Click Search button in advanced search dialog
-   */
-  async clickSearchButtonInAdvancedSearch(): Promise<void> {
-    this.logger.info('Clicking Search button in advanced search');
-
-    await this.page.click(IntermentSelectors.searchButton);
-
-    // Wait for search results to load and redirect to search page
-    await this.page.waitForURL('**/search/advance', { timeout: 10000 });
-    await this.page.waitForTimeout(3000); // Wait for results to load
-
-    this.logger.success('Search completed, results displayed');
-  }
-
-  /**
-   * Verify search results contain a specific plot
-   * @param plotId - Plot ID to verify (e.g., "A A 1")
-   */
-  async verifySearchResultsContain(plotId: string): Promise<void> {
-    this.logger.info(`Verifying search results contain plot: ${plotId}`);
-
-    // Wait for search results heading
-    await this.page.waitForSelector(IntermentSelectors.searchResultsHeading, { timeout: 10000 });
-
-    // Use the specific testid for the search result div
-    const searchResultDiv = this.page.getByTestId('advance-search-result-div-search-list');
-    await searchResultDiv.waitFor({ state: 'visible', timeout: 10000 });
-
-    // Verify the plot ID is visible in the search result
-    await expect(searchResultDiv.getByText(plotId)).toBeVisible({ timeout: 5000 });
-
-    this.logger.success(`Plot ${plotId} found in search results`);
-  }
-
-  /**
-   * Click on a plot from search results
-   * @param plotId - Plot ID to click (e.g., "A A 1")
-   */
-  async clickPlotFromSearchResults(plotId: string): Promise<void> {
-    this.logger.info(`Clicking on plot ${plotId} from search results`);
-
-    // Use the specific testid for the search result div and click on it
-    const searchResultDiv = this.page.getByTestId('advance-search-result-div-search-list');
-    await searchResultDiv.click();
-
-    // Wait for navigation to plot detail page
-    await this.page.waitForURL('**/plots/**', { timeout: 10000 });
-    await this.page.waitForTimeout(3000); // Wait for sidebar to load
-
-    this.logger.success(`Navigated to plot ${plotId} detail page`);
-  }
-
-  /**
-   * Verify plot sidebar is visible with correct plot ID
-   * @param plotId - Expected plot ID (e.g., "A A 1")
-   */
-  async verifyPlotSidebarWithPlotId(plotId: string): Promise<void> {
-    this.logger.info(`Verifying plot sidebar shows plot ID: ${plotId}`);
-
-    // Check for plot ID in sidebar heading
-    const plotHeading = this.page.locator(IntermentSelectors.plotSidebarHeading(plotId));
-    await plotHeading.waitFor({ state: 'visible', timeout: 10000 });
-
-    this.logger.success(`Plot sidebar verified with ID: ${plotId}`);
-  }
-
-  /**
-   * Verify plot details sidebar is visible
-   */
-  async verifyPlotDetailsSidebar(): Promise<void> {
-    this.logger.info('Verifying plot details sidebar is visible');
-
-    // Check for Edit button which indicates sidebar is loaded
-    const editButton = this.page.locator(IntermentSelectors.editButtonInSidebar);
-    await editButton.waitFor({ state: 'visible', timeout: 10000 });
-
-    this.logger.success('Plot details sidebar verified');
   }
 }

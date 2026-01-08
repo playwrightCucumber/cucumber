@@ -7,11 +7,11 @@
 export const IntermentSelectors = {
   // Plot detail page - Buttons
   addIntermentButton: '[data-testid="plot-details-edit-button-add-interment-btn"]',
-  
+
   // Interment Form - Header
   saveButton: 'button:has-text("save")',
   cancelButton: 'button:has-text("cancel")',
-  
+
   // Deceased Person section
   firstName: 'input[aria-label="First name"]',
   lastName: 'input[aria-label="Last name"]',
@@ -25,7 +25,7 @@ export const IntermentSelectors = {
   causeOfDeath: 'input[aria-label="Cause of death"]',
   occupation: 'input[aria-label="Occupation"]',
   specialBadgeDropdown: 'mat-select[aria-label="Special Badge"]',
-  
+
   // Interment Details section
   intermentTypeDropdown: 'mat-select[aria-label="Interment type"]',
   intermentTypeOption: (type: string) => `mat-option:has-text("${type}")`,
@@ -33,19 +33,19 @@ export const IntermentSelectors = {
   intermentDate: 'input[aria-label="Interment Date"]',
   cremationLocationDropdown: 'mat-select[aria-label="Cremation location"]',
   containerTypeDropdown: 'mat-select[aria-label="Container type"]',
-  
+
   // Right sidebar - Person additions
   addIntermentApplicantButton: 'button:has-text("Interment applicant")',
   addNextOfKinButton: 'button:has-text("Next of kin")',
   addFuneralMinisterButton: 'button:has-text("Funeral minister")',
   addFuneralDirectorButton: 'button:has-text("Funeral director")',
-  
+
   // Verification - Plot detail page after save
   intermentsTab: '[aria-label="INTERMENTS"]',
   deceasedNameHeading: (name: string) => `h3:has-text("${name}")`,
   intermentTypeLabel: (type: string) => `p:has-text("${type}")`,
   editIntermentButton: 'button:has-text("Edit interment")',
-  
+
   // Interment types
   intermentTypes: {
     burial: 'Burial',
@@ -55,17 +55,8 @@ export const IntermentSelectors = {
     unspecified: 'Unspecified'
   },
 
-  // Advanced Search
-  advancedSearchButton: 'button:has-text("Advanced")',
-  // Note: Section combobox has aria-label "Number" (it's the first field in the group)
-  // We use getByRole in the page object instead of a fixed selector
-  sectionCombobox: 'button:has-text("Section")',
-  rowCombobox: 'button:has-text("Row")',
-  // Number textbox has a placeholder attribute
-  numberTextbox: 'input[aria-label="Number"]',
-  searchButton: 'button:has-text("SEARCH")',
-  searchResultPlot: (plotId: string) => `div:has-text("${plotId}")`,
-  searchResultsHeading: 'h3:has-text("plots found")',
+  // Plot detail page sidebar (used by advance search verification)
   plotSidebarHeading: (plotId: string) => `h3:has-text("${plotId}")`,
-  editButtonInSidebar: 'button:has-text("Edit")'
+  // Use specific testid to avoid strict mode violation with interment Edit button
+  editButtonInSidebar: '[data-testid="plot-details-edit-button-edit-plot"]'
 };

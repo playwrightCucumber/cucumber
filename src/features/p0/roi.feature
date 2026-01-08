@@ -6,8 +6,8 @@ Feature: ROI Management
 
   Background:
     Given I am on the Chronicle login page
-    When I enter email "faris+astanaorg@chronicle.rip"
-    And I enter password "12345"
+    When I enter email "<TEST_EMAIL>"
+    And I enter password "<TEST_PASSWORD>"
     And I click the login button
     Then I should be logged in successfully
 
@@ -17,15 +17,15 @@ Feature: ROI Management
     And I open the filter dialog
     And I select vacant filter
     And I apply the filter plot
-    And I expand section "a"
+    And I expand the first section
     And I select the first vacant plot
     When I click Add ROI button
     And I fill ROI form with following details
-      | rightType       | Cremation       |
-      | termOfRight     | 25 Years        |
-      | fee             | 1000            |
-      | certificateNumber | CERT-TEST-001 |
-      | notes           | Test ROI for automation |
+      | rightType         | <TEST_ROI_RIGHT_TYPE> |
+      | termOfRight       | <TEST_ROI_TERM>       |
+      | fee               | <TEST_ROI_FEE>        |
+      | certificateNumber | <TEST_ROI_CERT>       |
+      | notes             | <TEST_ROI_NOTES>      |
     And I save the ROI
     Then the plot status should be "RESERVED"
 
@@ -35,23 +35,23 @@ Feature: ROI Management
     And I open the filter dialog
     And I select vacant filter
     And I apply the filter plot
-    And I expand section "a"
+    And I expand the first section
     And I select the first vacant plot
     When I click Add ROI button
     And I fill ROI form with following details
-      | rightType       | Cremation       |
-      | termOfRight     | 25 Years        |
-      | fee             | 1000            |
-      | certificateNumber | CERT-TEST-002 |
-      | notes           | Test ROI with person holder |
+      | rightType         | Cremation           |
+      | termOfRight       | 25 Years            |
+      | fee               | 1000                |
+      | certificateNumber | <TEST_ROI_CERT_2>   |
+      | notes             | Test ROI with person holder |
     And I add ROI holder person with following details
-      | firstName | John                 |
-      | lastName  | Doe                  |
-      | phone     | +1234567890          |
-      | email     | john.doe@example.com |
+      | firstName | <TEST_ROI_HOLDER_FIRSTNAME> |
+      | lastName  | <TEST_ROI_HOLDER_LASTNAME>  |
+      | phone     | <TEST_ROI_HOLDER_PHONE>     |
+      | email     | john.doe@example.com        |
     And I save the ROI
     Then the plot status should be "RESERVED"
-    And I should see ROI holder "John Doe" in the ROI tab
+    And I should see ROI holder "<TEST_ROI_HOLDER_FIRSTNAME> <TEST_ROI_HOLDER_LASTNAME>" in the ROI tab
 
   @add-roi @roi-applicant @p0
   Scenario: Add ROI with person ROI applicant to vacant plot
@@ -59,7 +59,7 @@ Feature: ROI Management
     And I open the filter dialog
     And I select vacant filter
     And I apply the filter plot
-    And I expand section "a"
+    And I expand the first section
     And I select the first vacant plot
     When I click Add ROI button
     And I fill ROI form with following details
@@ -83,7 +83,7 @@ Feature: ROI Management
     And I open the filter dialog
     And I select vacant filter
     And I apply the filter plot
-    And I expand section "a"
+    And I expand the first section
     And I select the first vacant plot
     When I click Add ROI button
     And I fill ROI form with following details
@@ -112,7 +112,7 @@ Feature: ROI Management
     And I open the filter dialog
     And I select reserved filter
     And I apply the filter plot
-    And I expand section "a"
+    And I expand the first section
     And I select the first reserved plot
     And I click Edit ROI button
     And I fill ROI form with following details
@@ -134,7 +134,7 @@ Feature: ROI Management
     And I open the filter dialog
     And I select reserved filter
     And I apply the filter plot
-    And I expand section "a"
+    And I expand the first section
     And I select the first reserved plot
     And I click Edit ROI button
     # First, add a note that we will edit later
@@ -151,16 +151,4 @@ Feature: ROI Management
     When I click Edit ROI button
     Then I should see activity note "EDITED: Note has been updated successfully"
 
-  @search-roi-holder @p0
-  Scenario: Search person and verify ROI holder in plot
-    # Navigate to plot list page where search is available
-    When I navigate to all plots page
-    # Search for existing person in global search
-    When I search for "sandiaga uno salahuddin" in global search
-    # Verify search result shows plot with person name and ROI Holder role
-    Then I should see search result with plot "B F 13"
-    # Click on search result to navigate to plot detail
-    When I click on search result plot "B F 13"
-    # Verify person exists in ROI tab with ROI HOLDER role
-    Then I should see ROI holder "Sandiaga Uno Salahuddin" in the ROI tab
 

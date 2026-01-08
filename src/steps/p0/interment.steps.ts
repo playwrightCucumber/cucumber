@@ -1,5 +1,6 @@
 import { When, Then } from '@cucumber/cucumber';
 import { IntermentPage } from '../../pages/p0/IntermentPage.js';
+import { replacePlaceholdersInObject, replacePlaceholders } from '../../utils/TestDataHelper.js';
 
 // Initialize page object
 let intermentPage: IntermentPage;
@@ -12,7 +13,8 @@ When('I click Add Interment button', { timeout: 15000 }, async function () {
 
 When('I fill interment form with following details', { timeout: 60000 }, async function (dataTable: any) {
   const intermentData = dataTable.rowsHash(); // For vertical tables with key-value pairs
-  await intermentPage.fillIntermentForm(intermentData);
+  const actualData = replacePlaceholdersInObject(intermentData);
+  await intermentPage.fillIntermentForm(actualData as any);
 });
 
 When('I save the Interment', { timeout: 40000 }, async function () {
@@ -20,11 +22,13 @@ When('I save the Interment', { timeout: 40000 }, async function () {
 });
 
 Then('I should see deceased {string} in the Interment tab', { timeout: 30000 }, async function (deceasedName: string) {
-  await intermentPage.verifyDeceasedInTab(deceasedName);
+  const actualName = replacePlaceholders(deceasedName);
+  await intermentPage.verifyDeceasedInTab(actualName);
 });
 
 Then('I should see interment type {string}', { timeout: 10000 }, async function (intermentType: string) {
-  await intermentPage.verifyIntermentType(intermentType);
+  const actualType = replacePlaceholders(intermentType);
+  await intermentPage.verifyIntermentType(actualType);
 });
 
 When('I add interment applicant', { timeout: 15000 }, async function () {
@@ -49,46 +53,6 @@ When('I click Edit Interment button', { timeout: 15000 }, async function () {
 
 When('I update interment form with following details', { timeout: 60000 }, async function (dataTable: any) {
   const intermentData = dataTable.rowsHash();
-  await intermentPage.updateIntermentForm(intermentData);
-});
-
-// Advanced Search Steps
-When('I click Advanced search button', { timeout: 10000 }, async function () {
-  const page = this.page;
-  if (!intermentPage) {
-    intermentPage = new IntermentPage(page);
-  }
-  await intermentPage.clickAdvancedSearchButton();
-});
-
-When('I select section {string} in advanced search', { timeout: 10000 }, async function (section: string) {
-  await intermentPage.selectSectionInAdvancedSearch(section);
-});
-
-When('I select row {string} in advanced search', { timeout: 10000 }, async function (row: string) {
-  await intermentPage.selectRowInAdvancedSearch(row);
-});
-
-When('I enter plot number {string} in advanced search', { timeout: 10000 }, async function (number: string) {
-  await intermentPage.enterPlotNumberInAdvancedSearch(number);
-});
-
-When('I click Search button in advanced search', { timeout: 15000 }, async function () {
-  await intermentPage.clickSearchButtonInAdvancedSearch();
-});
-
-Then('I should see search results containing {string}', { timeout: 15000 }, async function (plotId: string) {
-  await intermentPage.verifySearchResultsContain(plotId);
-});
-
-When('I click on plot {string} from search results', { timeout: 15000 }, async function (plotId: string) {
-  await intermentPage.clickPlotFromSearchResults(plotId);
-});
-
-Then('I should see plot sidebar with plot ID {string}', { timeout: 15000 }, async function (plotId: string) {
-  await intermentPage.verifyPlotSidebarWithPlotId(plotId);
-});
-
-Then('I should see plot details sidebar', { timeout: 10000 }, async function () {
-  await intermentPage.verifyPlotDetailsSidebar();
+  const actualData = replacePlaceholdersInObject(intermentData);
+  await intermentPage.updateIntermentForm(actualData as any);
 });

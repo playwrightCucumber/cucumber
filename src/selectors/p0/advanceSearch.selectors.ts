@@ -1,13 +1,13 @@
 /**
- * Advanced Search Plot Selectors (Without Login)
+ * Advanced Search Selectors
  * Real selectors from staging.chronicle.rip
  * Discovered via MCP Playwright manual exploration
  * Using CSS selectors with data-testid and aria-label
  */
 
-export const AdvanceSearchPlotSelectors = {
+export const AdvanceSearchSelectors = {
   // Home page - Advanced Search button
-  advancedSearchButton: 'button[aria-label="ADVANCED"]',
+  advancedSearchButton: 'button:has-text("Advanced")',
   advancedSearchButtonByClass: 'button.container-advanced-search',
   advancedSearchIcon: 'img[data-testid="toolbar-img-manage-icon"]',
 
