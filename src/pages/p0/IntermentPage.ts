@@ -287,19 +287,22 @@ export class IntermentPage {
    */
   async clickIntermentTab(): Promise<void> {
     this.logger.info('Clicking INTERMENTS tab');
-    
+
+    // Wait for page to be ready - ensure tablist is loaded
+    await this.page.waitForSelector('[role="tablist"]', { state: 'visible', timeout: 10000 });
+
     // Wait for tab to be visible first
     const intermentsTab = this.page.getByRole('tab', { name: /INTERMENTS/i });
     await intermentsTab.waitFor({ state: 'visible', timeout: 10000 });
     await this.page.waitForTimeout(500);
-    
+
     // Click the tab
     await intermentsTab.click();
     this.logger.info('INTERMENTS tab clicked, waiting for content to load...');
-    
+
     // Wait for tab to be selected
     await this.page.waitForTimeout(2000);
-    
+
     // Verify tab is selected
     const isSelected = await intermentsTab.getAttribute('aria-selected');
     if (isSelected === 'true') {
@@ -309,9 +312,15 @@ export class IntermentPage {
       await intermentsTab.click();
       await this.page.waitForTimeout(2000);
     }
-    
-    // Wait for content to stabilize
-    await this.page.waitForTimeout(3000);
+
+    // Wait for content to stabilize - wait for network to be idle
+    try {
+      await this.page.waitForLoadState('networkidle', { timeout: 5000 });
+    } catch {
+      // Network idle timeout is ok, continue
+      this.logger.info('Network idle timeout, continuing...');
+    }
+    await this.page.waitForTimeout(2000);
     this.logger.success('INTERMENTS tab opened');
   }
 

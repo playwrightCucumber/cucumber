@@ -188,25 +188,28 @@ export class PlotPage {
     this.logger.info('Getting first reserved plot name from the list');
     // Wait for plots to load
     await this.page.waitForTimeout(3000);
-    
+
     // Use getByText to find elements containing "Reserved"
     const reservedPlots = await this.page.getByText(/\w+\s+\w+\s+\d+\s+Reserved$/).all();
-    
+
     if (reservedPlots.length === 0) {
       throw new Error('No reserved plots found in the list');
     }
-    
+
     // Get the first plot
     const firstPlot = reservedPlots[0];
     const plotText = await firstPlot.textContent();
     const plotName = plotText?.replace(/\s*Reserved\s*$/, '').trim() || 'Unknown';
-    
+
     this.logger.info(`Found first reserved plot: ${plotName}`);
-    
+
     // Click the plot to navigate to plot detail page
     await firstPlot.click();
-    await this.page.waitForTimeout(3000);
-    
+    // Wait for navigation to plot detail page to complete
+    await this.page.waitForURL('**/plots/**', { timeout: 15000 });
+    // Wait for page to stabilize
+    await this.page.waitForTimeout(2000);
+
     this.logger.success(`First reserved plot selected: ${plotName}`);
     return plotName;
   }
@@ -219,25 +222,29 @@ export class PlotPage {
     this.logger.info('Getting first occupied plot from the list');
     // Wait for plots to load
     await this.page.waitForTimeout(3000);
-    
+
     // Find occupied plots - they show deceased name instead of status
     // Pattern: "A A 1 Ahmad Setiawan" (plot name + deceased name)
     const plotItems = await this.page.locator('[role="treeitem"] li').all();
-    
+
     if (plotItems.length === 0) {
       throw new Error('No occupied plots found in the list');
     }
-    
+
     // Get the first plot item
     const firstPlot = plotItems[0];
     const plotText = await firstPlot.textContent();
-    
+
     this.logger.info(`Found first occupied plot: ${plotText}`);
-    
+
     // Click the plot to navigate to plot detail page
     await firstPlot.click();
-    await this.page.waitForTimeout(3000);
-    
+    // Wait for navigation to plot detail page to complete
+    await this.page.waitForURL('**/plots/**', { timeout: 15000 });
+    // Wait for page to stabilize (tablist to load)
+    await this.page.waitForSelector('[role="tablist"]', { state: 'visible', timeout: 10000 });
+    await this.page.waitForTimeout(2000);
+
     this.logger.success(`First occupied plot selected`);
     return plotText?.trim() || 'Unknown';
   }
