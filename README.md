@@ -117,6 +117,9 @@ Setelah test run selesai, reports akan di-generate:
 ## 🔧 Configuration
 
 ## 🚀 Running Tests
+```bash
+ npm run test:headless -- --tags "@p0"
+```
 
 ### Run all tests
 ```bash
