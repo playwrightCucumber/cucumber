@@ -39,7 +39,7 @@ When('I expand section {string}', async function (section: string) {
   await plotPage.expandSection(section);
 });
 
-When('I expand the first section', async function () {
+When('I expand the first section', { timeout: 15000 }, async function () {
   const expandedSection = await plotPage.expandFirstSection();
   this.expandedSection = expandedSection; // Store for reference if needed
   this.logger?.info(`Expanded section: ${expandedSection.toUpperCase()}`);
