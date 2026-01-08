@@ -280,7 +280,7 @@ Then('I should not see advance search results sidebar', { timeout: 10000 }, asyn
 // LOGGED-IN USER ADVANCED SEARCH STEPS
 // ==========================================
 
-When('I click Advanced search button', { timeout: 10000 }, async function () {
+When('I click Advanced search button', { timeout: 20000 }, async function () {
   const page = this.page;
   if (!advanceSearchPage) {
     advanceSearchPage = new AdvanceSearchPage(page);

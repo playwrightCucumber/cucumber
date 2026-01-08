@@ -22,7 +22,33 @@ export class AdvanceSearchPage {
    */
   async clickAdvancedSearchButton(): Promise<void> {
     this.logger.info('Clicking Advanced search button');
-    await this.page.click(AdvanceSearchSelectors.advancedSearchButton);
+    
+    // Wait for the Advanced button to be visible and enabled (after loading completes)
+    const advancedButton = this.page.locator(AdvanceSearchSelectors.advancedSearchButton);
+    
+    // Wait for button to be visible
+    await advancedButton.waitFor({ state: 'visible', timeout: 10000 });
+    this.logger.info('Advanced button visible, waiting for it to be enabled...');
+    
+    // Wait for button to be enabled by using isEnabled check in a loop
+    let isEnabled = false;
+    const maxAttempts = 30; // 30 attempts * 500ms = 15 seconds max
+    for (let i = 0; i < maxAttempts; i++) {
+      isEnabled = await advancedButton.isEnabled();
+      if (isEnabled) {
+        break;
+      }
+      await this.page.waitForTimeout(500);
+    }
+    
+    if (!isEnabled) {
+      throw new Error('Advanced search button did not become enabled within timeout');
+    }
+    
+    this.logger.info('Advanced button is now enabled, clicking...');
+    
+    // Click the button
+    await advancedButton.click();
     await this.page.waitForTimeout(1000); // Wait for dialog to open
     this.logger.success('Advanced search dialog opened');
   }

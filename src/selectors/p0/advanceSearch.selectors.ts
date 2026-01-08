@@ -7,7 +7,7 @@
 
 export const AdvanceSearchSelectors = {
   // Home page - Advanced Search button
-  advancedSearchButton: 'button[aria-label="ADVANCED"]',
+  advancedSearchButton: 'button:has-text("Advanced")',
   advancedSearchButtonByClass: 'button.container-advanced-search',
   advancedSearchIcon: 'img[data-testid="toolbar-img-manage-icon"]',
 
