@@ -7,7 +7,20 @@
  * - Default: Uses hardcoded values below
  * - Environment: Set environment variables to override (e.g., TEST_EMAIL=new@email.com)
  * - Regression: Create .env file with new test data for bulk updates
+ * 
+ * NOTE: This is the SINGLE SOURCE OF TRUTH for all test data.
+ * Don't use Config.ts - it's deprecated. All config should be here.
  */
+
+// ============================================
+// BASE CONFIGURATION
+// ============================================
+export const BASE_CONFIG = {
+  baseUrl: process.env.BASE_URL || 'https://staging.chronicle.rip',
+  browser: process.env.BROWSER || 'chromium',
+  headless: process.env.HEADLESS === 'true',
+  timeout: parseInt(process.env.TIMEOUT || '30000')
+};
 
 // ============================================
 // LOGIN DATA
@@ -125,6 +138,7 @@ export const ROI_DATA = {
 // FULL TEST DATA OBJECT (For easy access)
 // ============================================
 export const TEST_DATA = {
+  config: BASE_CONFIG,
   login: LOGIN_DATA,
   cemetery: CEMETERY,
   plot: PLOT_SEARCH,

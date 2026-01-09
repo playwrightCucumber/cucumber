@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test';
 import { Logger } from '../../utils/Logger.js';
-import { Config } from '../../utils/Config.js';
+import { BASE_CONFIG } from '../../data/test-data.js';
 import { NetworkHelper } from '../../utils/NetworkHelper.js';
 import { LoginSelectors, LoginUrls } from '../../selectors/p0/login.selectors.js';
 
@@ -14,7 +14,7 @@ export class LoginPage {
 
   async navigate(): Promise<void> {
     this.logger.info('Navigating to login page');
-    const baseUrl = Config.baseUrl;
+    const baseUrl = BASE_CONFIG.baseUrl;
     this.logger.info(`Using BASE_URL: ${baseUrl}`);
     await this.page.goto(`${baseUrl}${LoginUrls.loginPage}`, { timeout: 30000 });
     await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 });

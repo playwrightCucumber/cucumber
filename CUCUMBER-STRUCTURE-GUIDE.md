@@ -47,7 +47,6 @@ automation_web/
 │   │   └── p2/
 │   │
 │   └── utils/             # Utility classes
-│       ├── Config.ts
 │       └── Logger.ts
 │
 ├── .env.example           # Template untuk environment variables

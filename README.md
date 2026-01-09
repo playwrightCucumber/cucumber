@@ -38,7 +38,6 @@ automation_web/
 │   │   ├── hooks.ts
 │   │   └── World.ts
 │   └── utils/            # Utility functions
-│       ├── Config.ts
 │       └── Logger.ts
 ├── cucumber.js           # Cucumber configuration
 ├── package.json
