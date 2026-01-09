@@ -45,6 +45,9 @@ export class LoginPage {
 
   async getErrorMessage(): Promise<string | null> {
     try {
+      // Wait 2 seconds for error message to appear
+      await this.page.waitForTimeout(2000);
+      
       const errorElement = this.page.locator(LoginSelectors.errorMessage).first();
       if (await errorElement.isVisible({ timeout: 3000 })) {
         return await errorElement.textContent();
