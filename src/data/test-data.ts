@@ -196,6 +196,54 @@ export const PERSON_DATA = {
 };
 
 // ============================================
+// REQUEST SALES FORM DATA
+// ============================================
+export const REQUEST_SALES_FORM_DATA = {
+  cemetery: {
+    name: process.env.TEST_CEMETERY_NAME || 'Astana Tegal Gundul US',
+    url: process.env.TEST_CEMETERY_URL || 'https://staging.chronicle.rip/astana_tegal_gundul_us',
+    sellPlotsUrl: process.env.TEST_SELL_PLOTS_URL || 'https://staging.chronicle.rip/astana_tegal_gundul_us/sell-plots',
+  },
+  plot: {
+    section: process.env.TEST_PLOT_SECTION || 'B',
+    name: process.env.TEST_PLOT_NAME || 'B A 1',
+    status: process.env.TEST_PLOT_STATUS || 'For SaleS',
+  },
+  applicant: {
+    firstName: process.env.TEST_APPLICANT_FIRSTNAME || 'Test',
+    lastName: process.env.TEST_APPLICANT_LASTNAME || 'Buyer',
+    middleName: process.env.TEST_APPLICANT_MIDDLENAME || '',
+    phoneMobile: process.env.TEST_APPLICANT_PHONE_M || '',
+    phoneHome: process.env.TEST_APPLICANT_PHONE_H || '',
+    phoneOffice: process.env.TEST_APPLICANT_PHONE_O || '',
+    email: process.env.TEST_APPLICANT_EMAIL || 'test.buyer@example.com',
+    address: process.env.TEST_APPLICANT_ADDRESS || '',
+    suburb: process.env.TEST_APPLICANT_SUBURB || '',
+    state: process.env.TEST_APPLICANT_STATE || '',
+    country: process.env.TEST_APPLICANT_COUNTRY || '',
+    postcode: process.env.TEST_APPLICANT_POSTCODE || '',
+  },
+  roi: {
+    rightType: process.env.TEST_REQUEST_ROI_RIGHT_TYPE || 'Burial',
+    termOfRight: process.env.TEST_REQUEST_ROI_TERM || 'Perpetual',
+    fee: process.env.TEST_REQUEST_ROI_FEE || '100',
+    serviceNeed: process.env.TEST_REQUEST_ROI_SERVICE_NEED || 'Pre-need',
+  },
+  // At-need specific: Interment Details
+  intermentDetails: {
+    deceasedFirstName: process.env.TEST_DECEASED_FIRSTNAME || 'John',
+    deceasedLastName: process.env.TEST_DECEASED_LASTNAME || 'Doe',
+    deceasedMiddleName: process.env.TEST_DECEASED_MIDDLENAME || '',
+    dateOfBirth: process.env.TEST_DECEASED_DOB || '01/01/1950',
+    dateOfDeath: process.env.TEST_DECEASED_DOD || '01/01/2026',
+    placeOfDeath: process.env.TEST_PLACE_OF_DEATH || 'Hospital',
+    intermentDate: process.env.TEST_INTERMENT_DATE || '01/15/2026',
+    intermentTime: process.env.TEST_INTERMENT_TIME || '10:00',
+    funeralDirector: process.env.TEST_FUNERAL_DIRECTOR || 'Test Funeral Home',
+  },
+};
+
+// ============================================
 // FULL TEST DATA OBJECT (For easy access)
 // ============================================
 export const TEST_DATA = {
@@ -208,7 +256,8 @@ export const TEST_DATA = {
   interment: INTERMENT_DATA,
   search: SEARCH_DATA,
   roi: ROI_DATA,
-  person: PERSON_DATA
+  person: PERSON_DATA,
+  requestSalesForm: REQUEST_SALES_FORM_DATA
 };
 
 // ============================================
@@ -230,4 +279,9 @@ export function getDeceasedName(type: 'add' | 'edit' = 'add'): string {
 export function getPersonName(type: 'add' | 'edit' | 'delete' = 'add'): string {
   const data = type === 'add' ? PERSON_DATA.add : (type === 'edit' ? PERSON_DATA.edit : PERSON_DATA.delete);
   return `${data.firstName} ${data.lastName}`;
+}
+
+// Helper function to get full applicant name for request sales form
+export function getApplicantName(): string {
+  return `${REQUEST_SALES_FORM_DATA.applicant.firstName} ${REQUEST_SALES_FORM_DATA.applicant.lastName}`;
 }
