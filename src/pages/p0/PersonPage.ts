@@ -164,14 +164,148 @@ export class PersonPage {
   }
 
   /**
-   * Click the save button
+   * Click the save button (auto-detects add vs edit based on URL)
    */
   async clickSave(): Promise<void> {
-    this.logger.info('Clicking save button');
+    const url = this.page.url();
     
-    const saveButton = this.page.locator(PersonSelectors.saveButton);
+    // Check if we're on edit page or add page
+    if (url.includes('/manage/edit/person')) {
+      this.logger.info('Detected edit context, using edit save button');
+      await this.clickSaveEdit();
+    } else if (url.includes('/manage/add/person')) {
+      this.logger.info('Detected add context, using add save button');
+      await this.clickSaveAdd();
+    } else {
+      this.logger.warn(`Unknown context URL: ${url}, defaulting to add save button`);
+      await this.clickSaveAdd();
+    }
+  }
+
+  /**
+   * Click the save button (for adding new person)
+   */
+  async clickSaveAdd(): Promise<void> {
+    this.logger.info('Clicking save button (add person)');
+    
+    const saveButton = this.page.locator(PersonSelectors.saveAddButton);
     await saveButton.waitFor({ state: 'visible', timeout: 10000 });
+    
+    // Validate button text is "Save" before clicking
+    const buttonText = await saveButton.textContent();
+    this.logger.info(`Button text: "${buttonText?.trim()}"`);
+    
+    if (!buttonText || !buttonText.toLowerCase().includes('save')) {
+      this.logger.error(`Button text is not "Save", found: "${buttonText}". Aborting click.`);
+      throw new Error(`Expected Save button but found: "${buttonText}"`);
+    }
+    
     await saveButton.click();
+    
+    // Wait for navigation back to persons table
+    await this.page.waitForURL('**/advance-table?tab=persons', { timeout: 20000 });
+    this.logger.info('Person saved successfully, navigated back to persons table');
+    
+    // Wait for table to load
+    await this.page.waitForTimeout(2000);
+  }
+
+  /**
+   * Click the save button (for editing existing person)
+   */
+  async clickSaveEdit(): Promise<void> {
+    this.logger.info('Clicking save button (edit person)');
+    
+    // Check for validation errors before saving
+    const hasErrors = await this.page.evaluate(() => {
+      const errorElements = document.querySelectorAll('.mat-error, .error, [class*="error"]');
+      const visibleErrors = Array.from(errorElements).filter((el) => {
+        const style = window.getComputedStyle(el);
+        return style.display !== 'none' && style.visibility !== 'hidden';
+      });
+      return visibleErrors.map(el => el.textContent?.trim()).filter(Boolean);
+    });
+    
+    if (hasErrors.length > 0) {
+      this.logger.warn(`Form has validation errors: ${JSON.stringify(hasErrors)}`);
+    } else {
+      this.logger.info('No visible validation errors found');
+    }
+    
+    const saveButton = this.page.locator(PersonSelectors.saveEditButton);
+    await saveButton.waitFor({ state: 'visible', timeout: 10000 });
+    
+    // Validate button text is "Save" before clicking
+    const buttonText = await saveButton.textContent();
+    this.logger.info(`Button text: "${buttonText?.trim()}"`);
+    
+    if (!buttonText || !buttonText.toLowerCase().includes('save')) {
+      this.logger.error(`Button text is not "Save", found: "${buttonText}". Aborting click.`);
+      throw new Error(`Expected Save button but found: "${buttonText}"`);
+    }
+    
+    // Check if save button is disabled
+    const isDisabled = await saveButton.isDisabled();
+    if (isDisabled) {
+      this.logger.error('Save button is disabled! Cannot save.');
+      throw new Error('Save button is disabled');
+    }
+    
+    // Listen for console errors
+    const consoleMessages: string[] = [];
+    const consoleListener = (msg: any) => {
+      if (msg.type() === 'error') {
+        consoleMessages.push(msg.text());
+      }
+    };
+    this.page.on('console', consoleListener);
+    
+    // Set up response listener for save API call
+    let apiCalled = false;
+    const responsePromise = this.page.waitForResponse(
+      response => {
+        const url = response.url();
+        const method = response.request().method();
+        const isPersonApi = url.includes('/person/') && (method === 'PUT' || method === 'PATCH');
+        if (isPersonApi) {
+          apiCalled = true;
+        }
+        return isPersonApi;
+      },
+      { timeout: 15000 }
+    ).catch(() => null);
+    
+    await saveButton.click();
+    this.logger.info('Save button clicked');
+    
+    // Wait a bit to see if API call is made
+    await this.page.waitForTimeout(2000);
+    
+    // Remove console listener
+    this.page.off('console', consoleListener);
+    
+    if (consoleMessages.length > 0) {
+      this.logger.warn(`Console errors after save click: ${consoleMessages.join(', ')}`);
+    }
+    
+    // Wait for save API response
+    const response = await responsePromise;
+    if (response) {
+      const status = response.status();
+      this.logger.info(`Save API response status: ${status}`);
+      
+      if (status >= 200 && status < 300) {
+        this.logger.info('Person save API call successful');
+        const body = await response.json().catch(() => ({}));
+        this.logger.info(`Response body: ${JSON.stringify(body).substring(0, 200)}`);
+      } else {
+        this.logger.warn(`Save API returned non-success status: ${status}`);
+        const body = await response.text();
+        this.logger.warn(`Response body: ${body.substring(0, 200)}`);
+      }
+    } else if (!apiCalled) {
+      this.logger.warn('No save API call was made - form might think there are no changes');
+    }
     
     // Wait for navigation back to persons table
     await this.page.waitForURL('**/advance-table?tab=persons', { timeout: 20000 });
@@ -206,10 +340,34 @@ export class PersonPage {
     
     this.logger.info('Data rows are present in grid');
     
+    // Debug: Check what rows are actually visible
+    const rowInfo = await this.page.evaluate(() => {
+      const grid = document.querySelector('[role="grid"]');
+      if (!grid) return { totalRows: 0, visibleRows: 0, firstDataRowHTML: '' };
+      const rows = Array.from(grid.querySelectorAll('[role="row"]'));
+      const visibleRows = rows.filter((row) => {
+        const style = window.getComputedStyle(row);
+        return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+      });
+      return {
+        totalRows: rows.length,
+        visibleRows: visibleRows.length,
+        firstDataRowHTML: rows.length > 1 ? rows[1].outerHTML.substring(0, 500) : 'No data row'
+      };
+    });
+    this.logger.info(`Grid rows - Total: ${rowInfo.totalRows}, Visible: ${rowInfo.visibleRows}`);
+    
     // Use a more robust selector: look for the second row (first data row) within the grid
     const gridLocator = this.page.locator('[role="grid"]');
     const firstDataRow = gridLocator.locator('[role="row"]').nth(1); // 0 = header, 1 = first data row
-    await firstDataRow.waitFor({ state: 'visible', timeout: 5000 });
+    
+    try {
+      await firstDataRow.waitFor({ state: 'visible', timeout: 5000 });
+    } catch (error) {
+      this.logger.error('First data row not visible');
+      this.logger.info(`First row HTML: ${rowInfo.firstDataRowHTML || 'Not found'}`);
+      throw error;
+    }
     
     // Get cells from first data row
     const cells = firstDataRow.locator('[role="gridcell"]');
@@ -232,5 +390,254 @@ export class PersonPage {
     
     expect(actualName).toBe(expectedName);
     this.logger.info(`Person verified successfully in first row: ${actualName}`);
+  }
+
+  /**
+   * Click filter button to open filter dialog
+   */
+  async clickFilterButton(): Promise<void> {
+    this.logger.info('Clicking filter button');
+    
+    const filterButton = this.page.locator(PersonSelectors.filterButton);
+    await filterButton.waitFor({ state: 'visible', timeout: 10000 });
+    await filterButton.click();
+    
+    this.logger.info('Filter dialog opened');
+    await this.page.waitForTimeout(500); // Wait for filter dialog to open
+  }
+
+  /**
+   * Fill filter form with first name and last name
+   */
+  async fillFilterForm(firstName: string, lastName: string): Promise<void> {
+    this.logger.info(`Filling filter form with: ${firstName} ${lastName}`);
+    
+    // Fill first name
+    const firstNameInput = this.page.locator(PersonSelectors.filterFirstNameInput);
+    await firstNameInput.waitFor({ state: 'visible', timeout: 10000 });
+    await firstNameInput.fill(firstName);
+    
+    // Fill last name
+    const lastNameInput = this.page.locator(PersonSelectors.filterLastNameInput);
+    await lastNameInput.fill(lastName);
+    
+    this.logger.info('Filter form filled');
+  }
+
+  /**
+   * Apply filter
+   */
+  async applyFilter(): Promise<void> {
+    this.logger.info('Applying filter');
+    
+    const applyButton = this.page.locator(PersonSelectors.filterApplyButton);
+    await applyButton.waitFor({ state: 'visible', timeout: 5000 });
+    await applyButton.click();
+    
+    this.logger.info('Filter applied, waiting for table to reload');
+    // Wait longer for table to reload with filtered data
+    await this.page.waitForTimeout(3000);
+  }
+
+  /**
+   * Click first row to open person details
+   */
+  async clickFirstRow(): Promise<void> {
+    this.logger.info('Clicking first row to open person details');
+    
+    // Wait for grid with actual data rows
+    await this.page.waitForFunction(`() => {
+      const grid = document.querySelector('[role="grid"]');
+      if (!grid) return false;
+      const rows = grid.querySelectorAll('[role="row"]');
+      return rows.length >= 2;
+    }`, { timeout: 10000 });
+    
+    const gridLocator = this.page.locator('[role="grid"]');
+    const firstDataRow = gridLocator.locator('[role="row"]').nth(1);
+    await firstDataRow.click();
+    
+    this.logger.info('First row clicked, waiting for person details');
+    await this.page.waitForTimeout(1000);
+  }
+
+  /**
+   * Click edit button in person details sidebar
+   */
+  async clickEditButton(): Promise<void> {
+    this.logger.info('Clicking edit button');
+    
+    const editButton = this.page.locator(PersonSelectors.editButton);
+    await editButton.waitFor({ state: 'visible', timeout: 10000 });
+    await editButton.click();
+    
+    this.logger.info('Edit button clicked, navigating to edit form');
+    await this.page.waitForTimeout(1000);
+  }
+
+  /**
+   * Edit person's last name only (for edit scenario)
+   */
+  async editPersonLastName(newLastName: string): Promise<void> {
+    this.logger.info(`Editing person last name to: ${newLastName}`);
+    
+    // First, verify we're on the edit page
+    const url = this.page.url();
+    this.logger.info(`Current URL: ${url}`);
+    
+    if (!url.includes('/manage/edit/person')) {
+      throw new Error('Not on person edit page');
+    }
+    
+    const lastNameInput = this.page.locator(PersonSelectors.lastNameInput);
+    await lastNameInput.waitFor({ state: 'visible', timeout: 10000 });
+    
+    // Check the current value
+    const currentValue = await lastNameInput.inputValue();
+    this.logger.info(`Current last name value: "${currentValue}"`);
+    
+    // Click to focus
+    await lastNameInput.click();
+    await this.page.waitForTimeout(200);
+    
+    // Clear field completely using multiple methods
+    await lastNameInput.clear();
+    await this.page.waitForTimeout(300);
+    
+    // Verify field is empty
+    let fieldValue = await lastNameInput.inputValue();
+    if (fieldValue) {
+      this.logger.info('Field not empty after clear, trying select all + delete');
+      await lastNameInput.click({ clickCount: 3 }); // Triple click to select all
+      await this.page.waitForTimeout(200);
+      await this.page.keyboard.press('Backspace');
+      await this.page.waitForTimeout(300);
+    }
+    
+    // Type the new value
+    await lastNameInput.type(newLastName, { delay: 50 });
+    await this.page.waitForTimeout(300);
+    
+    // Blur to trigger validation
+    await this.page.keyboard.press('Tab');
+    await this.page.waitForTimeout(500);
+    
+    // Verify the value was actually set
+    const actualValue = await lastNameInput.inputValue();
+    this.logger.info(`Last name field value after edit: "${actualValue}"`);
+    
+    if (actualValue !== newLastName) {
+      throw new Error(`Failed to set last name. Expected "${newLastName}" but got "${actualValue}"`);
+    }
+    
+    this.logger.info(`Last name updated successfully to: ${newLastName}`);
+  }
+
+  /**
+   * Click delete button
+   */
+  async clickDelete(): Promise<void> {
+    this.logger.info('Clicking delete button');
+    const deleteButton = this.page.locator(PersonSelectors.deleteButton);
+    await deleteButton.waitFor({ state: 'visible', timeout: 10000 });
+    await deleteButton.click();
+    await this.page.waitForTimeout(1000);
+    this.logger.info('Delete button clicked, waiting for confirmation dialog');
+  }
+
+  /**
+   * Confirm delete in dialog
+   */
+  async confirmDelete(): Promise<void> {
+    this.logger.info('Confirming delete in dialog');
+    
+    // Wait for and click confirm delete button in dialog
+    const confirmButton = this.page.locator(PersonSelectors.confirmDeleteButton).last();
+    await confirmButton.waitFor({ state: 'visible', timeout: 5000 });
+    
+    // Wait for delete API call
+    const deletePromise = this.page.waitForResponse(
+      response => response.url().includes('/customer-organization/person') && 
+                  response.request().method() === 'DELETE',
+      { timeout: 15000 }
+    );
+    
+    await confirmButton.click();
+    this.logger.info('Confirm delete button clicked');
+    
+    try {
+      const deleteResponse = await deletePromise;
+      const status = deleteResponse.status();
+      this.logger.info(`Delete API response status: ${status}`);
+      
+      if (status === 200 || status === 204) {
+        this.logger.info('Person deleted successfully');
+      } else {
+        this.logger.warn(`Delete API returned non-success status: ${status}`);
+      }
+    } catch (error) {
+      this.logger.warn('Delete API call timeout or error');
+    }
+    
+    // Wait for navigation back to persons table
+    await this.page.waitForURL('**/advance-table?tab=persons', { timeout: 20000 });
+    this.logger.info('Navigated back to persons table after deletion');
+    
+    // Wait for table to reload
+    await this.page.waitForTimeout(2000);
+  }
+
+  /**
+   * Verify person is NOT in the table by checking the person name
+   */
+  async verifyPersonNotInList(expectedName: string): Promise<void> {
+    this.logger.info(`Verifying person "${expectedName}" is NOT in the list`);
+    
+    // Clear any active filters first by reloading the page
+    // This ensures we're checking the full list, not a filtered subset
+    await this.page.reload({ waitUntil: 'networkidle' });
+    this.logger.info('Page reloaded to clear filters');
+    
+    await this.page.waitForTimeout(2000);
+    
+    // Wait for table to finish loading
+    try {
+      await this.page.waitForSelector('[role="grid"] progressbar', { state: 'detached', timeout: 15000 });
+      this.logger.info('Table loading complete');
+    } catch (error) {
+      this.logger.info('No loading indicators found or already loaded');
+    }
+    
+    await this.page.waitForTimeout(1000);
+    
+    // Get all person names from the table
+    const allNames = await this.page.evaluate(() => {
+      const grid = document.querySelector('[role="grid"]');
+      if (!grid) return [];
+      
+      const rows = Array.from(grid.querySelectorAll('[role="row"]'));
+      // Skip header row (first row)
+      const dataRows = rows.slice(1);
+      
+      return dataRows.map((row) => {
+        const cells = Array.from(row.querySelectorAll('[role="gridcell"]'));
+        // Assuming first name is in column 2, last name is in column 4 (index 1 and 3)
+        const firstName = cells[1]?.textContent?.trim() || '';
+        const lastName = cells[3]?.textContent?.trim() || '';
+        return `${firstName} ${lastName}`.trim();
+      }).filter(name => name && name !== '--' && name !== '  ');
+    });
+    
+    this.logger.info(`Found ${allNames.length} persons in the table`);
+    this.logger.info(`Names: ${allNames.join(', ')}`);
+    
+    // Check if the deleted person name is in the list
+    const personFound = allNames.some(name => name === expectedName);
+    
+    if (personFound) {
+      throw new Error(`Person "${expectedName}" is still in the list after deletion!`);
+    }
+    
+    this.logger.info(`✓ Person "${expectedName}" is NOT in the list (deleted successfully)`);
   }
 }

@@ -34,3 +34,36 @@ Feature: Person Management - Authenticated
       | note       | <TEST_PERSON_NOTE>       |
     And I click the save button
     Then I should see the person "<TEST_PERSON_FIRSTNAME> <TEST_PERSON_LASTNAME>" in the first row of the table
+
+  @edit
+  Scenario: Edit person with filter maintained
+    When I navigate to the advance table page
+    And I click on the PERSONS tab
+    And I click the filter button
+    And I fill in the filter form with first name "<TEST_PERSON_FIRSTNAME>" and last name "<TEST_PERSON_LASTNAME>"
+    And I apply the filter
+    Then I should see the person "<TEST_PERSON_FIRSTNAME> <TEST_PERSON_LASTNAME>" in the first row of the table
+    When I click the first row to open person details
+    And I edit the last name to "<TEST_PERSON_LASTNAME_EDITED>"
+    And I click the save button
+    # After save, filter should show the edited person with new last name
+    And I click the filter button
+    And I fill in the filter form with first name "<TEST_PERSON_FIRSTNAME>" and last name "<TEST_PERSON_LASTNAME_EDITED>"
+    And I apply the filter
+    Then I should see the person "<TEST_PERSON_FIRSTNAME> <TEST_PERSON_LASTNAME_EDITED>" in the first row of the table
+
+  @delete
+  Scenario: Delete person and verify not in list
+    When I navigate to the advance table page
+    And I click on the PERSONS tab
+    # Filter to find the edited person from previous scenario
+    And I click the filter button
+    And I fill in the filter form with first name "<TEST_PERSON_FIRSTNAME>" and last name "<TEST_PERSON_LASTNAME_EDITED>"
+    And I apply the filter
+    Then I should see the person "<TEST_PERSON_FIRSTNAME> <TEST_PERSON_LASTNAME_EDITED>" in the first row of the table
+    # Delete the person
+    When I click the first row to open person details
+    And I click the delete button
+    And I confirm the deletion
+    # Verify person is not in the list anymore
+    Then the person "<TEST_PERSON_FIRSTNAME> <TEST_PERSON_LASTNAME_EDITED>" should not be in the list

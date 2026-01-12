@@ -26,11 +26,23 @@ export const PersonSelectors = {
   notesTextarea: 'input[formcontrolname="notes"]',
   
   // Buttons
-  saveButton: 'button[data-testid="toolbar-manage-button-toolbar-button-1"]',
+  saveAddButton: 'button[data-testid="toolbar-manage-button-toolbar-button-1"]', // Save button when adding new person
+  saveEditButton: 'button[data-testid="toolbar-manage-button-toolbar-button-2"]', // Save button when editing existing person
   cancelButton: 'button[data-testid="toolbar-manage-button-toolbar-button"]',
+  deleteButton: 'button:has-text("Delete")', // Delete button in edit page
+  confirmDeleteButton: 'button:has-text("Delete")', // Confirm delete in dialog
+  
+  // Filter
+  filterButton: 'button:has-text("Filter")', // More generic selector for filter button
+  filterFirstNameInput: 'input[formcontrolname="first_name"]',
+  filterLastNameInput: 'input[formcontrolname="last_name"]',
+  filterApplyButton: 'button:has-text("Apply")', // Generic apply button
   
   // Table - first row (grid structure)
   tableFirstRow: 'div[role="grid"] div[role="row"]:nth-child(2)', // nth-child(2) to skip header row
   firstRowFirstName: 'div[role="grid"] div[role="row"]:nth-child(2) div[role="gridcell"]:nth-child(2)',
   firstRowLastName: 'div[role="grid"] div[role="row"]:nth-child(2) div[role="gridcell"]:nth-child(4)',
+  
+  // Edit person (sidebar or dialog)
+  editButton: 'button:has-text("Edit")', // Generic edit button, may need to be more specific
 };

@@ -154,6 +154,44 @@ export const PERSON_DATA = {
     country: process.env.TEST_PERSON_COUNTRY || 'USA',
     postCode: process.env.TEST_PERSON_POSTCODE || '10001',
     note: process.env.TEST_PERSON_NOTE || 'Test person created via automation'
+  },
+  edit: {
+    firstName: process.env.TEST_PERSON_FIRSTNAME || 'Michael',
+    lastName: process.env.TEST_PERSON_LASTNAME_EDITED || 'Johnsonss', // Changed from Johnson to Johnsonss
+    middleName: process.env.TEST_PERSON_MIDDLENAME || 'Andrew',
+    title: process.env.TEST_PERSON_TITLE || 'Mr',
+    gender: process.env.TEST_PERSON_GENDER || 'Male',
+    phoneM: process.env.TEST_PERSON_PHONE_M || '+1234567890',
+    phoneH: process.env.TEST_PERSON_PHONE_H || '+0987654321',
+    phoneO: process.env.TEST_PERSON_PHONE_O || '+1122334455',
+    email: process.env.TEST_PERSON_EMAIL || 'michael.johnson@example.com',
+    address: process.env.TEST_PERSON_ADDRESS || '123 Main Street',
+    city: process.env.TEST_PERSON_CITY || 'New York',
+    state: process.env.TEST_PERSON_STATE || 'NY',
+    country: process.env.TEST_PERSON_COUNTRY || 'USA',
+    postCode: process.env.TEST_PERSON_POSTCODE || '10001',
+    note: process.env.TEST_PERSON_NOTE || 'Test person created via automation'
+  },
+  filter: {
+    firstName: process.env.TEST_PERSON_FIRSTNAME || 'Michael',
+    lastName: process.env.TEST_PERSON_LASTNAME || 'Johnson'
+  },
+  delete: {
+    firstName: process.env.TEST_PERSON_DELETE_FIRSTNAME || 'Robert',
+    lastName: process.env.TEST_PERSON_DELETE_LASTNAME || 'Williams',
+    middleName: process.env.TEST_PERSON_DELETE_MIDDLENAME || 'James',
+    title: process.env.TEST_PERSON_DELETE_TITLE || 'Dr',
+    gender: process.env.TEST_PERSON_DELETE_GENDER || 'Male',
+    phoneM: process.env.TEST_PERSON_DELETE_PHONE_M || '+9876543210',
+    phoneH: process.env.TEST_PERSON_DELETE_PHONE_H || '+1122334455',
+    phoneO: process.env.TEST_PERSON_DELETE_PHONE_O || '+5544332211',
+    email: process.env.TEST_PERSON_DELETE_EMAIL || 'robert.williams@example.com',
+    address: process.env.TEST_PERSON_DELETE_ADDRESS || '456 Oak Avenue',
+    city: process.env.TEST_PERSON_DELETE_CITY || 'Los Angeles',
+    state: process.env.TEST_PERSON_DELETE_STATE || 'CA',
+    country: process.env.TEST_PERSON_DELETE_COUNTRY || 'USA',
+    postCode: process.env.TEST_PERSON_DELETE_POSTCODE || '90001',
+    note: process.env.TEST_PERSON_DELETE_NOTE || 'Test person for deletion via automation'
   }
 };
 
@@ -189,6 +227,7 @@ export function getDeceasedName(type: 'add' | 'edit' = 'add'): string {
 }
 
 // Helper function to get full person name
-export function getPersonName(): string {
-  return `${PERSON_DATA.add.firstName} ${PERSON_DATA.add.lastName}`;
+export function getPersonName(type: 'add' | 'edit' | 'delete' = 'add'): string {
+  const data = type === 'add' ? PERSON_DATA.add : (type === 'edit' ? PERSON_DATA.edit : PERSON_DATA.delete);
+  return `${data.firstName} ${data.lastName}`;
 }

@@ -82,6 +82,26 @@ const PLACEHOLDER_MAP: Record<string, string> = {
   '<TEST_PERSON_COUNTRY>': TEST_DATA.person.add.country,
   '<TEST_PERSON_POSTCODE>': TEST_DATA.person.add.postCode,
   '<TEST_PERSON_NOTE>': TEST_DATA.person.add.note,
+  
+  // Person data - Edit
+  '<TEST_PERSON_LASTNAME_EDITED>': TEST_DATA.person.edit.lastName,
+  
+  // Person data - Delete
+  '<TEST_PERSON_DELETE_FIRSTNAME>': TEST_DATA.person.delete.firstName,
+  '<TEST_PERSON_DELETE_LASTNAME>': TEST_DATA.person.delete.lastName,
+  '<TEST_PERSON_DELETE_MIDDLENAME>': TEST_DATA.person.delete.middleName,
+  '<TEST_PERSON_DELETE_TITLE>': TEST_DATA.person.delete.title,
+  '<TEST_PERSON_DELETE_GENDER>': TEST_DATA.person.delete.gender,
+  '<TEST_PERSON_DELETE_PHONE_M>': TEST_DATA.person.delete.phoneM,
+  '<TEST_PERSON_DELETE_PHONE_H>': TEST_DATA.person.delete.phoneH,
+  '<TEST_PERSON_DELETE_PHONE_O>': TEST_DATA.person.delete.phoneO,
+  '<TEST_PERSON_DELETE_EMAIL>': TEST_DATA.person.delete.email,
+  '<TEST_PERSON_DELETE_ADDRESS>': TEST_DATA.person.delete.address,
+  '<TEST_PERSON_DELETE_CITY>': TEST_DATA.person.delete.city,
+  '<TEST_PERSON_DELETE_STATE>': TEST_DATA.person.delete.state,
+  '<TEST_PERSON_DELETE_COUNTRY>': TEST_DATA.person.delete.country,
+  '<TEST_PERSON_DELETE_POSTCODE>': TEST_DATA.person.delete.postCode,
+  '<TEST_PERSON_DELETE_NOTE>': TEST_DATA.person.delete.note,
 };
 
 /**
