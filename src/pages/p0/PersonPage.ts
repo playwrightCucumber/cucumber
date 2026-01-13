@@ -36,15 +36,24 @@ export class PersonPage {
   async navigateToPersonTab(): Promise<void> {
     this.logger.info('Navigating to PERSONS tab');
     
+    // Set up listener BEFORE clicking the tab
+    const personApiPromise = this.page.waitForResponse(
+      (response) => response.url().includes('/person') && response.status() === 200,
+      { timeout: 30000 }
+    ).catch(() => null);
+    
     const personTab = this.page.locator(PersonSelectors.personTab);
     await personTab.waitFor({ state: 'visible', timeout: 15000 });
     await personTab.click();
     
     this.logger.info('PERSONS tab clicked successfully');
     
-    // Wait for person API to load data - try with more flexible pattern
+    // Wait for person API to load data
     try {
-      await NetworkHelper.waitForApiEndpoint(this.page, '/person', 30000);
+      await personApiPromise;
+      this.logger.info('Person API response received');
+      // Small wait to ensure data is rendered
+      await this.page.waitForTimeout(500);
     } catch (error) {
       this.logger.warn('Could not detect person API, waiting with timeout instead');
       await this.page.waitForTimeout(2000);
@@ -208,6 +217,12 @@ export class PersonPage {
       throw new Error(`Expected Save button but found: "${buttonText}"`);
     }
     
+    // Set up listener BEFORE clicking - this is the key fix!
+    const personApiPromise = this.page.waitForResponse(
+      (response) => response.url().includes('/person') && response.status() === 200,
+      { timeout: 30000 }
+    ).catch(() => null);
+    
     await saveButton.click();
     
     // Wait for navigation back to persons table
@@ -216,7 +231,10 @@ export class PersonPage {
     
     // Wait for person API to reload data after save
     try {
-      await NetworkHelper.waitForApiEndpoint(this.page, '/person', 30000);
+      await personApiPromise;
+      this.logger.info('Person API response received after save');
+      // Small wait to ensure data is rendered
+      await this.page.waitForTimeout(500);
     } catch (error) {
       this.logger.warn('Could not detect person API, waiting with timeout instead');
       await this.page.waitForTimeout(2000);
@@ -288,6 +306,12 @@ export class PersonPage {
       { timeout: 15000 }
     ).catch(() => null);
     
+    // Set up listener for GET /person API BEFORE clicking - this is the key fix!
+    const personApiPromise = this.page.waitForResponse(
+      (resp) => resp.url().includes('/person') && resp.request().method() === 'GET' && resp.status() === 200,
+      { timeout: 30000 }
+    ).catch(() => null);
+    
     await saveButton.click();
     this.logger.info('Save button clicked');
     
@@ -326,7 +350,10 @@ export class PersonPage {
     
     // Wait for person API to reload data after save
     try {
-      await NetworkHelper.waitForApiEndpoint(this.page, '/person', 30000);
+      await personApiPromise;
+      this.logger.info('Person list API response received after save');
+      // Small wait to ensure data is rendered
+      await this.page.waitForTimeout(500);
     } catch (error) {
       this.logger.warn('Could not detect person API, waiting with timeout instead');
       await this.page.waitForTimeout(2000);
@@ -338,14 +365,6 @@ export class PersonPage {
    */
   async getFirstRowPersonName(): Promise<string> {
     this.logger.info('Getting person name from first row');
-    
-    // Wait for person API to ensure data is loaded
-    try {
-      await NetworkHelper.waitForApiEndpoint(this.page, '/person', 30000);
-    } catch (error) {
-      this.logger.warn('Could not detect person API, waiting with timeout instead');
-      await this.page.waitForTimeout(2000);
-    }
     
     // Wait for table to finish loading (progressbar elements should disappear)
     try {
@@ -475,13 +494,22 @@ export class PersonPage {
     
     const applyButton = this.page.locator(PersonSelectors.filterApplyButton);
     await applyButton.waitFor({ state: 'visible', timeout: 5000 });
+    
+    // Set up listener BEFORE clicking apply
+    const personApiPromise = this.page.waitForResponse(
+      (response) => response.url().includes('/person') && response.status() === 200,
+      { timeout: 30000 }
+    ).catch(() => null);
+    
     await applyButton.click();
     
     this.logger.info('Filter applied, waiting for table to reload');
     
     // Wait for person API to reload data with filter
     try {
-      await NetworkHelper.waitForApiEndpoint(this.page, '/person', 30000);
+      await personApiPromise;
+      this.logger.info('Person API response received after filter');
+      await this.page.waitForTimeout(500);
     } catch (error) {
       this.logger.warn('Could not detect person API, waiting with timeout instead');
       await this.page.waitForTimeout(2000);
@@ -623,6 +651,12 @@ export class PersonPage {
       { timeout: 15000 }
     );
     
+    // Set up listener for GET /person API BEFORE clicking confirm
+    const personApiPromise = this.page.waitForResponse(
+      (response) => response.url().includes('/person') && response.status() === 200,
+      { timeout: 30000 }
+    ).catch(() => null);
+    
     await confirmButton.click();
     this.logger.info('Confirm delete button clicked');
     
@@ -646,7 +680,9 @@ export class PersonPage {
     
     // Wait for person API to reload data after deletion
     try {
-      await NetworkHelper.waitForApiEndpoint(this.page, '/person', 30000);
+      await personApiPromise;
+      this.logger.info('Person list API response received after delete');
+      await this.page.waitForTimeout(500);
     } catch (error) {
       this.logger.warn('Could not detect person API, waiting with timeout instead');
       await this.page.waitForTimeout(2000);
