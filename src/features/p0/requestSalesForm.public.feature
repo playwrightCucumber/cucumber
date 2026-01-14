@@ -1,4 +1,4 @@
-@request-sales-form @public @p0x
+@request-sales-form @public @p0
 Feature: Request Sales Form - Public Plot Purchase
   As a public user
   I want to request to purchase a cemetery plot

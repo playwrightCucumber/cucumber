@@ -1,4 +1,4 @@
-@p0x @advance-search-public
+@p0 @advance-search-public
 Feature: Advanced Search Plot - Public Access
     As a public user (not logged in)
     I want to search for plots using advanced search
@@ -7,7 +7,7 @@ Feature: Advanced Search Plot - Public Access
     Background:
         Given I am on the Chronicle home page
 
-    @advance-search-public @p0x
+    @advance-search-public @p0
     Scenario Outline: Advanced search plot by Section, Row, and Number without login - <section> <row> <number>
         When I click Advanced search button without login
         And I select cemetery "<TEST_CEMETERY>" in advanced search
@@ -29,7 +29,7 @@ Feature: Advanced Search Plot - Public Access
             | A       | A   | 1      | Basic public search |
             | B       | A   | 1      | Alternative section |
 
-    @advance-search-public @advance-search-status @p0x
+    @advance-search-public @advance-search-status @p0
     Scenario Outline: Advanced search plot by status without login
         When I click Advanced search button without login
         And I select cemetery "<TEST_CEMETERY>" in advanced search
