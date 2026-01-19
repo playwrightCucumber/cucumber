@@ -207,14 +207,14 @@ export class NetworkHelper {
     timeout: number = 30000
   ): Promise<void> {
     this.logger.info(`Waiting for API endpoint: ${urlPattern}`);
-    
+
     try {
       await page.waitForResponse(
         (response) => response.url().includes(urlPattern) && response.status() === 200,
         { timeout }
       );
       this.logger.info(`API endpoint ${urlPattern} completed successfully`);
-      
+
       // Small wait to ensure data is rendered
       await page.waitForTimeout(500);
     } catch (e) {
@@ -222,4 +222,142 @@ export class NetworkHelper {
       throw e;
     }
   }
+
+  /**
+   * Wait for page to stabilize after an action
+   * Use instead of hardcoded waitForTimeout for better reliability
+   * @param page - Playwright page object
+   * @param options - Configuration options
+   */
+  static async waitForStabilization(
+    page: Page,
+    options: {
+      minWait?: number;      // Minimum wait time (default: 300ms)
+      maxWait?: number;      // Maximum wait time (default: 3000ms)
+      checkInterval?: number; // How often to check (default: 100ms)
+    } = {}
+  ): Promise<void> {
+    const minWait = options.minWait || 300;
+    const maxWait = options.maxWait || 3000;
+    const checkInterval = options.checkInterval || 100;
+
+    // Always wait at least minWait
+    await page.waitForTimeout(minWait);
+
+    const startTime = Date.now();
+    let lastMutationTime = Date.now();
+
+    // Monitor DOM for changes
+    await page.evaluate(() => {
+      // @ts-ignore
+      window.__stabilizationComplete = false;
+      // @ts-ignore
+      window.__lastMutation = Date.now();
+
+      const observer = new MutationObserver(() => {
+        // @ts-ignore
+        window.__lastMutation = Date.now();
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true
+      });
+
+      // Disconnect after maxWait
+      setTimeout(() => {
+        observer.disconnect();
+        // @ts-ignore
+        window.__stabilizationComplete = true;
+      }, 5000);
+    });
+
+    // Poll until DOM is stable (no mutations for 200ms)
+    while (Date.now() - startTime < maxWait - minWait) {
+      const result = await page.evaluate(() => {
+        return {
+          // @ts-ignore
+          lastMutation: window.__lastMutation || Date.now(),
+          // @ts-ignore
+          complete: window.__stabilizationComplete || false
+        };
+      });
+
+      if (result.complete || Date.now() - result.lastMutation > 200) {
+        this.logger.info('Page stabilized');
+        return;
+      }
+
+      await page.waitForTimeout(checkInterval);
+    }
+
+    this.logger.info('Page stabilization timeout, continuing...');
+  }
+
+  /**
+   * Wait for animation to complete
+   * Use after clicking buttons that trigger animations
+   * @param page - Playwright page object
+   * @param animatedElement - Selector for animated element (optional)
+   * @param timeout - Maximum wait time (default: 1000ms)
+   */
+  static async waitForAnimation(
+    page: Page,
+    animatedElement?: string,
+    timeout: number = 1000
+  ): Promise<void> {
+    if (animatedElement) {
+      try {
+        await page.waitForFunction(
+          (selector) => {
+            const element = document.querySelector(selector);
+            if (!element) return true;
+            const style = getComputedStyle(element);
+            return style.animationName === 'none' &&
+              style.transitionProperty === 'all' ||
+              style.transitionDuration === '0s';
+          },
+          animatedElement,
+          { timeout }
+        );
+      } catch {
+        // Animation check timeout, continue anyway
+      }
+    } else {
+      // Generic short wait for animations
+      await page.waitForTimeout(Math.min(timeout, 500));
+    }
+  }
 }
+
+/**
+ * WAIT PATTERN RECOMMENDATIONS
+ * 
+ * Instead of: await page.waitForTimeout(3000)
+ * Use one of these based on context:
+ * 
+ * 1. AFTER NAVIGATION:
+ *    await NetworkHelper.waitForNetworkIdle(page, 10000);
+ *    -- OR --
+ *    await NetworkHelper.waitForApiEndpoint(page, 'v1_endpoint_name');
+ * 
+ * 2. WAITING FOR ELEMENT:
+ *    await element.waitFor({ state: 'visible', timeout: 10000 });
+ * 
+ * 3. AFTER CLICK (for dropdown/dialog):
+ *    await NetworkHelper.waitForAnimation(page);
+ *    -- OR --
+ *    await page.locator('.dropdown').waitFor({ state: 'visible' });
+ * 
+ * 4. WAITING FOR DATA TO LOAD:
+ *    await NetworkHelper.waitForApiRequestsComplete(page, 5000);
+ *    -- OR --
+ *    await NetworkHelper.waitForListPopulated(page, '.list-selector');
+ * 
+ * 5. FORM READINESS:
+ *    await NetworkHelper.waitForFormReady(page, 'form');
+ * 
+ * 6. PAGE STABILIZATION (last resort):
+ *    await NetworkHelper.waitForStabilization(page);
+ */

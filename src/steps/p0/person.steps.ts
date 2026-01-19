@@ -8,11 +8,18 @@ let personPage: PersonPage;
 When('I navigate to the advance table page', { timeout: 15000 }, async function () {
   const page = this.page;
   personPage = new PersonPage(page);
-  
+
   // Navigate to advance table page - use full URL
   const baseUrl = page.url().split('/customer-organization')[0]; // Get base URL from current page
   await page.goto(`${baseUrl}/customer-organization/advance-table?tab=plots`);
-  await page.waitForLoadState('networkidle');
+
+  // Wait for page to load - use domcontentloaded with fallback networkidle
+  await page.waitForLoadState('domcontentloaded');
+  try {
+    await page.waitForLoadState('networkidle', { timeout: 10000 });
+  } catch {
+    // Network still active but page is usable
+  }
 });
 
 When('I click on the PERSONS tab', { timeout: 45000 }, async function () {

@@ -169,7 +169,11 @@ export class RequestSalesFormPage {
 
     // Wait for navigation to plot details page
     await this.page.waitForURL(/plots\//, { timeout: 15000 });
-    await this.page.waitForLoadState('networkidle');
+    try {
+      await this.page.waitForLoadState('networkidle', { timeout: 15000 });
+    } catch {
+      // Network still active but page is usable
+    }
 
     return plotName;
   }
@@ -184,7 +188,11 @@ export class RequestSalesFormPage {
       RequestSalesFormSelectors.sectionTree.plotListItem(plotName)
     );
     await plotItem.click();
-    await this.page.waitForLoadState('networkidle');
+    try {
+      await this.page.waitForLoadState('networkidle', { timeout: 15000 });
+    } catch {
+      // Network still active but page is usable
+    }
     this.logger.info(`Navigated to plot details: ${plotName}`);
   }
 
