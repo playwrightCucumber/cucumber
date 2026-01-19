@@ -355,9 +355,35 @@ Setelah test run selesai, reports akan di-generate:
 ## 🔧 Configuration
 
 ## 🚀 Running Tests
+
 ```bash
- npm run test:headless -- --tags "@p0"
+npm run test:headless -- --tags "@p0"
 ```
+
+### Run by Environment 🌐
+
+| Environment | With Browser | Headless |
+|-------------|--------------|----------|
+| **Dev** | `npm run test:dev -- --tags "@tag"` | `npm run test:dev:headless -- --tags "@tag"` |
+| **Staging** | `npm run test -- --tags "@tag"` | `npm run test:headless -- --tags "@tag"` |
+| **Map** | `npm run test:map -- --tags "@tag"` | `npm run test:map:headless -- --tags "@tag"` |
+
+**Contoh:**
+```bash
+# Run @add-interment di dev environment (headless)
+npm run test:dev:headless -- --tags "@add-interment"
+
+# Run @p0 di map environment (dengan browser)
+npm run test:map -- --tags "@p0"
+
+# Run smoke test di staging (headless)
+npm run test:headless -- --tags "@smoke"
+```
+
+**Environment files:**
+- `.env.dev` → dev.chronicle.rip
+- `.env.staging` → staging.chronicle.rip
+- `.env.map` → map.chronicle.rip
 
 ### Run all tests
 ```bash

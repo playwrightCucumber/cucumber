@@ -7,6 +7,10 @@
   "scripts": {
     "test": "cross-env NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts'",
     "test:headless": "cross-env HEADLESS=true NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts'",
+    "test:dev": "dotenv -e .env.dev -- cross-env NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts'",
+    "test:dev:headless": "dotenv -e .env.dev -- cross-env HEADLESS=true NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts'",
+    "test:map": "dotenv -e .env.map -- cross-env NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts'",
+    "test:map:headless": "dotenv -e .env.map -- cross-env HEADLESS=true NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts'",
     "test:staging": "dotenv -e .env.chronicle -- cross-env NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts'",
     "test:prod": "dotenv -e .env.chronicle.prod -- cross-env NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts'",
     "test:p0": "cross-env NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts' --tags '@p0'",

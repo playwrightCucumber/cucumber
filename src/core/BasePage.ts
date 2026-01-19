@@ -1,4 +1,5 @@
 import { Page, Locator } from '@playwright/test';
+import { TimeoutHelper } from '../utils/TimeoutHelper.js';
 
 /**
  * BasePage class - Foundation for all Page Objects
@@ -12,16 +13,25 @@ import { Page, Locator } from '@playwright/test';
 export class BasePage {
   protected page: Page;
   protected timeout: number = parseInt(process.env.TIMEOUT || '30000');
+  protected timeoutHelper: TimeoutHelper;
 
   constructor(page: Page) {
     this.page = page;
+    this.timeoutHelper = new TimeoutHelper(page, this.timeout);
   }
 
   /**
-   * Navigate to a specific URL
+   * Get TimeoutHelper instance for advanced timeout operations
+   */
+  get helper(): TimeoutHelper {
+    return this.timeoutHelper;
+  }
+
+  /**
+   * Navigate to a specific URL (safe version with timeout handling)
    */
   async navigateTo(url: string): Promise<void> {
-    await this.page.goto(url, { waitUntil: 'networkidle' });
+    await this.timeoutHelper.navigateSafely(url);
   }
 
   /**
@@ -33,12 +43,26 @@ export class BasePage {
   }
 
   /**
+   * Click element by selector with retry logic
+   */
+  async clickWithRetry(selector: string, retries: number = 3): Promise<boolean> {
+    return this.timeoutHelper.clickWithRetry(selector, { retries });
+  }
+
+  /**
    * Fill text into an input field
    */
   async fillInput(locator: Locator, value: string): Promise<void> {
     await locator.waitFor({ state: 'visible', timeout: this.timeout });
     await locator.clear();
     await locator.fill(value);
+  }
+
+  /**
+   * Fill input by selector with retry logic and verification
+   */
+  async fillWithRetry(selector: string, value: string, retries: number = 3): Promise<boolean> {
+    return this.timeoutHelper.fillWithRetry(selector, value, { retries, verify: true });
   }
 
   /**
@@ -99,6 +123,21 @@ export class BasePage {
   }
 
   /**
+   * Wait for network idle safely (won't hang forever)
+   */
+  async waitForNetworkIdle(timeout: number = 15000): Promise<boolean> {
+    return this.timeoutHelper.waitForNetworkIdleSafely(timeout);
+  }
+
+  /**
+   * Wait for API response
+   */
+  async waitForAPI(endpoint: string, statusCode: number = 200): Promise<boolean> {
+    const response = await this.timeoutHelper.waitForAPI(endpoint, { statusCode });
+    return response !== null;
+  }
+
+  /**
    * Get page title
    */
   async getTitle(): Promise<string> {
@@ -110,5 +149,19 @@ export class BasePage {
    */
   async getUrl(): Promise<string> {
     return this.page.url();
+  }
+
+  /**
+   * Retry any action with configurable options
+   */
+  async retry<T>(action: () => Promise<T>, retries: number = 3): Promise<T> {
+    return this.timeoutHelper.retry(action, { retries });
+  }
+
+  /**
+   * Poll until condition is true
+   */
+  async pollUntil(condition: () => Promise<boolean>, timeout: number = 30000): Promise<boolean> {
+    return this.timeoutHelper.pollUntil(condition, { timeout });
   }
 }
