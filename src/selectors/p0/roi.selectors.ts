@@ -9,13 +9,13 @@ export const RoiSelectors = {
   seeAllPlotsButton: '[data-testid="plots-statistic-a-button"]',
   
   // Plots page - Filter
-  filterButton: '[data-testid="perfect-scrollbar-button-filter"]',
+  filterButton: '[data-testid="shared-all-plots-button-filter"]',
   vacantFilterOption: '[data-testid="statuses-div-control-button"]',
   reservedFilterOption: '[data-testid="statuses-div-control-button-0"]',
   filterDoneButton: '[data-testid="filter-button-submit-button"]',
   
   // Plots page - List
-  sectionToggleButton: (section: string) => `[data-testid="perfect-scrollbar-button-toggle-${section.toLowerCase()}-0"]`,
+  sectionToggleButton: (section: string) => `[data-testid="shared-all-plots-button-toggle-${section.toLowerCase()}-0"]`,
   
   // Plot detail page
   plotDetailTitle: 'h1', // Plot name like "A B 3 VACANT"
