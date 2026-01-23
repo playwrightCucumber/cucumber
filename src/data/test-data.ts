@@ -16,6 +16,34 @@ import { config } from 'dotenv';
 config(); // Load .env file
 
 // ============================================
+// RANDOM NAME GENERATION
+// ============================================
+const FIRST_NAMES = ['James', 'Mary', 'John', 'Patricia', 'Robert', 'Jennifer', 'Michael', 'Linda', 'William', 'Elizabeth', 'David', 'Barbara', 'Richard', 'Susan', 'Joseph', 'Jessica', 'Thomas', 'Sarah', 'Charles', 'Karen', 'Emma', 'Olivia', 'Ava', 'Sophia', 'Liam', 'Noah', 'Ethan', 'Mason', 'Lucas', 'Oliver'];
+
+const LAST_NAMES = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin', 'Lee', 'Perez', 'Thompson', 'White', 'Harris', 'Sanchez', 'Clark', 'Ramirez', 'Lewis', 'Robinson'];
+
+/**
+ * Generate a random first name
+ */
+export function randomFirstName(): string {
+  return FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)];
+}
+
+/**
+ * Generate a random last name
+ */
+export function randomLastName(): string {
+  return LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)];
+}
+
+/**
+ * Generate a random full name
+ */
+export function randomFullName(): string {
+  return `${randomFirstName()} ${randomLastName()}`;
+}
+
+// ============================================
 // BASE CONFIGURATION
 // ============================================
 export const BASE_CONFIG = {
@@ -338,6 +366,11 @@ export const REQUEST_SALES_FORM_DATA = {
 // ============================================
 // SALES DATA
 // ============================================
+// Generate random purchaser name once (will be consistent per test run)
+const randomPurchaserFirstName = process.env.TEST_SALES_PURCHASER_FIRSTNAME || randomFirstName();
+const randomPurchaserLastName = process.env.TEST_SALES_PURCHASER_LASTNAME || randomLastName();
+const randomPurchaserEmail = process.env.TEST_SALES_PURCHASER_EMAIL || `${randomPurchaserFirstName.toLowerCase()}${randomPurchaserLastName.toLowerCase()}@test.com`;
+
 export const SALES_DATA = {
   // Create Sale - Basic Info
   create: {
@@ -345,12 +378,12 @@ export const SALES_DATA = {
     issueDate: process.env.TEST_SALES_ISSUE_DATE || '21/01/2026',
     dueDate: process.env.TEST_SALES_DUE_DATE || '22/01/2026',
     note: process.env.TEST_SALES_NOTE || 'this is note test',
-    
-    // Purchaser info
+
+    // Purchaser info - use random names for dynamic testing
     purchaser: {
-      firstName: process.env.TEST_SALES_PURCHASER_FIRSTNAME || 'Jon',
-      lastName: process.env.TEST_SALES_PURCHASER_LASTNAME || 'Doe',
-      email: process.env.TEST_SALES_PURCHASER_EMAIL || 'jondoe@test.com'
+      firstName: randomPurchaserFirstName,
+      lastName: randomPurchaserLastName,
+      email: randomPurchaserEmail
     },
 
     // Sale items with all required fields
@@ -461,35 +494,6 @@ export function getPersonName(type: 'add' | 'edit' | 'delete' = 'add'): string {
 // Helper function to get full applicant name for request sales form
 export function getApplicantName(): string {
   return `${REQUEST_SALES_FORM_DATA.applicant.firstName} ${REQUEST_SALES_FORM_DATA.applicant.lastName}`;
-}
-
-// ============================================
-// RANDOM NAME GENERATION
-// ============================================
-
-const FIRST_NAMES = ['James', 'Mary', 'John', 'Patricia', 'Robert', 'Jennifer', 'Michael', 'Linda', 'William', 'Elizabeth', 'David', 'Barbara', 'Richard', 'Susan', 'Joseph', 'Jessica', 'Thomas', 'Sarah', 'Charles', 'Karen', 'Emma', 'Olivia', 'Ava', 'Sophia', 'Liam', 'Noah', 'Ethan', 'Mason', 'Lucas', 'Oliver'];
-
-const LAST_NAMES = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin', 'Lee', 'Perez', 'Thompson', 'White', 'Harris', 'Sanchez', 'Clark', 'Ramirez', 'Lewis', 'Robinson'];
-
-/**
- * Generate a random first name
- */
-export function randomFirstName(): string {
-  return FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)];
-}
-
-/**
- * Generate a random last name
- */
-export function randomLastName(): string {
-  return LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)];
-}
-
-/**
- * Generate a random full name
- */
-export function randomFullName(): string {
-  return `${randomFirstName()} ${randomLastName()}`;
 }
 
 /**
