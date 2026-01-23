@@ -369,7 +369,9 @@ export const REQUEST_SALES_FORM_DATA = {
 // Generate random purchaser name once (will be consistent per test run)
 const randomPurchaserFirstName = process.env.TEST_SALES_PURCHASER_FIRSTNAME || randomFirstName();
 const randomPurchaserLastName = process.env.TEST_SALES_PURCHASER_LASTNAME || randomLastName();
-const randomPurchaserEmail = process.env.TEST_SALES_PURCHASER_EMAIL || `${randomPurchaserFirstName.toLowerCase()}${randomPurchaserLastName.toLowerCase()}@test.com`;
+// Generate random 3-digit number (padded with leading zeros)
+const random3Digits = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+const randomPurchaserEmail = process.env.TEST_SALES_PURCHASER_EMAIL || `faris+${random3Digits}@chronicle.rip`;
 
 export const SALES_DATA = {
   // Create Sale - Basic Info
