@@ -72,14 +72,20 @@ automation_web/
    npx playwright install
    ```
    
-   > ✨ **Auto-install feature:** All test commands now automatically check and install Playwright browsers if missing. If browsers are not found, you'll see:
+   > ✨ **Auto-install feature (Cross-platform: Windows/macOS/Linux):** All test commands now automatically check and install Playwright browsers if missing. If browsers are not found, you'll see:
    > ```
+   > 🖥️  Detected OS: macOS (or Windows/Linux)
    > ╔════════════════════════════════════════════════════════════════╗
    > ║  Playwright browsers not found!                                ║
    > ║  Installing browsers now... (this may take a few minutes)      ║
    > ╚════════════════════════════════════════════════════════════════╝
    > ```
    > The installation will proceed automatically. You can also run `npx playwright install` manually at any time.
+   >
+   > **Supported platforms:**
+   > - ✅ **Windows** - `%USERPROFILE%\AppData\Local\ms-playwright`
+   > - ✅ **macOS** - `~/Library/Caches/ms-playwright`
+   > - ✅ **Linux** - `~/.cache/ms-playwright`
 
 3. **Setup environment configuration:**
    

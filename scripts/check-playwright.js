@@ -3,11 +3,13 @@
 /**
  * Check if Playwright browsers are installed
  * If not, automatically install them
+ * 
+ * Cross-platform support: Windows, macOS, Linux
  */
 
 import { execSync } from 'child_process';
-import { existsSync } from 'fs';
-import { homedir } from 'os';
+import { existsSync, readdirSync } from 'fs';
+import { homedir, platform } from 'os';
 import { join } from 'path';
 
 const colors = {
@@ -23,15 +25,43 @@ function log(message, color = colors.reset) {
   console.log(`${color}${message}${colors.reset}`);
 }
 
+/**
+ * Get Playwright cache directory based on OS
+ */
+function getPlaywrightCacheDir() {
+  const os = platform();
+  
+  switch (os) {
+    case 'win32': // Windows
+      return join(homedir(), 'AppData', 'Local', 'ms-playwright');
+    case 'darwin': // macOS
+      return join(homedir(), 'Library', 'Caches', 'ms-playwright');
+    case 'linux': // Linux
+      return join(homedir(), '.cache', 'ms-playwright');
+    default:
+      // Fallback to Linux-style path
+      return join(homedir(), '.cache', 'ms-playwright');
+  }
+}
+
 function checkPlaywrightInstalled() {
-  // Check common Playwright browser cache locations
-  const cacheDir = join(homedir(), 'Library', 'Caches', 'ms-playwright');
-  
-  // Check if chromium directory exists (primary browser for this project)
-  const chromiumExists = existsSync(cacheDir) && 
-    execSync(`ls -d ${cacheDir}/chromium-* 2>/dev/null || true`, { encoding: 'utf8' }).trim();
-  
-  return !!chromiumExists;
+  try {
+    const cacheDir = getPlaywrightCacheDir();
+    
+    // Check if cache directory exists
+    if (!existsSync(cacheDir)) {
+      return false;
+    }
+    
+    // Check if chromium directory exists (primary browser for this project)
+    const files = readdirSync(cacheDir);
+    const chromiumExists = files.some(file => file.startsWith('chromium-'));
+    
+    return chromiumExists;
+  } catch (error) {
+    // If any error occurs, assume not installed
+    return false;
+  }
 }
 
 function installPlaywright() {
@@ -60,10 +90,14 @@ function installPlaywright() {
 
 // Main execution
 try {
+  const os = platform();
+  const osName = os === 'win32' ? 'Windows' : os === 'darwin' ? 'macOS' : 'Linux';
+  
   if (!checkPlaywrightInstalled()) {
+    log(`\n🖥️  Detected OS: ${osName}`, colors.blue);
     installPlaywright();
   } else {
-    log('✓ Playwright browsers are ready', colors.green);
+    log(`✓ Playwright browsers are ready (${osName})`, colors.green);
   }
 } catch (error) {
   log(`Error checking Playwright installation: ${error.message}`, colors.red);
