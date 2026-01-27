@@ -53,6 +53,72 @@ automation_web/
 - **P2**: Medium priority features, secondary functionality
   - Example: Edge cases, Nice-to-have features
 
+## 🚀 Getting Started
+
+### Prerequisites
+
+- **Node.js** (v18 or higher)
+- **npm** (v9 or higher)
+
+### Installation
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Install Playwright browsers:** ⚠️ **REQUIRED**
+   ```bash
+   npx playwright install
+   ```
+   
+   > ✨ **Auto-install feature (Cross-platform: Windows/macOS/Linux):** All test commands now automatically check and install Playwright browsers if missing. If browsers are not found, you'll see:
+   > ```
+   > 🖥️  Detected OS: macOS (or Windows/Linux)
+   > ╔════════════════════════════════════════════════════════════════╗
+   > ║  Playwright browsers not found!                                ║
+   > ║  Installing browsers now... (this may take a few minutes)      ║
+   > ╚════════════════════════════════════════════════════════════════╝
+   > ```
+   > The installation will proceed automatically. You can also run `npx playwright install` manually at any time.
+   >
+   > **Supported platforms:**
+   > - ✅ **Windows** - `%USERPROFILE%\AppData\Local\ms-playwright`
+   > - ✅ **macOS** - `~/Library/Caches/ms-playwright`
+   > - ✅ **Linux** - `~/.cache/ms-playwright`
+
+3. **Setup environment configuration:**
+   
+   Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Edit `.env` to configure your test environment:
+   ```bash
+   ENV=staging
+   BASE_URL=https://staging.chronicle.rip
+   CHRONICLE_EMAIL=your-email@domain.com
+   CHRONICLE_PASSWORD=your-password
+   ```
+
+4. **Verify installation:**
+   ```bash
+   npm run test:headless -- --tags "@smoke"
+   ```
+
+### Quick Start
+
+After installation, run your first test:
+
+```bash
+# Run smoke tests with visible browser
+npm run test -- --tags "@smoke"
+
+# Run smoke tests in headless mode
+npm run test:headless -- --tags "@smoke"
+```
+
 ## 🌐 Test Environment
 
 - **Target URL**: Configurable via `.env` (default: dev.chronicle.rip)
