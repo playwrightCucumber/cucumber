@@ -245,6 +245,14 @@ export const ROI_DATA = {
     lastName: process.env.TEST_ROI_APPLICANT_LASTNAME || 'Smith',
     phone: process.env.TEST_ROI_APPLICANT_PHONE || '+9876543210',
     email: process.env.TEST_ROI_APPLICANT_EMAIL || 'jane.smith@example.com'
+  },
+
+  // ROI Table Menu - Add ROI from table
+  tableMenu: {
+    certificateNumber: process.env.TEST_ROI_TABLE_CERT || 'CERT-TABLE-001',
+    rightType: process.env.TEST_ROI_TABLE_RIGHT_TYPE || 'Burial',
+    termOfRight: process.env.TEST_ROI_TABLE_TERM || 'Perpetual',
+    fee: process.env.TEST_ROI_TABLE_FEE || '1500'
   }
 };
 
