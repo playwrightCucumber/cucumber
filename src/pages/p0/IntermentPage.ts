@@ -330,6 +330,9 @@ export class IntermentPage {
   async clickEditIntermentButton(): Promise<void> {
     this.logger.info('Clicking Edit Interment button');
     
+    // First, check and expand interment list if needed (for plots with multiple interments)
+    await this.checkAndExpandIntermentList();
+    
     // Wait for button to be visible and enabled
     const editButton = this.page.getByTestId('interment-item-button-edit-interment');
     await editButton.waitFor({ state: 'visible', timeout: 15000 });
@@ -355,63 +358,160 @@ export class IntermentPage {
   }
 
   /**
+   * Check if plot has multiple interments and expand the list if needed
+   * This handles the case where interments are shown as a collapsed list
+   */
+  async checkAndExpandIntermentList(): Promise<void> {
+    this.logger.info('Checking if interment list needs to be expanded');
+    
+    // Wait for INTERMENTS tab content to be visible
+    await this.page.waitForTimeout(2000);
+    
+    // Check if there's an expand button for interment list
+    // This button typically appears when there are multiple interments in a plot
+    const expandButton = this.page.locator('button[aria-label*="expand"], button[aria-expanded="false"]').first();
+    
+    try {
+      // Check if expand button is visible (timeout quickly if not found)
+      const isVisible = await expandButton.isVisible({ timeout: 3000 });
+      
+      if (isVisible) {
+        this.logger.info('Multiple interments detected, expanding list...');
+        await expandButton.click();
+        await this.page.waitForTimeout(1000); // Wait for list to expand
+        this.logger.success('Interment list expanded');
+      } else {
+        this.logger.info('Single interment detected, no need to expand');
+      }
+    } catch (e) {
+      // No expand button found - likely single interment, this is fine
+      this.logger.info('No expand button found - single interment or already expanded');
+    }
+  }
+
+  /**
    * Update interment form with new data (for edit flow)
    * @param data - Interment data object with fields to update
    */
   async updateIntermentForm(data: Partial<IntermentData>): Promise<void> {
-    this.logger.info('Updating interment form');
+    this.logger.info('========== UPDATE INTERMENT FORM START ==========');
+    this.logger.info(`Current URL: ${this.page.url()}`);
+    this.logger.info(`Data to update: ${JSON.stringify(data)}`);
+
+    // Log page state before starting
+    const pageTitle = await this.page.title();
+    this.logger.info(`Page title: ${pageTitle}`);
 
     // Click "Deceased person" tab to access the form fields
-    await this.page.getByRole('button', { name: 'Deceased person' }).click();
-    await this.page.waitForTimeout(1000);
+    this.logger.info('Looking for "Deceased person" button...');
+    try {
+      const deceasedPersonButton = this.page.getByRole('button', { name: 'Deceased person' });
+      const isVisible = await deceasedPersonButton.isVisible({ timeout: 5000 });
+      this.logger.info(`"Deceased person" button visible: ${isVisible}`);
+
+      // Log all buttons on page for debugging
+      const allButtons = await this.page.locator('button').allTextContents();
+      this.logger.info(`All buttons on page: ${JSON.stringify(allButtons.filter(b => b.trim()))}`);
+
+      await deceasedPersonButton.click();
+      this.logger.success('Clicked "Deceased person" button');
+      await this.page.waitForTimeout(1000);
+    } catch (e) {
+      this.logger.error(`Failed to click "Deceased person" button: ${e}`);
+      throw e;
+    }
 
     // Update first name if provided
     if (data.firstName) {
       this.logger.info(`Updating first name to: ${data.firstName}`);
-      const firstNameField = this.page.getByLabel('First name').first();
-      await firstNameField.click();
-      await firstNameField.clear();
-      await firstNameField.fill(data.firstName);
-      await this.page.waitForTimeout(500);
+      try {
+        const firstNameField = this.page.getByLabel('First name').first();
+        await firstNameField.waitFor({ state: 'visible', timeout: 5000 });
+        this.logger.info('First name field found and visible');
+
+        await firstNameField.click();
+        await firstNameField.clear();
+        await firstNameField.fill(data.firstName);
+        this.logger.success(`First name updated to: ${data.firstName}`);
+        await this.page.waitForTimeout(500);
+      } catch (e) {
+        this.logger.error(`Failed to update first name: ${e}`);
+
+        // Log all input labels for debugging
+        const allLabels = await this.page.locator('label').allTextContents();
+        this.logger.info(`All labels on page: ${JSON.stringify(allLabels.filter(l => l.trim()))}`);
+        throw e;
+      }
     }
 
     // Update last name if provided
     if (data.lastName) {
       this.logger.info(`Updating last name to: ${data.lastName}`);
-      const lastNameField = this.page.getByLabel('Last name').first();
-      await lastNameField.click();
-      await lastNameField.clear();
-      await lastNameField.fill(data.lastName);
-      await this.page.waitForTimeout(500);
+      try {
+        const lastNameField = this.page.getByLabel('Last name').first();
+        await lastNameField.waitFor({ state: 'visible', timeout: 5000 });
+        this.logger.info('Last name field found and visible');
+
+        await lastNameField.click();
+        await lastNameField.clear();
+        await lastNameField.fill(data.lastName);
+        this.logger.success(`Last name updated to: ${data.lastName}`);
+        await this.page.waitForTimeout(500);
+      } catch (e) {
+        this.logger.error(`Failed to update last name: ${e}`);
+        throw e;
+      }
     }
 
     // Clear middle name if both firstName and lastName are provided (full name replacement)
     if (data.firstName && data.lastName) {
       this.logger.info('Clearing middle name for clean full name');
-      const middleNameField = this.page.getByLabel('Middle name').first();
-      await middleNameField.click();
-      await middleNameField.clear();
-      await this.page.waitForTimeout(500);
+      try {
+        const middleNameField = this.page.getByLabel('Middle name').first();
+        await middleNameField.click();
+        await middleNameField.clear();
+        this.logger.success('Middle name cleared');
+        await this.page.waitForTimeout(500);
+      } catch (e) {
+        this.logger.info(`Middle name field not found or error clearing: ${e}`);
+      }
     } else if (data.middleName !== undefined) {
       // Only update middle name if explicitly provided
       this.logger.info(`Updating middle name to: ${data.middleName}`);
-      const middleNameField = this.page.getByLabel('Middle name').first();
-      await middleNameField.click();
-      await middleNameField.clear();
-      if (data.middleName) {
-        await middleNameField.fill(data.middleName);
+      try {
+        const middleNameField = this.page.getByLabel('Middle name').first();
+        await middleNameField.click();
+        await middleNameField.clear();
+        if (data.middleName) {
+          await middleNameField.fill(data.middleName);
+        }
+        this.logger.success('Middle name updated');
+      } catch (e) {
+        this.logger.info(`Middle name field not found or error updating: ${e}`);
       }
     }
 
     // Click "Interment details" tab if interment type needs to be updated
     if (data.intermentType) {
-      await this.page.getByRole('button', { name: 'Interment details' }).click();
-      await this.page.waitForTimeout(1000);
-      
-      this.logger.info(`Updating interment type to: ${data.intermentType}`);
-      await this.selectIntermentType(data.intermentType);
+      this.logger.info('Looking for "Interment details" button...');
+      try {
+        const intermentDetailsButton = this.page.getByRole('button', { name: 'Interment details' });
+        const isVisible = await intermentDetailsButton.isVisible({ timeout: 5000 });
+        this.logger.info(`"Interment details" button visible: ${isVisible}`);
+
+        await intermentDetailsButton.click();
+        this.logger.success('Clicked "Interment details" button');
+        await this.page.waitForTimeout(1000);
+
+        this.logger.info(`Updating interment type to: ${data.intermentType}`);
+        await this.selectIntermentType(data.intermentType);
+        this.logger.success(`Interment type updated to: ${data.intermentType}`);
+      } catch (e) {
+        this.logger.error(`Failed to update interment type: ${e}`);
+        throw e;
+      }
     }
 
-    this.logger.success('Interment form updated');
+    this.logger.success('========== INTERMENT FORM UPDATED SUCCESSFULLY ==========');
   }
 }

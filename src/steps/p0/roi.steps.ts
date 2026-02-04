@@ -46,7 +46,8 @@ When('I expand the first section', { timeout: 15000 }, async function () {
 });
 
 When('I select plot {string}', { timeout: 15000 }, async function (plotName: string) {
-  await plotPage.selectPlot(plotName);
+  const actualPlotName = replacePlaceholders(plotName);
+  await plotPage.selectPlot(actualPlotName);
 });
 
 Then('the plot status should be {string}', { timeout: 10000 }, async function (expectedStatus: string) {

@@ -190,6 +190,10 @@ export const INTERMENT_DATA = {
     intermentType: process.env.TEST_INTERMENT_TYPE || 'Burial'
   },
   edit: {
+    // Plot name for edit scenario
+    // A A 1 = plot with multiple interments (requires expand list)
+    // A B 1 = plot with single interment (direct edit button)
+    plotName: process.env.TEST_INTERMENT_EDIT_PLOTNAME || 'A A 1',
     firstName: process.env.TEST_INTERMENT_EDIT_FIRSTNAME || 'Jane',
     lastName: process.env.TEST_INTERMENT_EDIT_LASTNAME || 'Smith',
     intermentType: process.env.TEST_INTERMENT_EDIT_TYPE || 'Cremated'

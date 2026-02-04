@@ -51,7 +51,11 @@ When('I click Edit Interment button', { timeout: 15000 }, async function () {
 });
 
 When('I update interment form with following details', { timeout: 60000 }, async function (dataTable: any) {
+  console.log('========== UPDATE INTERMENT STEP START ==========');
   const intermentData = dataTable.rowsHash();
+  console.log('Raw data from feature file:', JSON.stringify(intermentData, null, 2));
   const actualData = replacePlaceholdersInObject(intermentData);
+  console.log('Data after placeholder replacement:', JSON.stringify(actualData, null, 2));
+  console.log('========== UPDATE INTERMENT STEP END ==========');
   await intermentPage.updateIntermentForm(actualData as any);
 });
