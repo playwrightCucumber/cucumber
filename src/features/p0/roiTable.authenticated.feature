@@ -23,3 +23,29 @@ Feature: ROI Table Menu Management
             | Business  |
         When I click the ROIs tab
         Then I should see the Add ROI button next to Export button
+
+    @add-roi-table @p0
+    Scenario: Add new ROI from table menu
+        When I click the sidebar table menu
+        And I click the ROIs tab
+        And I click the Add ROI button from table
+        Then I should see the Add ROI form
+        When I search and select plot for ROI
+        And I fill ROI form from table with following details
+            | rightType         | <TEST_ROI_TABLE_RIGHT_TYPE> |
+            | termOfRight       | <TEST_ROI_TABLE_TERM>       |
+            | fee               | <TEST_ROI_TABLE_FEE>        |
+            | certificateNumber | <TEST_ROI_TABLE_CERT>       |
+        And I save the ROI from table
+        Then I should see ROI in the table
+
+    @edit-roi-table @p0
+    Scenario: Edit ROI from table menu
+        When I click the sidebar table menu
+        And I click the ROIs tab
+        And I click edit on the first ROI row
+        Then I should see the Edit ROI form
+        When I fill ROI form from table with following details
+            | fee | 2500 |
+        And I save the ROI from table
+        Then I should see updated ROI in the table
