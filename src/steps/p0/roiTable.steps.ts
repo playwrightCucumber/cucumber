@@ -96,6 +96,7 @@ Then('I should see the Add ROI form', async function () {
     // Verify form title or key form elements are visible
     const formTitle = this.page.locator(RoiTableSelectors.roiFormTitle);
     await expect(formTitle).toBeVisible({ timeout: 10000 });
+    await NetworkHelper.waitForApiEndpoint(this.page, '/plots/');
 });
 
 When('I search and select plot for ROI', async function () {
