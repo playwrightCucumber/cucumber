@@ -166,9 +166,8 @@ export default function HomePage() {
 
       {/* Main Content */}
       <div className="max-w-[1600px] mx-auto px-4 py-4">
-        {/* Run Tests Tab */}
-        {activeTab === 'run' && (
-          <div className="animate-fade-in space-y-3">
+        {/* Run Tests Tab - always mounted, hidden via CSS to preserve SSE connection & logs */}
+        <div className={`space-y-3 ${activeTab === 'run' ? 'animate-fade-in' : 'hidden'}`}>
             {/* Inline Stats Bar */}
             <div className="flex items-center gap-3 bg-zinc-800/80 border border-zinc-700 rounded-lg px-4 py-2">
               {[
@@ -230,7 +229,6 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-        )}
 
         {/* History Tab */}
         {activeTab === 'history' && (
