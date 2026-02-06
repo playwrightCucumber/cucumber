@@ -72,7 +72,12 @@ export function TestRunner({ availableTags, onRun, isRunning }: TestRunnerProps)
               <button
                 key={env.value}
                 onClick={() => setSelectedEnvironment(env.value)}
+                disabled={isRunning}
                 className={`flex flex-col items-center gap-0.5 px-2 py-2 rounded-lg border text-sm font-medium transition-all ${
+                  isRunning
+                    ? 'opacity-50 cursor-not-allowed'
+                    : ''
+                } ${
                   selectedEnvironment === env.value
                     ? `${env.activeColor} shadow-md`
                     : `${env.color} text-zinc-300 hover:text-white`
@@ -93,7 +98,10 @@ export function TestRunner({ availableTags, onRun, isRunning }: TestRunnerProps)
               <button
                 key={tag}
                 onClick={() => toggleTag(tag)}
+                disabled={isRunning}
                 className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                  isRunning ? 'opacity-50 cursor-not-allowed' : ''
+                } ${
                   selectedTags.includes(tag)
                     ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40'
                     : 'bg-zinc-700 text-zinc-300 border border-zinc-600 hover:border-zinc-500 hover:text-white'
@@ -110,7 +118,8 @@ export function TestRunner({ availableTags, onRun, isRunning }: TestRunnerProps)
           <div>
             <button
               onClick={() => setShowAllTags(!showAllTags)}
-              className="flex items-center gap-1 text-xs font-medium text-zinc-300 uppercase tracking-wider mb-2 hover:text-white transition-colors"
+              disabled={isRunning}
+              className={`flex items-center gap-1 text-xs font-medium text-zinc-300 uppercase tracking-wider mb-2 hover:text-white transition-colors ${isRunning ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <svg className={`w-3 h-3 transition-transform ${showAllTags ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -124,7 +133,10 @@ export function TestRunner({ availableTags, onRun, isRunning }: TestRunnerProps)
                     <button
                       key={tag}
                       onClick={() => toggleTag(tag)}
+                      disabled={isRunning}
                       className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${
+                        isRunning ? 'opacity-50 cursor-not-allowed' : ''
+                      } ${
                         selectedTags.includes(tag)
                           ? 'bg-emerald-500/25 text-emerald-300'
                           : 'bg-zinc-700 text-zinc-300 hover:text-white'
@@ -147,11 +159,12 @@ export function TestRunner({ availableTags, onRun, isRunning }: TestRunnerProps)
             onChange={(e) => setCustomTag(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && addCustomTag()}
             placeholder="Add custom tag..."
-            className="flex-1 bg-zinc-800 border border-zinc-600 rounded-lg px-3 py-1.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
+            disabled={isRunning}
+            className={`flex-1 bg-zinc-800 border border-zinc-600 rounded-lg px-3 py-1.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all ${isRunning ? 'opacity-50 cursor-not-allowed' : ''}`}
           />
           <button
             onClick={addCustomTag}
-            disabled={!customTag.trim()}
+            disabled={isRunning || !customTag.trim()}
             className="px-3 py-1.5 bg-zinc-700 text-zinc-200 rounded-lg hover:bg-zinc-600 hover:text-white transition-all text-sm font-medium disabled:opacity-30"
           >
             Add
@@ -167,7 +180,8 @@ export function TestRunner({ availableTags, onRun, isRunning }: TestRunnerProps)
               </label>
               <button
                 onClick={() => setSelectedTags([])}
-                className="text-xs text-zinc-400 hover:text-red-400 transition-colors"
+                disabled={isRunning}
+                className={`text-xs text-zinc-400 hover:text-red-400 transition-colors ${isRunning ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 Clear all
               </button>
@@ -181,7 +195,8 @@ export function TestRunner({ availableTags, onRun, isRunning }: TestRunnerProps)
                   @{tag}
                   <button
                     onClick={() => removeTag(tag)}
-                    className="ml-0.5 opacity-60 hover:opacity-100 transition-opacity"
+                    disabled={isRunning}
+                    className={`ml-0.5 opacity-60 hover:opacity-100 transition-opacity ${isRunning ? 'hidden' : ''}`}
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
