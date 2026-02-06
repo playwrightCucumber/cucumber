@@ -8,16 +8,31 @@ export interface TestRun {
   status: TestStatus;
   startedAt: string;
   completedAt?: string;
+  duration?: number;
   results: TestScenarioResult[];
   logs: string[];
 }
 
+export interface TestStepResult {
+  keyword: string;
+  name: string;
+  status: 'passed' | 'failed' | 'skipped' | 'pending' | 'undefined';
+  duration?: number;
+  error?: string;
+  line?: number;
+}
+
 export interface TestScenarioResult {
   name: string;
+  featureName?: string;
   status: 'passed' | 'failed' | 'skipped';
   duration?: number;
   error?: string;
+  failedStep?: string;
   screenshot?: string;
+  screenshots?: string[];
+  video?: string;
+  steps?: TestStepResult[];
 }
 
 export interface ScheduledRun {

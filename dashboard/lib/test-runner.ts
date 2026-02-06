@@ -3,22 +3,32 @@ import path from 'path';
 import fs from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
 import { config } from 'dotenv';
-import { Environment, TestRun, TestScenarioResult } from './types';
+import { Environment, TestRun, TestScenarioResult, TestStepResult } from './types';
 import { addTestRun } from './storage';
 
 const SCREENSHOTS_DIR = path.join(process.cwd(), '../screenshots');
+const VIDEOS_DIR = path.join(process.cwd(), '../videos');
 const REPORTS_DIR = path.join(process.cwd(), '../reports');
 // Project root directory (parent of dashboard)
 const PROJECT_ROOT = path.join(process.cwd(), '..');
 
-// Store active test runs
-const activeRuns = new Map<string, {
-  process: ChildProcess;
-  status: 'running' | 'stopping';
-}>();
+// Use globalThis to persist state across Next.js dev mode module re-evaluations
+// This prevents the race condition where stream route gets a fresh empty Map
+interface GlobalTestState {
+  __testRunnerActiveRuns: Map<string, { process: ChildProcess; status: 'running' | 'stopping' }>;
+  __testRunnerProgressListeners: Map<string, (data: any) => void>;
+}
 
-// Event listeners for real-time updates
-const progressListeners = new Map<string, (data: any) => void>();
+const g = globalThis as unknown as GlobalTestState;
+if (!g.__testRunnerActiveRuns) {
+  g.__testRunnerActiveRuns = new Map();
+}
+if (!g.__testRunnerProgressListeners) {
+  g.__testRunnerProgressListeners = new Map();
+}
+
+const activeRuns = g.__testRunnerActiveRuns;
+const progressListeners = g.__testRunnerProgressListeners;
 
 export function getActiveRun(runId: string) {
   return activeRuns.get(runId);
@@ -42,8 +52,31 @@ function emitProgress(runId: string, data: any) {
 async function getAvailableScreenshots(): Promise<string[]> {
   try {
     await fs.mkdir(SCREENSHOTS_DIR, { recursive: true });
-    const files = await fs.readdir(SCREENSHOTS_DIR);
-    return files.filter(f => f.endsWith('.png') || f.endsWith('.jpg'));
+    const files = await fs.readdir(SCREENSHOTS_DIR, { withFileTypes: true });
+    const results: string[] = [];
+    for (const f of files) {
+      if (f.isDirectory()) {
+        const subFiles = await fs.readdir(path.join(SCREENSHOTS_DIR, f.name));
+        for (const sf of subFiles) {
+          if (sf.endsWith('.png') || sf.endsWith('.jpg') || sf.endsWith('.jpeg')) {
+            results.push(f.name + '/' + sf);
+          }
+        }
+      } else if (f.name.endsWith('.png') || f.name.endsWith('.jpg') || f.name.endsWith('.jpeg')) {
+        results.push(f.name);
+      }
+    }
+    return results;
+  } catch {
+    return [];
+  }
+}
+
+async function getAvailableVideos(): Promise<string[]> {
+  try {
+    await fs.mkdir(VIDEOS_DIR, { recursive: true });
+    const files = await fs.readdir(VIDEOS_DIR);
+    return files.filter(f => f.endsWith('.webm') || f.endsWith('.mp4'));
   } catch {
     return [];
   }
@@ -64,24 +97,55 @@ async function parseCucumberReport(reportPath: string): Promise<TestScenarioResu
     const results: TestScenarioResult[] = [];
 
     for (const feature of (report || [])) {
+      const featureName = feature.name || 'Unknown Feature';
+
       for (const element of feature.elements || []) {
         const name = element.name || 'Unknown Scenario';
         let status: 'passed' | 'failed' | 'skipped' = 'passed';
         let error: string | undefined;
+        let failedStep: string | undefined;
+        let totalDuration = 0;
+
+        // Parse each step with full detail
+        const steps: TestStepResult[] = [];
 
         for (const step of element.steps || []) {
-          if (step.result?.status === 'failed') {
+          const stepKeyword = (step.keyword || '').trim();
+          const stepName = step.name || '';
+          const stepStatus = step.result?.status || 'pending';
+          // Cucumber JSON reports duration in nanoseconds
+          const stepDurationNs = step.result?.duration || 0;
+          const stepDurationMs = Math.round(stepDurationNs / 1_000_000);
+          const stepError = step.result?.error_message;
+
+          totalDuration += stepDurationMs;
+
+          steps.push({
+            keyword: stepKeyword,
+            name: stepName,
+            status: stepStatus as TestStepResult['status'],
+            duration: stepDurationMs,
+            error: stepError,
+            line: step.line,
+          });
+
+          if (stepStatus === 'failed') {
             status = 'failed';
-            error = step.result.error_message || 'Step failed';
-          } else if (step.result?.status === 'skipped' || step.result?.status === 'pending') {
+            error = stepError || 'Step failed';
+            failedStep = `${stepKeyword} ${stepName}`;
+          } else if ((stepStatus === 'skipped' || stepStatus === 'pending') && status !== 'failed') {
             status = 'skipped';
           }
         }
 
         results.push({
           name,
+          featureName,
           status,
+          duration: totalDuration,
           error,
+          failedStep,
+          steps,
         });
       }
     }
@@ -128,9 +192,9 @@ export async function runTests(
 
   // Load environment variables from .env file
   const envConfig = config({ path: envFilePath });
-  const testEnv = {
+  const testEnv: Record<string, string | undefined> = {
     ...process.env,
-    ...envConfig,
+    ...(envConfig.parsed || {}),
     HEADLESS: 'true',
     NODE_OPTIONS: '--loader ts-node/esm',
     TEST_RUN_ID: runId,
@@ -151,7 +215,7 @@ export async function runTests(
     const childProcess = spawn('sh', ['-c', command], {
       cwd: projectRoot,
       stdio: ['ignore', 'pipe', 'pipe'],
-      env: testEnv,
+      env: testEnv as NodeJS.ProcessEnv,
     });
 
     console.log('[TestRunner] Process spawned, PID:', childProcess.pid);
@@ -201,19 +265,43 @@ export async function runTests(
 
       // Find screenshots for failed tests
       const screenshots = await getAvailableScreenshots();
+      const videos = await getAvailableVideos();
+
       results.forEach(r => {
-        if (r.status === 'failed') {
-          const matchingScreenshot = screenshots.find(s =>
-            s.toLowerCase().includes(r.name.toLowerCase().replace(/\s+/g, '_'))
+        // Match screenshots (check both exact match and partial match)
+        const scenarioNameNormalized = r.name.toLowerCase().replace(/\s+/g, '_');
+        const matchingScreenshots = screenshots.filter(s =>
+          s.toLowerCase().includes(scenarioNameNormalized) ||
+          scenarioNameNormalized.includes(s.toLowerCase().replace(/\.(png|jpg|jpeg)$/i, ''))
+        );
+
+        if (matchingScreenshots.length > 0) {
+          r.screenshot = '/api/screenshots/' + matchingScreenshots[0];
+          r.screenshots = matchingScreenshots.map(s => '/api/screenshots/' + s);
+        } else if (r.status === 'failed') {
+          // Also check in fail subdirectory
+          const failScreenshots = screenshots.filter(s =>
+            s.startsWith('fail/') && s.toLowerCase().includes(scenarioNameNormalized)
           );
-          if (matchingScreenshot) {
-            r.screenshot = '/api/screenshots/' + matchingScreenshot;
+          if (failScreenshots.length > 0) {
+            r.screenshot = '/api/screenshots/' + failScreenshots[0];
+            r.screenshots = failScreenshots.map(s => '/api/screenshots/' + s);
           }
+        }
+
+        // Match videos
+        const matchingVideo = videos.find(v =>
+          v.toLowerCase().includes(scenarioNameNormalized) ||
+          scenarioNameNormalized.includes(v.toLowerCase().replace(/\.(webm|mp4)$/i, ''))
+        );
+        if (matchingVideo) {
+          r.video = '/api/videos/' + matchingVideo;
         }
       });
 
       run.status = code === 0 ? 'passed' : 'failed';
       run.completedAt = new Date().toISOString();
+      run.duration = new Date(run.completedAt).getTime() - new Date(run.startedAt).getTime();
       run.results = results;
       run.logs = logs;
 
