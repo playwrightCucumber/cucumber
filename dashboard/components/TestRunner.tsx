@@ -48,6 +48,16 @@ export function TestRunner({ availableTags, onRun, isRunning }: TestRunnerProps)
       alert('Please select at least one tag');
       return;
     }
+
+    // Check for invalid tags
+    const invalidTags = selectedTags.filter(tag => !availableTags.includes(tag));
+    if (invalidTags.length > 0) {
+      const proceed = confirm(
+        `Warning: The following tag(s) don't exist in any feature file:\n\n${invalidTags.map(t => `@${t}`).join(', ')}\n\nThis will result in 0 scenarios being executed.\n\nDo you want to continue anyway?`
+      );
+      if (!proceed) return;
+    }
+
     onRun(selectedTags, selectedEnvironment);
   };
 
@@ -187,24 +197,43 @@ export function TestRunner({ availableTags, onRun, isRunning }: TestRunnerProps)
               </button>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {selectedTags.map(tag => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 rounded-lg text-xs font-medium group"
-                >
-                  @{tag}
-                  <button
-                    onClick={() => removeTag(tag)}
-                    disabled={isRunning}
-                    className={`ml-0.5 opacity-60 hover:opacity-100 transition-opacity ${isRunning ? 'hidden' : ''}`}
+              {selectedTags.map(tag => {
+                const isValidTag = availableTags.includes(tag);
+                return (
+                  <span
+                    key={tag}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium group ${
+                      isValidTag
+                        ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                        : 'bg-yellow-500/15 text-yellow-300 border border-yellow-500/30'
+                    }`}
+                    title={isValidTag ? 'Valid tag' : 'Warning: Tag not found in any feature file'}
                   >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </span>
-              ))}
+                    {!isValidTag && '⚠️ '}
+                    @{tag}
+                    <button
+                      onClick={() => removeTag(tag)}
+                      disabled={isRunning}
+                      className={`ml-0.5 opacity-60 hover:opacity-100 transition-opacity ${isRunning ? 'hidden' : ''}`}
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </span>
+                );
+              })}
             </div>
+            {selectedTags.some(tag => !availableTags.includes(tag)) && (
+              <div className="mt-2 flex items-start gap-2 px-3 py-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <svg className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <p className="text-xs text-yellow-300/90">
+                  Some tags don't exist in feature files and will result in 0 scenarios being executed.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
