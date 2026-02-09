@@ -50,13 +50,24 @@ export function GherkinPreview({
 
         // Steps
         for (const step of steps) {
-            const action = getActionById(step.actionId);
-            if (action) {
-                let line = action.gherkinTemplate;
-                for (const [key, value] of Object.entries(step.parameters)) {
-                    line = line.replace(`{${key}}`, value);
+            // Free-text step
+            if (step.text) {
+                lines.push(`    ${step.keyword} ${step.text}`);
+                continue;
+            }
+            
+            // Action-based step
+            if (step.actionId) {
+                const action = getActionById(step.actionId);
+                if (action) {
+                    let line = action.gherkinTemplate;
+                    if (step.parameters) {
+                        for (const [key, value] of Object.entries(step.parameters)) {
+                            line = line.replace(`{${key}}`, value);
+                        }
+                    }
+                    lines.push(`    ${step.keyword} ${line}`);
                 }
-                lines.push(`    ${step.keyword} ${line}`);
             }
         }
 

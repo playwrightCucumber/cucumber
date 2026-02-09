@@ -9,7 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@types/lodash": "^4.17.23",
     "dotenv": "^17.2.3",
+    "lodash": "^4.17.23",
     "next": "14.2.3",
     "node-cron": "^3.0.3",
     "react": "^18.3.1",

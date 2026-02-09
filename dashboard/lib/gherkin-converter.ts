@@ -1,30 +1,131 @@
 /**
- * Gherkin Converter - Convert CustomScenario to Gherkin format
+ * Gherkin Converter - Convert Feature/Scenario to Gherkin format
+ * Supports multiple scenarios, Scenario Outline, and free-text steps
  */
 
-import { CustomScenario, ScenarioStep } from './scenario-types';
+import { Feature, Scenario, ScenarioStep, CustomScenario } from './scenario-types';
 import { getActionById } from './action-library';
 
 /**
  * Convert a step to Gherkin line
+ * Supports both action-based and free-text steps
  */
 function stepToGherkin(step: ScenarioStep): string {
-    const action = getActionById(step.actionId);
-    if (!action) {
-        return `    ${step.keyword} Unknown action: ${step.actionId}`;
+    // Free-text step (user-defined)
+    if (step.text) {
+        return `    ${step.keyword} ${step.text}`;
     }
 
-    // Replace template placeholders with actual values
-    let line = action.gherkinTemplate;
-    for (const [key, value] of Object.entries(step.parameters)) {
-        line = line.replace(`{${key}}`, value);
+    // Action-based step (from library)
+    if (step.actionId) {
+        const action = getActionById(step.actionId);
+        if (!action) {
+            return `    ${step.keyword} Unknown action: ${step.actionId}`;
+        }
+
+        // Replace template placeholders with actual values
+        let line = action.gherkinTemplate;
+        if (step.parameters) {
+            for (const [key, value] of Object.entries(step.parameters)) {
+                line = line.replace(`{${key}}`, value);
+            }
+        }
+
+        return `    ${step.keyword} ${line}`;
     }
 
-    return `    ${step.keyword} ${line}`;
+    return `    ${step.keyword} [Empty step]`;
 }
 
 /**
- * Convert CustomScenario to Gherkin content
+ * Convert a Scenario to Gherkin
+ */
+function scenarioToGherkinLines(scenario: Scenario): string[] {
+    const lines: string[] = [];
+
+    // Scenario-level tags
+    if (scenario.tags.length > 0) {
+        const tags = scenario.tags.map(t => t.startsWith('@') ? t : `@${t}`);
+        lines.push(`  ${tags.join(' ')}`);
+    }
+
+    // Scenario or Scenario Outline
+    const scenarioKeyword = scenario.type === 'scenario_outline' ? 'Scenario Outline' : 'Scenario';
+    lines.push(`  ${scenarioKeyword}: ${scenario.name}`);
+
+    // Steps
+    for (const step of scenario.steps) {
+        lines.push(stepToGherkin(step));
+    }
+
+    // Examples (for Scenario Outline)
+    if (scenario.type === 'scenario_outline' && scenario.examples) {
+        lines.push('');
+        lines.push('    Examples:');
+        
+        // Header row
+        const headerRow = '      | ' + scenario.examples.headers.join(' | ') + ' |';
+        lines.push(headerRow);
+        
+        // Data rows
+        for (const row of scenario.examples.rows) {
+            const dataRow = '      | ' + row.join(' | ') + ' |';
+            lines.push(dataRow);
+        }
+    }
+
+    return lines;
+}
+
+/**
+ * Convert Feature to Gherkin content
+ */
+export function featureToGherkin(feature: Feature): string {
+    const lines: string[] = [];
+
+    // Feature-level tags
+    const tags = [
+        `@${feature.priority}`,
+        ...feature.tags.map(t => t.startsWith('@') ? t : `@${t}`),
+        `@${feature.accessLevel}`
+    ];
+    lines.push(tags.join(' '));
+
+    // Feature line
+    lines.push(`Feature: ${feature.name}`);
+
+    // Description
+    if (feature.description) {
+        lines.push(`  ${feature.description}`);
+    }
+    lines.push('');
+
+    // Background (if present)
+    if (feature.background && feature.background.length > 0) {
+        lines.push('  Background:');
+        for (const step of feature.background) {
+            lines.push(stepToGherkin(step));
+        }
+        lines.push('');
+    }
+
+    // Scenarios
+    for (let i = 0; i < feature.scenarios.length; i++) {
+        const scenarioLines = scenarioToGherkinLines(feature.scenarios[i]);
+        lines.push(...scenarioLines);
+        
+        // Add blank line between scenarios (except after last one)
+        if (i < feature.scenarios.length - 1) {
+            lines.push('');
+        }
+    }
+
+    return lines.join('\n');
+}
+
+/**
+ * Legacy: Convert CustomScenario to Gherkin content
+ * @deprecated Use featureToGherkin for new features
  */
 export function scenarioToGherkin(scenario: CustomScenario): string {
     const lines: string[] = [];
@@ -65,7 +166,31 @@ export function scenarioToGherkin(scenario: CustomScenario): string {
 }
 
 /**
- * Generate feature file name from scenario
+ * Generate feature file name from Feature
+ */
+export function generateFeatureFileNameFromFeature(feature: Feature): string {
+    // Convert name to camelCase
+    const baseName = feature.name
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '')
+        .split(/\s+/)
+        .map((word, index) => index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1))
+        .join('');
+
+    return `${baseName}.${feature.accessLevel}.feature`;
+}
+
+/**
+ * Get the full path for the generated feature file
+ */
+export function getFeatureFilePathFromFeature(feature: Feature): string {
+    const fileName = generateFeatureFileNameFromFeature(feature);
+    return `src/features/${feature.priority}/${fileName}`;
+}
+
+/**
+ * Legacy: Generate feature file name from scenario
+ * @deprecated Use generateFeatureFileNameFromFeature
  */
 export function generateFeatureFileName(scenario: CustomScenario): string {
     // Convert name to camelCase

@@ -7,7 +7,9 @@ import { TestResults } from '@/components/TestResults';
 import { HistoryList } from '@/components/HistoryList';
 import { ScheduleManager } from '@/components/ScheduleManager';
 import { ScenarioBuilder } from '@/components/scenario-builder';
+import FeatureFileBrowser from '@/components/FeatureFileBrowser';
 import { TestRun, Environment } from '@/lib/types';
+import { ParsedFeature, ParsedScenario } from '@/lib/feature-parser';
 
 export default function HomePage() {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
@@ -15,8 +17,9 @@ export default function HomePage() {
   const [selectedRun, setSelectedRun] = useState<TestRun | null>(null);
   const [currentRunId, setCurrentRunId] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
-  const [activeTab, setActiveTab] = useState<'run' | 'history' | 'schedule' | 'builder'>('run');
+  const [activeTab, setActiveTab] = useState<'run' | 'history' | 'schedule' | 'builder' | 'features'>('run');
   const [lastCompletedRun, setLastCompletedRun] = useState<TestRun | null>(null);
+  const [loadedScenario, setLoadedScenario] = useState<{ feature: ParsedFeature; scenario: ParsedScenario } | null>(null);
 
   useEffect(() => {
     fetchTags();
@@ -88,6 +91,11 @@ export default function HomePage() {
     setActiveTab('history');
   };
 
+  const handleLoadScenario = (feature: ParsedFeature, scenario: ParsedScenario) => {
+    setLoadedScenario({ feature, scenario });
+    setActiveTab('builder');
+  };
+
   // Stats
   const totalRuns = history.length;
   const passedRuns = history.filter(r => r.status === 'passed').length;
@@ -140,6 +148,13 @@ export default function HomePage() {
                   key: 'builder', label: 'Builder', icon: (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  )
+                },
+                {
+                  key: 'features', label: 'Features', icon: (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   )
                 },
@@ -290,7 +305,14 @@ export default function HomePage() {
         {/* Builder Tab */}
         {activeTab === 'builder' && (
           <div className="animate-fade-in h-[calc(100vh-120px)]">
-            <ScenarioBuilder />
+            <ScenarioBuilder loadedScenario={loadedScenario} />
+          </div>
+        )}
+
+        {/* Features Tab */}
+        {activeTab === 'features' && (
+          <div className="animate-fade-in">
+            <FeatureFileBrowser onSelectScenario={handleLoadScenario} />
           </div>
         )}
       </div>

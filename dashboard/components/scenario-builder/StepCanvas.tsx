@@ -40,14 +40,26 @@ export function StepCanvas({ steps, onStepsChange, onEditStep, onDeleteStep }: S
     };
 
     const getGherkinLine = (step: ScenarioStep): string => {
-        const action = getActionById(step.actionId);
-        if (!action) return `${step.keyword} Unknown action`;
-
-        let line = action.gherkinTemplate;
-        for (const [key, value] of Object.entries(step.parameters)) {
-            line = line.replace(`{${key}}`, value);
+        // Free-text step
+        if (step.text) {
+            return `${step.keyword} ${step.text}`;
         }
-        return `${step.keyword} ${line}`;
+
+        // Action-based step
+        if (step.actionId) {
+            const action = getActionById(step.actionId);
+            if (!action) return `${step.keyword} Unknown action`;
+
+            let line = action.gherkinTemplate;
+            if (step.parameters) {
+                for (const [key, value] of Object.entries(step.parameters)) {
+                    line = line.replace(`{${key}}`, value);
+                }
+            }
+            return `${step.keyword} ${line}`;
+        }
+
+        return `${step.keyword} [Empty step]`;
     };
 
     if (steps.length === 0) {
@@ -74,7 +86,7 @@ export function StepCanvas({ steps, onStepsChange, onEditStep, onDeleteStep }: S
             </div>
             <div className="p-2 space-y-1 max-h-[400px] overflow-y-auto">
                 {steps.map((step, index) => {
-                    const action = getActionById(step.actionId);
+                    const action = step.actionId ? getActionById(step.actionId) : null;
                     const isDragging = draggedIndex === index;
                     const isDragOver = dragOverIndex === index;
 
@@ -107,8 +119,8 @@ export function StepCanvas({ steps, onStepsChange, onEditStep, onDeleteStep }: S
                                 {index + 1}
                             </span>
 
-                            {/* Action icon */}
-                            <span className="text-sm">{action?.icon || '❓'}</span>
+                            {/* Action icon or step indicator */}
+                            <span className="text-sm">{action?.icon || (step.text ? '✍️' : '❓')}</span>
 
                             {/* Step content */}
                             <div className="flex-1 min-w-0">

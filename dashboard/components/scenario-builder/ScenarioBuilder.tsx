@@ -4,19 +4,24 @@
  * ScenarioBuilder - Main component for no-code scenario creation
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ActionPalette } from './ActionPalette';
 import { StepEditor } from './StepEditor';
 import { StepCanvas } from './StepCanvas';
 import { GherkinPreview } from './GherkinPreview';
+import FreeTextStepInput from './FreeTextStepInput';
 import { ActionDefinition } from '@/lib/action-library';
 import { ScenarioStep, Priority, AccessLevel, StepKeyword, CustomScenario } from '@/lib/scenario-types';
+import { ParsedFeature, ParsedScenario } from '@/lib/feature-parser';
+
+type EditorMode = 'action-library' | 'free-text';
 
 interface ScenarioBuilderProps {
     onScenarioSaved?: (scenario: CustomScenario) => void;
+    loadedScenario?: { feature: ParsedFeature; scenario: ParsedScenario } | null;
 }
 
-export function ScenarioBuilder({ onScenarioSaved }: ScenarioBuilderProps) {
+export function ScenarioBuilder({ onScenarioSaved, loadedScenario }: ScenarioBuilderProps) {
     // Scenario metadata
     const [featureName, setFeatureName] = useState('');
     const [scenarioName, setScenarioName] = useState('');
@@ -30,13 +35,75 @@ export function ScenarioBuilder({ onScenarioSaved }: ScenarioBuilderProps) {
     const [steps, setSteps] = useState<ScenarioStep[]>([]);
 
     // Editor state
+    const [editorMode, setEditorMode] = useState<EditorMode>('action-library');
     const [selectedAction, setSelectedAction] = useState<ActionDefinition | null>(null);
     const [editingStep, setEditingStep] = useState<ScenarioStep | null>(null);
+    
+    // Free-text editor state
+    const [freeTextKeyword, setFreeTextKeyword] = useState<StepKeyword>('Given');
+    const [freeTextValue, setFreeTextValue] = useState('');
+    const [freeTextValid, setFreeTextValid] = useState(true);
 
     // UI state
     const [saving, setSaving] = useState(false);
     const [generating, setGenerating] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+    // Track loaded scenario source for save-to-file
+    const [loadedFilePath, setLoadedFilePath] = useState<string | null>(null);
+    const [originalScenarioName, setOriginalScenarioName] = useState<string | null>(null);
+
+    // Load scenario from parsed feature file
+    useEffect(() => {
+        if (!loadedScenario) return;
+
+        const { feature, scenario } = loadedScenario;
+
+        // Track source file for save-to-file
+        setLoadedFilePath(feature.filePath);
+        setOriginalScenarioName(scenario.name);
+
+        // Set feature/scenario names
+        setFeatureName(feature.name);
+        setScenarioName(scenario.name);
+
+        // Extract priority from tags (@p0, @p1, @p2)
+        const allTags = [...feature.tags, ...scenario.tags];
+        const priorityTag = allTags.find(tag => tag.match(/@p[012]/));
+        if (priorityTag) {
+            setPriority(priorityTag.replace('@', '') as Priority);
+        }
+
+        // Extract access level (@public, @authenticated)
+        const accessTag = allTags.find(tag => tag.match(/@(public|authenticated)/));
+        if (accessTag) {
+            setAccessLevel(accessTag.replace('@', '') as AccessLevel);
+        }
+
+        // Set tags (filter out priority and access level tags)
+        const scenarioTags = allTags.filter(tag => 
+            !tag.match(/@p[012]/) && !tag.match(/@(public|authenticated)/)
+        );
+        setTags(scenarioTags);
+
+        // Convert parsed steps to ScenarioSteps
+        const convertedSteps: ScenarioStep[] = scenario.steps.map(step => ({
+            id: crypto.randomUUID(),
+            keyword: step.keyword,
+            text: step.text
+        }));
+        setSteps(convertedSteps);
+
+        // Switch to free-text mode for better editing
+        setEditorMode('free-text');
+
+        // Show success message
+        setMessage({ 
+            type: 'success', 
+            text: `Loaded: ${scenario.name} (${scenario.steps.length} steps)` 
+        });
+        setTimeout(() => setMessage(null), 5000);
+    }, [loadedScenario]);
 
     const getSuggestedKeyword = useCallback((): StepKeyword => {
         if (steps.length === 0) return 'Given';
@@ -46,9 +113,42 @@ export function ScenarioBuilder({ onScenarioSaved }: ScenarioBuilderProps) {
         return 'And';
     }, [steps]);
 
+    const handleModeChange = (mode: EditorMode) => {
+        setEditorMode(mode);
+        setSelectedAction(null);
+        setEditingStep(null);
+        setFreeTextValue('');
+        setFreeTextKeyword(getSuggestedKeyword());
+    };
+
     const handleActionSelect = (action: ActionDefinition) => {
         setSelectedAction(action);
         setEditingStep(null);
+    };
+
+    const handleAddFreeTextStep = () => {
+        if (!freeTextValue.trim() || !freeTextValid) return;
+
+        if (editingStep) {
+            // Update existing free-text step
+            setSteps(prev => prev.map(s =>
+                s.id === editingStep.id 
+                    ? { ...s, keyword: freeTextKeyword, text: freeTextValue.trim() } 
+                    : s
+            ));
+            setEditingStep(null);
+        } else {
+            // Add new free-text step
+            const newStep: ScenarioStep = {
+                id: crypto.randomUUID(),
+                keyword: freeTextKeyword,
+                text: freeTextValue.trim()
+            };
+            setSteps(prev => [...prev, newStep]);
+        }
+
+        setFreeTextValue('');
+        setFreeTextKeyword(getSuggestedKeyword());
     };
 
     const handleStepSave = (stepData: Omit<ScenarioStep, 'id'>) => {
@@ -71,11 +171,25 @@ export function ScenarioBuilder({ onScenarioSaved }: ScenarioBuilderProps) {
 
     const handleEditStep = (step: ScenarioStep) => {
         setEditingStep(step);
-        // Find the action for this step
-        import('@/lib/action-library').then(({ getActionById }) => {
-            const action = getActionById(step.actionId);
-            if (action) setSelectedAction(action);
-        });
+        
+        // Free-text step
+        if (step.text) {
+            setEditorMode('free-text');
+            setFreeTextKeyword(step.keyword);
+            setFreeTextValue(step.text);
+            setSelectedAction(null);
+            return;
+        }
+        
+        // Action-based step
+        if (step.actionId) {
+            setEditorMode('action-library');
+            // Find the action for this step
+            import('@/lib/action-library').then(({ getActionById }) => {
+                const action = getActionById(step.actionId!);
+                if (action) setSelectedAction(action);
+            });
+        }
     };
 
     const handleDeleteStep = (stepId: string) => {
@@ -135,6 +249,72 @@ export function ScenarioBuilder({ onScenarioSaved }: ScenarioBuilderProps) {
             }
         } catch (error) {
             setMessage({ type: 'error', text: 'Failed to save scenario' });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleSaveToFile = async () => {
+        if (!featureName || !scenarioName || steps.length === 0) {
+            setMessage({ type: 'error', text: 'Please fill in feature name, scenario name, and add at least one step' });
+            return;
+        }
+
+        if (!loadedFilePath || !originalScenarioName) {
+            setMessage({ type: 'error', text: 'No source file to save to. Use "Save Scenario" instead.' });
+            return;
+        }
+
+        // Auto-add tag if there's text in input
+        const finalTags = [...tags];
+        if (tagInput.trim() && !finalTags.includes(tagInput.trim())) {
+            finalTags.push(tagInput.trim());
+            setTags(finalTags);
+            setTagInput('');
+        }
+
+        setSaving(true);
+        setMessage(null);
+
+        try {
+            // Prepare feature-level tags (priority + access level + feature tags)
+            const featureTags = [
+                `@${priority}`,
+                `@${accessLevel}`,
+            ];
+
+            // Convert steps to format expected by parser
+            const updatedSteps = steps.map(step => ({
+                keyword: step.keyword,
+                text: step.text
+            }));
+
+            const res = await fetch('/api/features/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    filePath: loadedFilePath,
+                    scenarioName: originalScenarioName,
+                    updatedScenario: {
+                        name: scenarioName,
+                        tags: finalTags,
+                        steps: updatedSteps,
+                        featureTags
+                    }
+                })
+            });
+
+            if (res.ok) {
+                const result = await res.json();
+                setMessage({ type: 'success', text: `Saved to ${loadedFilePath}!` });
+                // Update original scenario name if it changed
+                setOriginalScenarioName(scenarioName);
+            } else {
+                const error = await res.json();
+                setMessage({ type: 'error', text: error.error || 'Failed to save to file' });
+            }
+        } catch (error) {
+            setMessage({ type: 'error', text: 'Failed to save to file' });
         } finally {
             setSaving(false);
         }
@@ -218,13 +398,15 @@ export function ScenarioBuilder({ onScenarioSaved }: ScenarioBuilderProps) {
             )}
 
             <div className="flex gap-4 flex-1 min-h-0">
-                {/* Left: Action Palette */}
-                <div className="w-[220px] flex-shrink-0">
-                    <ActionPalette
-                        onActionSelect={handleActionSelect}
-                        selectedActionId={selectedAction?.id}
-                    />
-                </div>
+                {/* Left: Action Palette (only in action-library mode) */}
+                {editorMode === 'action-library' && (
+                    <div className="w-[220px] flex-shrink-0">
+                        <ActionPalette
+                            onActionSelect={handleActionSelect}
+                            selectedActionId={selectedAction?.id}
+                        />
+                    </div>
+                )}
 
                 {/* Center: Main Editor */}
                 <div className="flex-1 flex flex-col gap-3 min-w-0">
@@ -316,8 +498,43 @@ export function ScenarioBuilder({ onScenarioSaved }: ScenarioBuilderProps) {
                         </div>
                     </div>
 
-                    {/* Step Editor (when action selected) */}
-                    {selectedAction && (
+                    {/* Mode Toggle */}
+                    <div className="bg-zinc-800/80 border border-zinc-700 rounded-xl p-4">
+                        <label className="block text-xs font-medium text-zinc-400 mb-2">Step Input Mode</label>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => handleModeChange('action-library')}
+                                className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                    editorMode === 'action-library'
+                                        ? 'bg-emerald-600 text-white'
+                                        : 'bg-zinc-700 text-zinc-400 hover:text-white'
+                                }`}
+                            >
+                                <div className="flex items-center justify-center gap-2">
+                                    <span>🎯</span>
+                                    <span>Action Library</span>
+                                </div>
+                                <div className="text-xs opacity-75 mt-1">No-code templates</div>
+                            </button>
+                            <button
+                                onClick={() => handleModeChange('free-text')}
+                                className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                    editorMode === 'free-text'
+                                        ? 'bg-emerald-600 text-white'
+                                        : 'bg-zinc-700 text-zinc-400 hover:text-white'
+                                }`}
+                            >
+                                <div className="flex items-center justify-center gap-2">
+                                    <span>✍️</span>
+                                    <span>Free Text</span>
+                                </div>
+                                <div className="text-xs opacity-75 mt-1">Type step text</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Step Editor (when action selected - action-library mode) */}
+                    {editorMode === 'action-library' && selectedAction && (
                         <StepEditor
                             action={selectedAction}
                             step={editingStep || undefined}
@@ -325,6 +542,74 @@ export function ScenarioBuilder({ onScenarioSaved }: ScenarioBuilderProps) {
                             onCancel={() => { setSelectedAction(null); setEditingStep(null); }}
                             suggestedKeyword={getSuggestedKeyword()}
                         />
+                    )}
+
+                    {/* Free Text Step Input */}
+                    {editorMode === 'free-text' && (
+                        <div className="bg-zinc-800/80 border border-zinc-700 rounded-xl p-4">
+                            <h3 className="text-sm font-semibold text-white mb-3">
+                                {editingStep ? 'Edit Step' : 'Add Step'}
+                            </h3>
+                            
+                            <div className="space-y-3">
+                                {/* Keyword Selector */}
+                                <div>
+                                    <label className="block text-xs font-medium text-zinc-400 mb-2">Keyword</label>
+                                    <div className="flex gap-2">
+                                        {(['Given', 'When', 'Then', 'And', 'But'] as StepKeyword[]).map((kw) => (
+                                            <button
+                                                key={kw}
+                                                onClick={() => setFreeTextKeyword(kw)}
+                                                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                                                    freeTextKeyword === kw
+                                                        ? 'bg-emerald-600 text-white'
+                                                        : 'bg-zinc-700 text-zinc-400 hover:text-white'
+                                                }`}
+                                            >
+                                                {kw}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Free Text Input with Autocomplete */}
+                                <div>
+                                    <label className="block text-xs font-medium text-zinc-400 mb-2">
+                                        Step Text *
+                                    </label>
+                                    <FreeTextStepInput
+                                        value={freeTextValue}
+                                        stepType={freeTextKeyword === 'And' || freeTextKeyword === 'But' ? 'Given' : freeTextKeyword}
+                                        onChange={setFreeTextValue}
+                                        onValidationChange={setFreeTextValid}
+                                        placeholder="Start typing step text..."
+                                    />
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex justify-end gap-2">
+                                    {editingStep && (
+                                        <button
+                                            onClick={() => {
+                                                setEditingStep(null);
+                                                setFreeTextValue('');
+                                                setFreeTextKeyword(getSuggestedKeyword());
+                                            }}
+                                            className="px-4 py-2 bg-zinc-700 text-white rounded-lg text-sm font-medium hover:bg-zinc-600 transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={handleAddFreeTextStep}
+                                        disabled={!freeTextValue.trim() || !freeTextValid}
+                                        className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {editingStep ? '✓ Update Step' : '➕ Add Step'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     )}
 
                     {/* Steps List */}
@@ -345,20 +630,37 @@ export function ScenarioBuilder({ onScenarioSaved }: ScenarioBuilderProps) {
                             Clear All
                         </button>
                         <div className="flex-1" />
-                        <button
-                            onClick={handleSave}
-                            disabled={saving || !featureName || !scenarioName || steps.length === 0}
-                            className="px-4 py-2 bg-zinc-700 text-white rounded-lg text-sm font-medium hover:bg-zinc-600 transition-colors disabled:opacity-50 flex items-center gap-2"
-                        >
-                            {saving ? (
-                                <>
-                                    <span className="animate-spin">⏳</span>
-                                    Saving...
-                                </>
-                            ) : (
-                                <>💾 Save Scenario</>
-                            )}
-                        </button>
+                        {loadedFilePath ? (
+                            <button
+                                onClick={handleSaveToFile}
+                                disabled={saving || !featureName || !scenarioName || steps.length === 0}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {saving ? (
+                                    <>
+                                        <span className="animate-spin">⏳</span>
+                                        Saving...
+                                    </>
+                                ) : (
+                                    <>💾 Save to File</>
+                                )}
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handleSave}
+                                disabled={saving || !featureName || !scenarioName || steps.length === 0}
+                                className="px-4 py-2 bg-zinc-700 text-white rounded-lg text-sm font-medium hover:bg-zinc-600 transition-colors disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {saving ? (
+                                    <>
+                                        <span className="animate-spin">⏳</span>
+                                        Saving...
+                                    </>
+                                ) : (
+                                    <>💾 Save Scenario</>
+                                )}
+                            </button>
+                        )}
                         <button
                             onClick={handleGenerate}
                             disabled={generating || !featureName || !scenarioName || steps.length === 0}

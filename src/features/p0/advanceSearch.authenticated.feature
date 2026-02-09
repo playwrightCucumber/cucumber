@@ -1,4 +1,4 @@
-@p0 @advanceSearch @authenticated
+@p0 @authenticated
 Feature: Advanced Search Plot - Authenticated Users
     As a cemetery administrator (logged-in user)
     I want to search for plots using advanced search with full access
@@ -12,7 +12,7 @@ Feature: Advanced Search Plot - Authenticated Users
         Then I should be logged in successfully
         And I navigate to organization home page
 
-    @advance-search-plot @smoke @p0
+    @advanceSearch @advance-search-plot @smoke
     Scenario Outline: Advanced search plot by Section, Row, and Number - <section> <row> <number>
         When I click Advanced search button
         And I select section "<section>" in advanced search
@@ -25,9 +25,9 @@ Feature: Advanced Search Plot - Authenticated Users
         And I should see plot details sidebar
 
         Examples:
-            | section | row | number | description        |
-            | A       | A   | 1      | High capacity plot |
-            | B       | A   | 1      | Garden plot        |
+            | section | row | number | description |
+            | A | A | 1 | High capacity plot |
+            | B | A | 1 | Garden plot |
 
     @advance-search-plot-id @p0
     Scenario Outline: Advanced search plot by Plot ID - <plotId>
@@ -40,9 +40,9 @@ Feature: Advanced Search Plot - Authenticated Users
         And I should see plot details sidebar
 
         Examples:
-            | plotId | description          |
-            | B A 1  | Section B Row A No 1 |
-            | A A 1  | Section A Row A No 1 |
+            | plotId | description |
+            | B A 1 | Section B Row A No 1 |
+            | A A 1 | Section A Row A No 1 |
 
     @advance-search-plot-type @p0
     Scenario Outline: Advanced search plot by Plot type and validate
@@ -57,8 +57,8 @@ Feature: Advanced Search Plot - Authenticated Users
         And I close edit plot page
 
         Examples:
-            | plotType   | description          |
-            | Garden     | Garden plot type     |
+            | plotType | description |
+            | Garden | Garden plot type |
             | Monumental | Monumental plot type |
 
     @advance-search-price @p0
@@ -69,9 +69,9 @@ Feature: Advanced Search Plot - Authenticated Users
         Then I should see search results information
 
         Examples:
-            | price | description        |
-            | 500   | Low price range    |
-            | 1000  | Medium price range |
+            | price | description |
+            | 500 | Low price range |
+            | 1000 | Medium price range |
 
     @advance-search-capacity @p0
     Scenario Outline: Advanced search plot by Capacity - B:<burial> E:<entombment> C:<cremation>
@@ -83,9 +83,9 @@ Feature: Advanced Search Plot - Authenticated Users
         Then I should see search results information
 
         Examples:
-            | burial | entombment | cremation | description       |
-            | 3      | 0          | 2         | High capacity     |
-            | 1      | 1          | 1         | Standard capacity |
+            | burial | entombment | cremation | description |
+            | 3 | 0 | 2 | High capacity |
+            | 1 | 1 | 1 | Standard capacity |
 
     @advance-search-interments-qty @p0
     Scenario Outline: Advanced search plot by Interments Qty - <from> to <to>
@@ -95,9 +95,9 @@ Feature: Advanced Search Plot - Authenticated Users
         Then I should see search results information
 
         Examples:
-            | from | to | description        |
-            | 0    | 2  | Low range (0-2)    |
-            | 1    | 5  | Medium range (1-5) |
+            | from | to | description |
+            | 0 | 2 | Low range (0-2) |
+            | 1 | 5 | Medium range (1-5) |
 
     @advance-search-combined @p0
     Scenario Outline: Advanced search plot by multiple filters - <section> <row> <plotType>
@@ -114,9 +114,9 @@ Feature: Advanced Search Plot - Authenticated Users
         And I close edit plot page
 
         Examples:
-            | section | row | plotType    | description           |
-            | B       | A   | Monumental  | Section B Monumental  |
-            | A       | A   | Columbarium | Section A Columbarium |
+            | section | row | plotType | description |
+            | B | A | Monumental | Section B Monumental |
+            | A | A | Columbarium | Section A Columbarium |
 
     @advance-search-combined-price @p0 @fail
     Scenario Outline: Advanced search plot by Section Row with Price filter - <section> <row>
@@ -128,9 +128,9 @@ Feature: Advanced Search Plot - Authenticated Users
         Then I should see search results information
 
         Examples:
-            | section | row | price | description          |
-            | B       | A   | 500   | Section B with price |
-            | A       | A   | 1000  | Section A with price |
+            | section | row | price | description |
+            | B | A | 500 | Section B with price |
+            | A | A | 1000 | Section A with price |
 
     @advance-search-combined-capacity @p0 @fail
     Scenario Outline: Advanced search plot by Section Row with Capacity - <section> <row>
@@ -143,6 +143,6 @@ Feature: Advanced Search Plot - Authenticated Users
         Then I should see search results information
 
         Examples:
-            | section | row | burialCapacity | cremationCapacity | description        |
-            | A       | A   | 3              | 2                 | High capacity plot |
-            | B       | B   | 1              | 1                 | Standard capacity  |
+            | section | row | burialCapacity | cremationCapacity | description |
+            | A | A | 3 | 2 | High capacity plot |
+            | B | B | 1 | 1 | Standard capacity |
