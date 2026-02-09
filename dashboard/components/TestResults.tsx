@@ -269,6 +269,7 @@ function ScenarioCard({ result, index }: { result: TestScenarioResult; index: nu
 
 export function TestResults({ run }: TestResultsProps) {
   const [filterStatus, setFilterStatus] = useState<'all' | 'passed' | 'failed' | 'skipped'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [expandAll, setExpandAll] = useState(false);
 
   const passedCount = run.results.filter(r => r.status === 'passed').length;
@@ -277,8 +278,9 @@ export function TestResults({ run }: TestResultsProps) {
   const totalDuration = run.duration || run.results.reduce((sum, r) => sum + (r.duration || 0), 0);
 
   const filteredResults = run.results.filter(r => {
-    if (filterStatus === 'all') return true;
-    return r.status === filterStatus;
+    const matchesStatus = filterStatus === 'all' || r.status === filterStatus;
+    const matchesSearch = !searchQuery || r.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesStatus && matchesSearch;
   });
 
   return (
@@ -327,8 +329,26 @@ export function TestResults({ run }: TestResultsProps) {
       </div>
 
       {/* Filter Bar */}
-      <div className="px-5 py-2.5 border-b border-zinc-700/50 flex items-center justify-between">
-        <div className="flex items-center gap-1">
+      <div className="px-5 py-2.5 border-b border-zinc-700/50 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar mask-gradient-r">
+          
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none">
+              <svg className="w-3.5 h-3.5 text-zinc-500 group-focus-within:text-zinc-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="Search scenarios..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-zinc-900/50 border border-zinc-700/50 text-zinc-200 text-xs rounded-md pl-8 pr-3 py-1.5 focus:outline-none focus:border-zinc-500 focus:bg-zinc-900 w-48 placeholder-zinc-600 transition-all shadow-sm"
+            />
+          </div>
+
+          <div className="h-4 w-px bg-zinc-700/50 mx-1"></div>
+
           {(['all', 'failed', 'passed', 'skipped'] as const).map(status => {
             const count = status === 'all' ? run.results.length :
               status === 'passed' ? passedCount :
