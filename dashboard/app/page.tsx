@@ -6,6 +6,7 @@ import { TestProgress } from '@/components/TestProgress';
 import { TestResults } from '@/components/TestResults';
 import { HistoryList } from '@/components/HistoryList';
 import { ScheduleManager } from '@/components/ScheduleManager';
+import { ScenarioBuilder } from '@/components/scenario-builder';
 import { TestRun, Environment } from '@/lib/types';
 
 export default function HomePage() {
@@ -14,7 +15,7 @@ export default function HomePage() {
   const [selectedRun, setSelectedRun] = useState<TestRun | null>(null);
   const [currentRunId, setCurrentRunId] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
-  const [activeTab, setActiveTab] = useState<'run' | 'history' | 'schedule'>('run');
+  const [activeTab, setActiveTab] = useState<'run' | 'history' | 'schedule' | 'builder'>('run');
   const [lastCompletedRun, setLastCompletedRun] = useState<TestRun | null>(null);
 
   useEffect(() => {
@@ -114,30 +115,42 @@ export default function HomePage() {
             {/* Tabs */}
             <nav className="flex items-center bg-zinc-800 rounded-lg p-1 gap-0.5 border border-zinc-700">
               {[
-                { key: 'run', label: 'Run Tests', icon: (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                  </svg>
-                )},
-                { key: 'history', label: 'History', icon: (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                ), badge: totalRuns },
-                { key: 'schedule', label: 'Schedules', icon: (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                )},
+                {
+                  key: 'run', label: 'Run Tests', icon: (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    </svg>
+                  )
+                },
+                {
+                  key: 'history', label: 'History', icon: (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  ), badge: totalRuns
+                },
+                {
+                  key: 'schedule', label: 'Schedules', icon: (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  )
+                },
+                {
+                  key: 'builder', label: 'Builder', icon: (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  )
+                },
               ].map(tab => (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key as typeof activeTab)}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-sm font-medium transition-all ${
-                    activeTab === tab.key
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-sm font-medium transition-all ${activeTab === tab.key
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'text-zinc-300 hover:text-white hover:bg-zinc-700'
-                  }`}
+                    }`}
                 >
                   {tab.icon}
                   {tab.label}
@@ -168,67 +181,67 @@ export default function HomePage() {
       <div className="max-w-[1600px] mx-auto px-4 py-4">
         {/* Run Tests Tab - always mounted, hidden via CSS to preserve SSE connection & logs */}
         <div className={`space-y-3 ${activeTab === 'run' ? 'animate-fade-in' : 'hidden'}`}>
-            {/* Inline Stats Bar */}
-            <div className="flex items-center gap-3 bg-zinc-800/80 border border-zinc-700 rounded-lg px-4 py-2">
-              {[
-                { label: 'Runs', value: totalRuns, color: 'text-white' },
-                { label: 'Passed', value: passedRuns, color: 'text-emerald-400' },
-                { label: 'Failed', value: failedRuns, color: 'text-red-400' },
-                { label: 'Rate', value: `${passRate}%`, color: passRate >= 80 ? 'text-emerald-400' : passRate >= 50 ? 'text-yellow-400' : 'text-red-400' },
-              ].map((stat, i) => (
-                <div key={stat.label} className="flex items-center gap-2">
-                  {i > 0 && <span className="text-zinc-600">·</span>}
-                  <span className="text-xs text-zinc-400 uppercase font-medium">{stat.label}</span>
-                  <span className={`text-lg font-bold ${stat.color}`}>{stat.value}</span>
+          {/* Inline Stats Bar */}
+          <div className="flex items-center gap-3 bg-zinc-800/80 border border-zinc-700 rounded-lg px-4 py-2">
+            {[
+              { label: 'Runs', value: totalRuns, color: 'text-white' },
+              { label: 'Passed', value: passedRuns, color: 'text-emerald-400' },
+              { label: 'Failed', value: failedRuns, color: 'text-red-400' },
+              { label: 'Rate', value: `${passRate}%`, color: passRate >= 80 ? 'text-emerald-400' : passRate >= 50 ? 'text-yellow-400' : 'text-red-400' },
+            ].map((stat, i) => (
+              <div key={stat.label} className="flex items-center gap-2">
+                {i > 0 && <span className="text-zinc-600">·</span>}
+                <span className="text-xs text-zinc-400 uppercase font-medium">{stat.label}</span>
+                <span className={`text-lg font-bold ${stat.color}`}>{stat.value}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-4">
+            {/* Left: Runner + Progress */}
+            <div className="flex-1 min-w-0 space-y-3">
+              <TestRunner
+                availableTags={availableTags}
+                onRun={handleRun}
+                isRunning={isRunning}
+              />
+              {currentRunId && (
+                <TestProgress
+                  runId={currentRunId}
+                  onComplete={handleTestComplete}
+                />
+              )}
+              {/* Show last completed run results inline */}
+              {lastCompletedRun && !isRunning && (
+                <div className="animate-fade-in">
+                  <TestResults run={lastCompletedRun} />
                 </div>
-              ))}
+              )}
             </div>
 
-            <div className="flex gap-4">
-              {/* Left: Runner + Progress */}
-              <div className="flex-1 min-w-0 space-y-3">
-                <TestRunner
-                  availableTags={availableTags}
-                  onRun={handleRun}
-                  isRunning={isRunning}
-                />
-                {currentRunId && (
-                  <TestProgress
-                    runId={currentRunId}
-                    onComplete={handleTestComplete}
-                  />
-                )}
-                {/* Show last completed run results inline */}
-                {lastCompletedRun && !isRunning && (
-                  <div className="animate-fade-in">
-                    <TestResults run={lastCompletedRun} />
-                  </div>
-                )}
-              </div>
-
-              {/* Right: Recent Runs */}
-              <div className="w-[340px] flex-shrink-0 hidden lg:block">
-                <div className="sticky top-16">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Recent Runs</h3>
-                    <button
-                      onClick={() => setActiveTab('history')}
-                      className="text-xs text-zinc-400 hover:text-white transition-colors"
-                    >
-                      View all →
-                    </button>
-                  </div>
-                  <HistoryList
-                    history={history.slice(0, 10)}
-                    onSelectRun={handleViewRun}
-                    selectedRun={null}
-                    onClearHistory={fetchHistory}
-                    compact
-                  />
+            {/* Right: Recent Runs */}
+            <div className="w-[340px] flex-shrink-0 hidden lg:block">
+              <div className="sticky top-16">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Recent Runs</h3>
+                  <button
+                    onClick={() => setActiveTab('history')}
+                    className="text-xs text-zinc-400 hover:text-white transition-colors"
+                  >
+                    View all →
+                  </button>
                 </div>
+                <HistoryList
+                  history={history.slice(0, 10)}
+                  onSelectRun={handleViewRun}
+                  selectedRun={null}
+                  onClearHistory={fetchHistory}
+                  compact
+                />
               </div>
             </div>
           </div>
+        </div>
 
         {/* History Tab */}
         {activeTab === 'history' && (
@@ -271,6 +284,13 @@ export default function HomePage() {
         {activeTab === 'schedule' && (
           <div className="animate-fade-in max-w-3xl mx-auto">
             <ScheduleManager />
+          </div>
+        )}
+
+        {/* Builder Tab */}
+        {activeTab === 'builder' && (
+          <div className="animate-fade-in h-[calc(100vh-120px)]">
+            <ScenarioBuilder />
           </div>
         )}
       </div>
