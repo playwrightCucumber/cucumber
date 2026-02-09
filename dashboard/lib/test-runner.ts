@@ -185,8 +185,8 @@ export async function runTests(
   // Build env file path and load environment variables
   const envFile = environment === 'dev' ? '.env.dev'
     : environment === 'map' ? '.env.map'
-    : environment === 'staging' ? '.env.chronicle'
-    : '.env.chronicle.prod';
+      : environment === 'staging' ? '.env.chronicle'
+        : '.env.chronicle.prod';
 
   const envFilePath = path.join(PROJECT_ROOT, envFile);
 
@@ -269,7 +269,12 @@ export async function runTests(
 
       results.forEach(r => {
         // Match screenshots (check both exact match and partial match)
-        const scenarioNameNormalized = r.name.toLowerCase().replace(/\s+/g, '_');
+        // Normalize scenario name to match hooks.ts sanitization
+        const scenarioNameNormalized = r.name
+          .replace(/[^a-zA-Z0-9\s]/g, '_')
+          .replace(/\s+/g, '_')
+          .toLowerCase()
+          .substring(0, 100);
         const matchingScreenshots = screenshots.filter(s =>
           s.toLowerCase().includes(scenarioNameNormalized) ||
           scenarioNameNormalized.includes(s.toLowerCase().replace(/\.(png|jpg|jpeg)$/i, ''))
@@ -289,11 +294,19 @@ export async function runTests(
           }
         }
 
-        // Match videos
-        const matchingVideo = videos.find(v =>
-          v.toLowerCase().includes(scenarioNameNormalized) ||
-          scenarioNameNormalized.includes(v.toLowerCase().replace(/\.(webm|mp4)$/i, ''))
-        );
+        // Match videos with exact pattern from hooks.ts: {status}_{env}_{scenarioName}.webm
+        // key format: pass_dev_scenario_name.webm or fail_staging_scenario_name.webm
+        const statusPrefixes = ['pass', 'fail'];
+        const matchingVideo = videos.find(v => {
+          // Check all possible status prefixes
+          return statusPrefixes.some(prefix => {
+            // Construct expected filename pattern
+            // Note: We use run.environment because videos are named with environment
+            const expectedPrefix = `${prefix}_${run.environment}_${scenarioNameNormalized}`;
+            return v.toLowerCase().startsWith(expectedPrefix);
+          });
+        });
+
         if (matchingVideo) {
           r.video = '/api/videos/' + matchingVideo;
         }
