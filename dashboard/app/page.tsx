@@ -8,6 +8,7 @@ import { HistoryList } from '@/components/HistoryList';
 import { ScheduleManager } from '@/components/ScheduleManager';
 import { ScenarioBuilder } from '@/components/scenario-builder';
 import FeatureFileBrowser from '@/components/FeatureFileBrowser';
+import { StepDefinitionManager } from '@/components/StepDefinitionManager';
 import { TestRun, Environment } from '@/lib/types';
 import { ParsedFeature, ParsedScenario } from '@/lib/feature-parser';
 
@@ -17,7 +18,7 @@ export default function HomePage() {
   const [selectedRun, setSelectedRun] = useState<TestRun | null>(null);
   const [currentRunId, setCurrentRunId] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
-  const [activeTab, setActiveTab] = useState<'run' | 'history' | 'schedule' | 'builder' | 'features'>('run');
+  const [activeTab, setActiveTab] = useState<'run' | 'history' | 'schedule' | 'builder' | 'features' | 'steps'>('run');
   const [lastCompletedRun, setLastCompletedRun] = useState<TestRun | null>(null);
   const [loadedScenario, setLoadedScenario] = useState<{ feature: ParsedFeature; scenario: ParsedScenario } | null>(null);
 
@@ -155,6 +156,13 @@ export default function HomePage() {
                   key: 'features', label: 'Features', icon: (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  )
+                },
+                {
+                  key: 'steps', label: 'Step Defs', icon: (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                     </svg>
                   )
                 },
@@ -313,6 +321,13 @@ export default function HomePage() {
         {activeTab === 'features' && (
           <div className="animate-fade-in">
             <FeatureFileBrowser onSelectScenario={handleLoadScenario} />
+          </div>
+        )}
+
+        {/* Step Definitions Tab */}
+        {activeTab === 'steps' && (
+          <div className="animate-fade-in h-[calc(100vh-120px)]">
+            <StepDefinitionManager />
           </div>
         )}
       </div>
