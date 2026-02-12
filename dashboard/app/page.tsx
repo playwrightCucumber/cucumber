@@ -9,6 +9,7 @@ import { ScheduleManager } from '@/components/ScheduleManager';
 import { ScenarioBuilder } from '@/components/scenario-builder';
 import FeatureFileBrowser from '@/components/FeatureFileBrowser';
 import { StepDefinitionManager } from '@/components/StepDefinitionManager';
+import { WelcomeGuide } from '@/components/WelcomeGuide';
 import { TestRun, Environment } from '@/lib/types';
 import { ParsedFeature, ParsedScenario } from '@/lib/feature-parser';
 
@@ -69,12 +70,12 @@ export default function HomePage() {
         setCurrentRunId(data.runId);
       } else {
         const error = await res.json();
-        alert('Failed to run tests: ' + error.error);
+        alert('Gagal menjalankan test: ' + error.error);
         setIsRunning(false);
       }
     } catch (error) {
       console.error('Failed to run tests:', error);
-      alert('Failed to run tests');
+      alert('Gagal menjalankan test. Pastikan server berjalan.');
       setIsRunning(false);
     }
   };
@@ -117,7 +118,7 @@ export default function HomePage() {
               </div>
               <div>
                 <h1 className="text-base font-semibold text-white leading-tight">Test Dashboard</h1>
-                <p className="text-xs text-zinc-400">Playwright • Cucumber</p>
+                <p className="text-xs text-zinc-400">Dashboard Automation Test</p>
               </div>
             </div>
 
@@ -125,42 +126,42 @@ export default function HomePage() {
             <nav className="flex items-center bg-zinc-800 rounded-lg p-1 gap-0.5 border border-zinc-700">
               {[
                 {
-                  key: 'run', label: 'Run Tests', icon: (
+                  key: 'run', label: '▶ Jalankan Test', tooltip: 'Pilih & jalankan test otomatis', icon: (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                     </svg>
                   )
                 },
                 {
-                  key: 'history', label: 'History', icon: (
+                  key: 'history', label: '📊 Riwayat', tooltip: 'Lihat hasil test sebelumnya', icon: (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   ), badge: totalRuns
                 },
                 {
-                  key: 'schedule', label: 'Schedules', icon: (
+                  key: 'schedule', label: '📅 Jadwal', tooltip: 'Atur jadwal test otomatis', icon: (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                   )
                 },
                 {
-                  key: 'builder', label: 'Builder', icon: (
+                  key: 'builder', label: '🔨 Buat Test', tooltip: 'Buat skenario test baru dengan mudah', icon: (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
                   )
                 },
                 {
-                  key: 'features', label: 'Features', icon: (
+                  key: 'features', label: '📁 Daftar Test', tooltip: 'Browse semua skenario test yang ada', icon: (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   )
                 },
                 {
-                  key: 'steps', label: 'Step Defs', icon: (
+                  key: 'steps', label: '⚙ Langkah', tooltip: 'Definisi langkah-langkah test (teknis)', icon: (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                     </svg>
@@ -170,12 +171,12 @@ export default function HomePage() {
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key as typeof activeTab)}
+                  title={(tab as any).tooltip || ''}
                   className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-sm font-medium transition-all ${activeTab === tab.key
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'text-zinc-300 hover:text-white hover:bg-zinc-700'
                     }`}
                 >
-                  {tab.icon}
                   {tab.label}
                   {tab.badge !== undefined && tab.badge > 0 && (
                     <span className="ml-1 px-1.5 py-0.5 bg-zinc-600 text-white text-xs rounded-full font-medium">
@@ -204,13 +205,16 @@ export default function HomePage() {
       <div className="max-w-[1600px] mx-auto px-4 py-4">
         {/* Run Tests Tab - always mounted, hidden via CSS to preserve SSE connection & logs */}
         <div className={`space-y-3 ${activeTab === 'run' ? 'animate-fade-in' : 'hidden'}`}>
+          {/* Welcome Guide */}
+          <WelcomeGuide onNavigate={(tab) => setActiveTab(tab as typeof activeTab)} />
+
           {/* Inline Stats Bar */}
           <div className="flex items-center gap-3 bg-zinc-800/80 border border-zinc-700 rounded-lg px-4 py-2">
             {[
-              { label: 'Runs', value: totalRuns, color: 'text-white' },
-              { label: 'Passed', value: passedRuns, color: 'text-emerald-400' },
-              { label: 'Failed', value: failedRuns, color: 'text-red-400' },
-              { label: 'Rate', value: `${passRate}%`, color: passRate >= 80 ? 'text-emerald-400' : passRate >= 50 ? 'text-yellow-400' : 'text-red-400' },
+              { label: 'Total Test', value: totalRuns, color: 'text-white' },
+              { label: 'Berhasil', value: passedRuns, color: 'text-emerald-400' },
+              { label: 'Gagal', value: failedRuns, color: 'text-red-400' },
+              { label: 'Tingkat Sukses', value: `${passRate}%`, color: passRate >= 80 ? 'text-emerald-400' : passRate >= 50 ? 'text-yellow-400' : 'text-red-400' },
             ].map((stat, i) => (
               <div key={stat.label} className="flex items-center gap-2">
                 {i > 0 && <span className="text-zinc-600">·</span>}
@@ -246,12 +250,12 @@ export default function HomePage() {
             <div className="w-[340px] flex-shrink-0 hidden lg:block">
               <div className="sticky top-16">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Recent Runs</h3>
+                  <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Test Terakhir</h3>
                   <button
                     onClick={() => setActiveTab('history')}
                     className="text-xs text-zinc-400 hover:text-white transition-colors"
                   >
-                    View all →
+                    Lihat semua →
                   </button>
                 </div>
                 <HistoryList
@@ -291,9 +295,9 @@ export default function HomePage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                         </svg>
                       </div>
-                      <h3 className="text-base font-semibold text-zinc-200 mb-1">Select a Test Run</h3>
+                      <h3 className="text-base font-semibold text-zinc-200 mb-1">Pilih Test Run</h3>
                       <p className="text-sm text-zinc-400 max-w-sm mx-auto">
-                        Choose a run from the list to view results.
+                        Pilih salah satu test dari daftar di sebelah kiri untuk melihat hasilnya.
                       </p>
                     </div>
                   </div>
