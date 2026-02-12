@@ -8,8 +8,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { ActionPalette } from './ActionPalette';
 import { StepEditor } from './StepEditor';
 import { StepCanvas } from './StepCanvas';
-import { GherkinPreview } from './GherkinPreview';
 import FreeTextStepInput from './FreeTextStepInput';
+import { RightSidebar } from './RightSidebar';
 import { ActionDefinition } from '@/lib/action-library';
 import { ScenarioStep, Priority, AccessLevel, StepKeyword, CustomScenario } from '@/lib/scenario-types';
 import { ParsedFeature, ParsedScenario } from '@/lib/feature-parser';
@@ -38,7 +38,7 @@ export function ScenarioBuilder({ onScenarioSaved, loadedScenario }: ScenarioBui
     const [editorMode, setEditorMode] = useState<EditorMode>('action-library');
     const [selectedAction, setSelectedAction] = useState<ActionDefinition | null>(null);
     const [editingStep, setEditingStep] = useState<ScenarioStep | null>(null);
-    
+
     // Free-text editor state
     const [freeTextKeyword, setFreeTextKeyword] = useState<StepKeyword>('Given');
     const [freeTextValue, setFreeTextValue] = useState('');
@@ -81,7 +81,7 @@ export function ScenarioBuilder({ onScenarioSaved, loadedScenario }: ScenarioBui
         }
 
         // Set tags (filter out priority and access level tags)
-        const scenarioTags = allTags.filter(tag => 
+        const scenarioTags = allTags.filter(tag =>
             !tag.match(/@p[012]/) && !tag.match(/@(public|authenticated)/)
         );
         setTags(scenarioTags);
@@ -98,9 +98,9 @@ export function ScenarioBuilder({ onScenarioSaved, loadedScenario }: ScenarioBui
         setEditorMode('free-text');
 
         // Show success message
-        setMessage({ 
-            type: 'success', 
-            text: `Loaded: ${scenario.name} (${scenario.steps.length} steps)` 
+        setMessage({
+            type: 'success',
+            text: `Loaded: ${scenario.name} (${scenario.steps.length} steps)`
         });
         setTimeout(() => setMessage(null), 5000);
     }, [loadedScenario]);
@@ -132,8 +132,8 @@ export function ScenarioBuilder({ onScenarioSaved, loadedScenario }: ScenarioBui
         if (editingStep) {
             // Update existing free-text step
             setSteps(prev => prev.map(s =>
-                s.id === editingStep.id 
-                    ? { ...s, keyword: freeTextKeyword, text: freeTextValue.trim() } 
+                s.id === editingStep.id
+                    ? { ...s, keyword: freeTextKeyword, text: freeTextValue.trim() }
                     : s
             ));
             setEditingStep(null);
@@ -171,7 +171,7 @@ export function ScenarioBuilder({ onScenarioSaved, loadedScenario }: ScenarioBui
 
     const handleEditStep = (step: ScenarioStep) => {
         setEditingStep(step);
-        
+
         // Free-text step
         if (step.text) {
             setEditorMode('free-text');
@@ -180,7 +180,7 @@ export function ScenarioBuilder({ onScenarioSaved, loadedScenario }: ScenarioBui
             setSelectedAction(null);
             return;
         }
-        
+
         // Action-based step
         if (step.actionId) {
             setEditorMode('action-library');
@@ -359,7 +359,7 @@ export function ScenarioBuilder({ onScenarioSaved, loadedScenario }: ScenarioBui
 
             const scenario = await saveRes.json();
 
-            // Now generate feature file
+            // Now generate Feature file
             const genRes = await fetch(`/api/scenarios/${scenario.id}/generate`, {
                 method: 'POST'
             });
@@ -387,310 +387,216 @@ export function ScenarioBuilder({ onScenarioSaved, loadedScenario }: ScenarioBui
     };
 
     return (
-        <div className="h-full flex flex-col">
-            {/* Message */}
-            {message && (
-                <div className={`mb-3 px-4 py-2 rounded-lg text-sm ${message.type === 'success' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
-                        'bg-red-500/20 text-red-400 border border-red-500/30'
-                    }`}>
-                    {message.text}
+        <div className="h-full flex overflow-hidden">
+            {/* Left Sidebar - Actions */}
+            {editorMode === 'action-library' && (
+                <div className="w-[280px] bg-zinc-900/50 border-r border-zinc-700 flex flex-col">
+                    <ActionPalette
+                        onActionSelect={handleActionSelect}
+                        selectedActionId={selectedAction?.id}
+                    />
                 </div>
             )}
 
-            <div className="flex gap-4 flex-1 min-h-0">
-                {/* Left: Action Palette (only in action-library mode) */}
-                {editorMode === 'action-library' && (
-                    <div className="w-[220px] flex-shrink-0">
-                        <ActionPalette
-                            onActionSelect={handleActionSelect}
-                            selectedActionId={selectedAction?.id}
-                        />
+            {/* Center - Playground */}
+            <div className="flex-1 flex flex-col min-w-0 bg-zinc-950/50 relative">
+                {/* Message Overlay */}
+                {message && (
+                    <div className={`absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full text-sm font-medium shadow-lg backdrop-blur-md ${message.type === 'success'
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                            : 'bg-red-500/20 text-red-300 border border-red-500/30'
+                        }`}>
+                        {message.text}
                     </div>
                 )}
 
-                {/* Center: Main Editor */}
-                <div className="flex-1 flex flex-col gap-3 min-w-0">
-                    {/* Metadata Form */}
-                    <div className="bg-zinc-800/80 border border-zinc-700 rounded-xl p-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-medium text-zinc-400 mb-1">Feature Name *</label>
-                                <input
-                                    type="text"
-                                    value={featureName}
-                                    onChange={(e) => setFeatureName(e.target.value)}
-                                    placeholder="e.g., User Login"
-                                    className="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-emerald-500 focus:outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-zinc-400 mb-1">Scenario Name *</label>
-                                <input
-                                    type="text"
-                                    value={scenarioName}
-                                    onChange={(e) => setScenarioName(e.target.value)}
-                                    placeholder="e.g., Login with valid credentials"
-                                    className="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-emerald-500 focus:outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-zinc-400 mb-1">Priority</label>
-                                <div className="flex gap-1">
-                                    {(['p0', 'p1', 'p2'] as Priority[]).map(p => (
-                                        <button
-                                            key={p}
-                                            onClick={() => setPriority(p)}
-                                            className={`flex-1 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${priority === p
-                                                    ? 'bg-emerald-600 text-white'
-                                                    : 'bg-zinc-700 text-zinc-400 hover:text-white'
-                                                }`}
-                                        >
-                                            {p.toUpperCase()}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-zinc-400 mb-1">Access Level</label>
-                                <div className="flex gap-1">
-                                    {(['public', 'authenticated'] as AccessLevel[]).map(a => (
-                                        <button
-                                            key={a}
-                                            onClick={() => setAccessLevel(a)}
-                                            className={`flex-1 px-3 py-2 text-xs font-medium rounded-lg transition-colors capitalize ${accessLevel === a
-                                                    ? 'bg-emerald-600 text-white'
-                                                    : 'bg-zinc-700 text-zinc-400 hover:text-white'
-                                                }`}
-                                        >
-                                            {a}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="col-span-2">
-                                <label className="block text-xs font-medium text-zinc-400 mb-1">Tags</label>
-                                <div className="flex gap-2 items-start">
-                                    <div className="flex-1 flex gap-2 flex-wrap items-center min-h-[32px] bg-zinc-900 border border-zinc-600 rounded-lg px-2 py-1.5">
-                                        {tags.map(tag => (
-                                            <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded text-xs border border-purple-500/30">
-                                                @{tag}
-                                                <button onClick={() => handleRemoveTag(tag)} className="hover:text-white text-purple-300">×</button>
-                                            </span>
-                                        ))}
-                                        <input
-                                            type="text"
-                                            value={tagInput}
-                                            onChange={(e) => setTagInput(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                                            placeholder="Type tag and press Enter or click +"
-                                            className="flex-1 min-w-[120px] bg-transparent border-none text-xs text-white placeholder-zinc-500 focus:outline-none"
-                                        />
-                                    </div>
-                                    <button
-                                        onClick={handleAddTag}
-                                        disabled={!tagInput.trim()}
-                                        className="px-3 py-1.5 bg-purple-600 text-white rounded-lg text-xs font-medium hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        + Add
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Mode Toggle */}
-                    <div className="bg-zinc-800/80 border border-zinc-700 rounded-xl p-4">
-                        <label className="block text-xs font-medium text-zinc-400 mb-2">Step Input Mode</label>
-                        <div className="flex gap-2">
+                {/* Toolbar / Input Area */}
+                <div className="p-4 border-b border-zinc-800 bg-zinc-900/20 backdrop-blur-sm">
+                    {/* Mode Switcher */}
+                    <div className="flex justify-center mb-4">
+                        <div className="bg-zinc-800 p-1 rounded-lg inline-flex">
                             <button
                                 onClick={() => handleModeChange('action-library')}
-                                className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                                    editorMode === 'action-library'
-                                        ? 'bg-emerald-600 text-white'
-                                        : 'bg-zinc-700 text-zinc-400 hover:text-white'
-                                }`}
+                                className={`px-4 py-1.5 text-xs font-medium rounded-md transition-colors ${editorMode === 'action-library'
+                                        ? 'bg-zinc-600 text-white shadow-sm'
+                                        : 'text-zinc-400 hover:text-white'
+                                    }`}
                             >
-                                <div className="flex items-center justify-center gap-2">
-                                    <span>🎯</span>
-                                    <span>Action Library</span>
-                                </div>
-                                <div className="text-xs opacity-75 mt-1">No-code templates</div>
+                                🎯 Action Library
                             </button>
                             <button
                                 onClick={() => handleModeChange('free-text')}
-                                className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                                    editorMode === 'free-text'
-                                        ? 'bg-emerald-600 text-white'
-                                        : 'bg-zinc-700 text-zinc-400 hover:text-white'
-                                }`}
+                                className={`px-4 py-1.5 text-xs font-medium rounded-md transition-colors ${editorMode === 'free-text'
+                                        ? 'bg-zinc-600 text-white shadow-sm'
+                                        : 'text-zinc-400 hover:text-white'
+                                    }`}
                             >
-                                <div className="flex items-center justify-center gap-2">
-                                    <span>✍️</span>
-                                    <span>Free Text</span>
-                                </div>
-                                <div className="text-xs opacity-75 mt-1">Type step text</div>
+                                ✍️ Free Text
                             </button>
                         </div>
                     </div>
 
-                    {/* Step Editor (when action selected - action-library mode) */}
+                    {/* Step Editor (within center column) */}
                     {editorMode === 'action-library' && selectedAction && (
-                        <StepEditor
-                            action={selectedAction}
-                            step={editingStep || undefined}
-                            onSave={handleStepSave}
-                            onCancel={() => { setSelectedAction(null); setEditingStep(null); }}
-                            suggestedKeyword={getSuggestedKeyword()}
-                        />
+                        <div className="max-w-3xl mx-auto">
+                            <StepEditor
+                                action={selectedAction}
+                                step={editingStep || undefined}
+                                onSave={handleStepSave}
+                                onCancel={() => { setSelectedAction(null); setEditingStep(null); }}
+                                suggestedKeyword={getSuggestedKeyword()}
+                            />
+                        </div>
                     )}
 
-                    {/* Free Text Step Input */}
+                    {/* Free Text Input */}
                     {editorMode === 'free-text' && (
-                        <div className="bg-zinc-800/80 border border-zinc-700 rounded-xl p-4">
-                            <h3 className="text-sm font-semibold text-white mb-3">
-                                {editingStep ? 'Edit Step' : 'Add Step'}
-                            </h3>
-                            
-                            <div className="space-y-3">
-                                {/* Keyword Selector */}
-                                <div>
-                                    <label className="block text-xs font-medium text-zinc-400 mb-2">Keyword</label>
-                                    <div className="flex gap-2">
-                                        {(['Given', 'When', 'Then', 'And', 'But'] as StepKeyword[]).map((kw) => (
-                                            <button
-                                                key={kw}
-                                                onClick={() => setFreeTextKeyword(kw)}
-                                                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                                                    freeTextKeyword === kw
-                                                        ? 'bg-emerald-600 text-white'
-                                                        : 'bg-zinc-700 text-zinc-400 hover:text-white'
-                                                }`}
-                                            >
-                                                {kw}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Free Text Input with Autocomplete */}
-                                <div>
-                                    <label className="block text-xs font-medium text-zinc-400 mb-2">
-                                        Step Text *
-                                    </label>
+                        <div className="max-w-3xl mx-auto space-y-3">
+                            {/* Keyword & Input Row */}
+                            <div className="flex items-start gap-2">
+                                <select
+                                    value={freeTextKeyword}
+                                    onChange={(e) => setFreeTextKeyword(e.target.value as StepKeyword)}
+                                    className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block p-2.5 min-w-[90px]"
+                                >
+                                    {['Given', 'When', 'Then', 'And', 'But'].map(kw => (
+                                        <option key={kw} value={kw}>{kw}</option>
+                                    ))}
+                                </select>
+                                <div className="flex-1">
                                     <FreeTextStepInput
                                         value={freeTextValue}
                                         stepType={freeTextKeyword === 'And' || freeTextKeyword === 'But' ? 'Given' : freeTextKeyword}
                                         onChange={setFreeTextValue}
                                         onValidationChange={setFreeTextValid}
-                                        placeholder="Start typing step text..."
+                                        placeholder="Start typing step..."
                                     />
                                 </div>
+                                <button
+                                    onClick={() => {
+                                        if (editingStep) {
+                                            setEditingStep(null);
+                                            setFreeTextValue('');
+                                        }
+                                        // Reset logic handled in handler if adding new
+                                        if (!editingStep) {
+                                            if (!freeTextValue.trim() || !freeTextValid) return;
+                                            // Add new free-text step logic duplicated here for inline button
+                                            const newStep: ScenarioStep = {
+                                                id: crypto.randomUUID(),
+                                                keyword: freeTextKeyword,
+                                                text: freeTextValue.trim()
+                                            };
+                                            setSteps(prev => [...prev, newStep]);
+                                            setFreeTextValue('');
+                                            setFreeTextKeyword(getSuggestedKeyword());
+                                        }
+                                    }}
+                                    disabled={!freeTextValue.trim() || !freeTextValid}
+                                    className="p-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 disabled:opacity-50 transition-colors"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </button>
+                            </div>
 
-                                {/* Action Buttons */}
+                            {/* Edit Mode Cancel */}
+                            {editingStep && (
                                 <div className="flex justify-end gap-2">
-                                    {editingStep && (
-                                        <button
-                                            onClick={() => {
-                                                setEditingStep(null);
-                                                setFreeTextValue('');
-                                                setFreeTextKeyword(getSuggestedKeyword());
-                                            }}
-                                            className="px-4 py-2 bg-zinc-700 text-white rounded-lg text-sm font-medium hover:bg-zinc-600 transition-colors"
-                                        >
-                                            Cancel
-                                        </button>
-                                    )}
+                                    <span className="text-xs text-zinc-400 self-center">Editing step...</span>
+                                    <button
+                                        onClick={() => {
+                                            setEditingStep(null);
+                                            setFreeTextValue('');
+                                        }}
+                                        className="text-xs text-red-400 hover:text-red-300"
+                                    >
+                                        Cancel Edit
+                                    </button>
                                     <button
                                         onClick={handleAddFreeTextStep}
                                         disabled={!freeTextValue.trim() || !freeTextValid}
-                                        className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="text-xs text-emerald-400 hover:text-emerald-300 font-medium"
                                     >
-                                        {editingStep ? '✓ Update Step' : '➕ Add Step'}
+                                        Save Changes
                                     </button>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     )}
+                </div>
 
-                    {/* Steps List */}
-                    <StepCanvas
-                        steps={steps}
-                        onStepsChange={setSteps}
-                        onEditStep={handleEditStep}
-                        onDeleteStep={handleDeleteStep}
-                    />
+                {/* Main Canvas - Full Height */}
+                <div className="flex-1 overflow-y-auto p-4 content-start custom-scrollbar">
+                    <div className="max-w-3xl mx-auto h-full flex flex-col">
+                        <StepCanvas
+                            steps={steps}
+                            onStepsChange={setSteps}
+                            onEditStep={handleEditStep}
+                            onDeleteStep={handleDeleteStep}
+                        />
 
-                    {/* Actions */}
-                    <div className="flex gap-2">
-                        <button
-                            onClick={handleClear}
-                            disabled={steps.length === 0}
-                            className="px-4 py-2 bg-zinc-700 text-zinc-300 rounded-lg text-sm font-medium hover:bg-zinc-600 transition-colors disabled:opacity-50"
-                        >
-                            Clear All
-                        </button>
-                        <div className="flex-1" />
-                        {loadedFilePath ? (
+                        {/* Action Footer */}
+                        <div className="mt-6 flex items-center justify-between pt-4 border-t border-zinc-800">
                             <button
-                                onClick={handleSaveToFile}
-                                disabled={saving || !featureName || !scenarioName || steps.length === 0}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-50 flex items-center gap-2"
+                                onClick={handleClear}
+                                disabled={steps.length === 0}
+                                className="px-4 py-2 text-zinc-500 hover:text-zinc-300 text-sm transition-colors"
                             >
-                                {saving ? (
-                                    <>
-                                        <span className="animate-spin">⏳</span>
-                                        Saving...
-                                    </>
-                                ) : (
-                                    <>💾 Save to File</>
-                                )}
+                                Clear Steps
                             </button>
-                        ) : (
-                            <button
-                                onClick={handleSave}
-                                disabled={saving || !featureName || !scenarioName || steps.length === 0}
-                                className="px-4 py-2 bg-zinc-700 text-white rounded-lg text-sm font-medium hover:bg-zinc-600 transition-colors disabled:opacity-50 flex items-center gap-2"
-                            >
-                                {saving ? (
-                                    <>
-                                        <span className="animate-spin">⏳</span>
-                                        Saving...
-                                    </>
+
+                            <div className="flex gap-2">
+                                {loadedFilePath ? (
+                                    <button
+                                        onClick={handleSaveToFile}
+                                        disabled={saving || !featureName || !scenarioName || steps.length === 0}
+                                        className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-500 transition-colors shadow-lg shadow-blue-900/20 flex items-center gap-2"
+                                    >
+                                        {saving ? <span className="animate-spin">⏳</span> : '💾'} Save to File
+                                    </button>
                                 ) : (
-                                    <>💾 Save Scenario</>
+                                    <button
+                                        onClick={handleSave}
+                                        disabled={saving || !featureName || !scenarioName || steps.length === 0}
+                                        className="px-6 py-2 bg-zinc-700 text-white rounded-lg text-sm font-medium hover:bg-zinc-600 transition-colors flex items-center gap-2"
+                                    >
+                                        {saving ? <span className="animate-spin">⏳</span> : '💾'} Save Scenario
+                                    </button>
                                 )}
-                            </button>
-                        )}
-                        <button
-                            onClick={handleGenerate}
-                            disabled={generating || !featureName || !scenarioName || steps.length === 0}
-                            className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-500 transition-colors disabled:opacity-50 flex items-center gap-2"
-                        >
-                            {generating ? (
-                                <>
-                                    <span className="animate-spin">⏳</span>
-                                    Generating...
-                                </>
-                            ) : (
-                                <>📄 Generate Feature File</>
-                            )}
-                        </button>
+
+                                <button
+                                    onClick={handleGenerate}
+                                    disabled={generating || !featureName || !scenarioName || steps.length === 0}
+                                    className="px-6 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-900/20 flex items-center gap-2"
+                                >
+                                    {generating ? <span className="animate-spin">⏳</span> : '⚡'} Generate Feature File
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                {/* Right: Gherkin Preview */}
-                <div className="w-[300px] flex-shrink-0">
-                    <GherkinPreview
-                        featureName={featureName}
-                        scenarioName={scenarioName}
-                        description={description}
-                        priority={priority}
-                        accessLevel={accessLevel}
-                        tags={tags}
-                        steps={steps}
-                    />
-                </div>
             </div>
+
+            {/* Right Sidebar - Settings & Preview */}
+            <RightSidebar
+                featureName={featureName}
+                setFeatureName={setFeatureName}
+                scenarioName={scenarioName}
+                setScenarioName={setScenarioName}
+                priority={priority}
+                setPriority={setPriority}
+                accessLevel={accessLevel}
+                setAccessLevel={setAccessLevel}
+                tags={tags}
+                tagInput={tagInput}
+                setTagInput={setTagInput}
+                onAddTag={handleAddTag}
+                onRemoveTag={handleRemoveTag}
+                description={description}
+                steps={steps}
+            />
         </div>
     );
 }

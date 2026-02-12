@@ -63,7 +63,13 @@ export function GherkinPreview({
                     let line = action.gherkinTemplate;
                     if (step.parameters) {
                         for (const [key, value] of Object.entries(step.parameters)) {
-                            line = line.replace(`{${key}}`, value);
+                            // If value contains double quotes, use single quotes instead
+                            const hasDoubleQuotes = value.includes('"');
+                            if (hasDoubleQuotes) {
+                                line = line.replace(`"{${key}}"`, `'${value}'`);
+                            } else {
+                                line = line.replace(`{${key}}`, value);
+                            }
                         }
                     }
                     lines.push(`    ${step.keyword} ${line}`);

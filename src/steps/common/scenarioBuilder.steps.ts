@@ -92,8 +92,8 @@ Then('I wait for network to be idle', async function () {
     await this.page.waitForLoadState('networkidle');
 });
 
-Then('I wait for {int} seconds', async function (seconds: number) {
-    await this.page.waitForTimeout(seconds * 1000);
+Then('I wait for {int} seconds', { timeout: 120000 }, async function (seconds: number) {
+    await new Promise(resolve => setTimeout(resolve, seconds * 1000));
 });
 
 // ═══════════════════════════════════════════════════════════════

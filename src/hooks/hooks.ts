@@ -71,6 +71,9 @@ After(async function(scenario) {
   // Close page/context after each scenario
   if (this.page) {
     try {
+      // Wait a bit before closing to ensure video captures the final state
+      await this.page.waitForTimeout(1000);
+
       const videoPath = await this.page.video()?.path();
       await this.page.close();
       Logger.info('Page closed for scenario');

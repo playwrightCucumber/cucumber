@@ -24,10 +24,21 @@ function stepToGherkin(step: ScenarioStep): string {
         }
 
         // Replace template placeholders with actual values
+        // If value contains double quotes, use single quotes instead of escaping
         let line = action.gherkinTemplate;
         if (step.parameters) {
             for (const [key, value] of Object.entries(step.parameters)) {
-                line = line.replace(`{${key}}`, value);
+                // Check if value contains double quotes
+                const hasDoubleQuotes = value.includes('"');
+
+                if (hasDoubleQuotes) {
+                    // Use single quotes for values containing double quotes
+                    // Replace the placeholder including surrounding double quotes with single quoted value
+                    line = line.replace(`"{${key}}"`, `'${value}'`);
+                } else {
+                    // Normal case: just replace the placeholder
+                    line = line.replace(`{${key}}`, value);
+                }
             }
         }
 

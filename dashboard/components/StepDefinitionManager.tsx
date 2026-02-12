@@ -330,7 +330,7 @@ export function StepDefinitionManager() {
             {actions.length > 0 && (
               <div className="bg-zinc-800 rounded-lg p-6">
                 <h3 className="text-lg font-semibold mb-4">Actions ({actions.length})</h3>
-                <div className="space-y-2">
+                <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                   {actions.map((action, index) => (
                     <div key={action.id} className="flex items-start gap-3 p-3 bg-zinc-900 rounded-lg">
                       <div className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold">
