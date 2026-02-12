@@ -1,0 +1,200 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img [ref=e8]
+        - generic [ref=e10]:
+          - heading "Test Dashboard" [level=1] [ref=e11]
+          - paragraph [ref=e12]: Dashboard Automation Test
+      - navigation [ref=e13]:
+        - button "▶ Jalankan Test" [ref=e14] [cursor=pointer]
+        - button "📊 Riwayat 3" [ref=e169] [cursor=pointer]:
+          - text: 📊 Riwayat
+          - generic [ref=e170]: "3"
+        - button "📅 Jadwal" [ref=e16] [cursor=pointer]
+        - button "🔨 Buat Test" [ref=e17] [cursor=pointer]
+        - button "📚 Library Element" [ref=e18] [cursor=pointer]
+        - button "📁 Daftar Test" [ref=e19] [cursor=pointer]
+        - button "⚙ Langkah" [ref=e20] [cursor=pointer]
+    - generic [ref=e22]:
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - generic [ref=e27]: 👋
+            - generic [ref=e28]:
+              - heading "Selamat Datang di Test Dashboard!" [level=2] [ref=e29]
+              - paragraph [ref=e30]: Panduan singkat untuk memulai
+          - button "Tutup panduan" [ref=e31] [cursor=pointer]:
+            - img [ref=e32]
+        - generic [ref=e34]:
+          - button "1 🚀 Jalankan Test Pilih environment (Dev/Staging/Production), lalu pilih tag test yang ingin dijalankan, kemudian klik tombol Run. Klik untuk mulai →" [ref=e35] [cursor=pointer]:
+            - generic [ref=e36]:
+              - generic [ref=e37]: "1"
+              - generic [ref=e38]: 🚀 Jalankan Test
+            - paragraph [ref=e39]:
+              - text: Pilih
+              - strong [ref=e40]: environment
+              - text: (Dev/Staging/Production), lalu pilih
+              - strong [ref=e41]: tag
+              - text: test yang ingin dijalankan, kemudian klik tombol
+              - strong [ref=e42]: Run
+              - text: .
+            - generic [ref=e43]: Klik untuk mulai →
+          - button "2 📊 Lihat Hasil Setelah test selesai, lihat hasilnya secara otomatis. Hasil juga disimpan di History untuk dilihat kapan saja. Lihat riwayat →" [ref=e44] [cursor=pointer]:
+            - generic [ref=e45]:
+              - generic [ref=e46]: "2"
+              - generic [ref=e47]: 📊 Lihat Hasil
+            - paragraph [ref=e48]:
+              - text: Setelah test selesai, lihat hasilnya secara otomatis. Hasil juga disimpan di
+              - strong [ref=e49]: History
+              - text: untuk dilihat kapan saja.
+            - generic [ref=e50]: Lihat riwayat →
+          - button "3 📁 Jelajahi Test Browse semua skenario test yang tersedia. Lihat fitur apa saja yang sudah dicover oleh automation test. Lihat fitur →" [ref=e51] [cursor=pointer]:
+            - generic [ref=e52]:
+              - generic [ref=e53]: "3"
+              - generic [ref=e54]: 📁 Jelajahi Test
+            - paragraph [ref=e55]:
+              - text: Browse semua
+              - strong [ref=e56]: skenario test
+              - text: yang tersedia. Lihat fitur apa saja yang sudah dicover oleh automation test.
+            - generic [ref=e57]: Lihat fitur →
+        - generic [ref=e58]:
+          - heading "Tips Cepat" [level=4] [ref=e59]:
+            - img [ref=e60]
+            - text: Tips Cepat
+          - generic [ref=e63]:
+            - generic [ref=e64]:
+              - generic [ref=e65]: •
+              - generic [ref=e66]:
+                - strong [ref=e67]: Tag
+                - text: "= label untuk mengelompokkan test. Contoh:"
+                - code [ref=e68]: "@smoke"
+                - text: untuk test dasar,
+                - code [ref=e69]: "@p0"
+                - text: untuk prioritas tinggi.
+            - generic [ref=e70]:
+              - generic [ref=e71]: •
+              - generic [ref=e72]:
+                - strong [ref=e73]: Environment
+                - text: = server tujuan test.
+                - code [ref=e74]: Dev
+                - text: untuk development,
+                - code [ref=e75]: Staging
+                - text: untuk pre-production.
+            - generic [ref=e76]:
+              - generic [ref=e77]: •
+              - generic [ref=e78]:
+                - strong [ref=e79]: Feature file
+                - text: = file skenario test yang ditulis dalam bahasa Gherkin (Given/When/Then).
+            - generic [ref=e80]:
+              - generic [ref=e81]: •
+              - generic [ref=e82]:
+                - text: Klik
+                - strong [ref=e83]: tag
+                - text: untuk memilih, lalu tekan
+                - strong [ref=e84]: Run
+                - text: . Hasil muncul otomatis di bawah.
+      - generic [ref=e85]:
+        - generic [ref=e86]:
+          - generic [ref=e87]: Total Test
+          - generic [ref=e88]: "3"
+        - generic [ref=e89]:
+          - generic [ref=e90]: ·
+          - generic [ref=e91]: Berhasil
+          - generic [ref=e92]: "2"
+        - generic [ref=e93]:
+          - generic [ref=e94]: ·
+          - generic [ref=e95]: Gagal
+          - generic [ref=e96]: "1"
+        - generic [ref=e97]:
+          - generic [ref=e98]: ·
+          - generic [ref=e99]: Tingkat Sukses
+          - generic [ref=e100]: 67%
+      - generic [ref=e101]:
+        - generic [ref=e103]:
+          - generic [ref=e104]:
+            - heading "Pengaturan Test" [level=2] [ref=e105]:
+              - img [ref=e106]
+              - text: Pengaturan Test
+            - paragraph [ref=e108]: Ikuti langkah di bawah untuk menjalankan test otomatis
+          - generic [ref=e109]:
+            - generic [ref=e110]:
+              - generic [ref=e112]:
+                - generic [ref=e113]: "1"
+                - text: Pilih Environment
+              - paragraph [ref=e114]: Server mana yang ingin di-test?
+              - generic [ref=e115]:
+                - button "🛠 Dev Server Development" [ref=e116] [cursor=pointer]:
+                  - generic [ref=e117]: 🛠
+                  - generic [ref=e118]: Dev
+                  - generic [ref=e119]: Server Development
+                - button "🧪 Staging Server Pre-Production" [ref=e120] [cursor=pointer]:
+                  - generic [ref=e121]: 🧪
+                  - generic [ref=e122]: Staging
+                  - generic [ref=e123]: Server Pre-Production
+                - button "🚀 Production Server Live/Aktif" [ref=e124] [cursor=pointer]:
+                  - generic [ref=e125]: 🚀
+                  - generic [ref=e126]: Production
+                  - generic [ref=e127]: Server Live/Aktif
+                - button "🗺 Map Server Peta" [ref=e128] [cursor=pointer]:
+                  - generic [ref=e129]: 🗺
+                  - generic [ref=e130]: Map
+                  - generic [ref=e131]: Server Peta
+            - generic [ref=e132]:
+              - generic [ref=e134]:
+                - generic [ref=e135]: "2"
+                - text: Pilih Test yang Dijalankan
+              - paragraph [ref=e136]: Klik satu atau lebih tag di bawah. Setiap tag mewakili kelompok test tertentu.
+              - generic [ref=e137]:
+                - button "@smoke" [ref=e138] [cursor=pointer]
+                - button "@p0" [ref=e139] [cursor=pointer]
+                - button "@p1" [ref=e140] [cursor=pointer]
+                - button "@roi" [ref=e141] [cursor=pointer]
+                - button "@interment" [ref=e142] [cursor=pointer]
+                - button "@login" [ref=e143] [cursor=pointer]
+                - button "@advanced-search-plot" [ref=e144] [cursor=pointer]
+                - button "@sales" [ref=e145] [cursor=pointer]
+                - button "@person" [ref=e146] [cursor=pointer]
+            - button "Semua Tag (24)" [ref=e172] [cursor=pointer]:
+              - img [ref=e173]
+              - text: Semua Tag (24)
+            - generic [ref=e147]:
+              - generic [ref=e148]: "Atau ketik tag secara manual:"
+              - generic [ref=e149]:
+                - textbox "Ketik nama tag..." [ref=e150]
+                - button "Tambah" [disabled] [ref=e151]
+          - generic [ref=e152]:
+            - generic [ref=e154]:
+              - generic [ref=e155]: "3"
+              - text: Jalankan
+            - button "Jalankan Test" [disabled] [ref=e156]:
+              - generic [ref=e157]:
+                - img [ref=e158]
+                - text: Jalankan Test
+        - generic [ref=e161]:
+          - generic [ref=e162]:
+            - heading "Test Terakhir" [level=3] [ref=e163]
+            - button "Lihat semua →" [ref=e164] [cursor=pointer]
+          - generic [ref=e166]:
+            - button "staging @novanda 1✓ 25m ago" [ref=e175] [cursor=pointer]:
+              - generic [ref=e178]:
+                - generic [ref=e179]: staging
+                - generic [ref=e180]: "@novanda"
+              - generic [ref=e181]:
+                - generic [ref=e183]: 1✓
+                - generic [ref=e184]: 25m ago
+            - button "dev @sales 1✓ 2h ago" [ref=e185] [cursor=pointer]:
+              - generic [ref=e188]:
+                - generic [ref=e189]: dev
+                - generic [ref=e190]: "@sales"
+              - generic [ref=e191]:
+                - generic [ref=e193]: 1✓
+                - generic [ref=e194]: 2h ago
+            - button "dev @sales 1✓ 4h ago" [ref=e195] [cursor=pointer]:
+              - generic [ref=e198]:
+                - generic [ref=e199]: dev
+                - generic [ref=e200]: "@sales"
+              - generic [ref=e201]:
+                - generic [ref=e203]: 1✓
+                - generic [ref=e204]: 4h ago
+  - alert [ref=e168]

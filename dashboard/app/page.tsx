@@ -10,6 +10,7 @@ import { ScenarioBuilder } from '@/components/scenario-builder';
 import FeatureFileBrowser from '@/components/FeatureFileBrowser';
 import { StepDefinitionManager } from '@/components/StepDefinitionManager';
 import { WelcomeGuide } from '@/components/WelcomeGuide';
+import { ElementLibraryManager } from '@/components/ElementLibraryManager';
 import { TestRun, Environment } from '@/lib/types';
 import { ParsedFeature, ParsedScenario } from '@/lib/feature-parser';
 
@@ -19,7 +20,7 @@ export default function HomePage() {
   const [selectedRun, setSelectedRun] = useState<TestRun | null>(null);
   const [currentRunId, setCurrentRunId] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
-  const [activeTab, setActiveTab] = useState<'run' | 'history' | 'schedule' | 'builder' | 'features' | 'steps'>('run');
+  const [activeTab, setActiveTab] = useState<'run' | 'history' | 'schedule' | 'builder' | 'elements' | 'features' | 'steps'>('run');
   const [lastCompletedRun, setLastCompletedRun] = useState<TestRun | null>(null);
   const [loadedScenario, setLoadedScenario] = useState<{ feature: ParsedFeature; scenario: ParsedScenario } | null>(null);
 
@@ -150,6 +151,13 @@ export default function HomePage() {
                   key: 'builder', label: '🔨 Buat Test', tooltip: 'Buat skenario test baru dengan mudah', icon: (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  )
+                },
+                {
+                  key: 'elements', label: '📚 Library Element', tooltip: 'Kelola element yang tersimpan untuk digunakan kembali', icon: (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                     </svg>
                   )
                 },
@@ -318,6 +326,13 @@ export default function HomePage() {
         {activeTab === 'builder' && (
           <div className="animate-fade-in h-[calc(100vh-120px)]">
             <ScenarioBuilder loadedScenario={loadedScenario} />
+          </div>
+        )}
+
+        {/* Element Library Tab */}
+        {activeTab === 'elements' && (
+          <div className="animate-fade-in">
+            <ElementLibraryManager />
           </div>
         )}
 
