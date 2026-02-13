@@ -463,6 +463,13 @@ export const SALES_DATA = {
       vatRate: '10%',
       total: '$1,940.51'
     }
+  },
+
+  // Payment data
+  payment: {
+    amount: process.env.TEST_SALES_PAYMENT_AMOUNT || '500.00',
+    method: process.env.TEST_SALES_PAYMENT_METHOD || 'Cash',
+    note: process.env.TEST_SALES_PAYMENT_NOTE || 'Test payment via automation'
   }
 };
 

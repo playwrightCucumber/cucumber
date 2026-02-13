@@ -114,12 +114,14 @@ export function HistoryList({ history, onSelectRun, selectedRun, onClearHistory,
                   </div>
 
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {total > 0 && (
+                    {total > 0 ? (
                       <div className="flex items-center gap-1 text-xs">
                         {passed > 0 && <span className="text-emerald-400">{passed}✓</span>}
                         {failed > 0 && <span className="text-red-400">{failed}✗</span>}
                       </div>
-                    )}
+                    ) : run.status === 'passed' || run.status === 'failed' ? (
+                      <span className="text-xs text-yellow-400" title="No scenarios executed">⚠️</span>
+                    ) : null}
                     <span className="text-xs text-zinc-400">{formatRelativeTime(run.startedAt)}</span>
                   </div>
                 </button>

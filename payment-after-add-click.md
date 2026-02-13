@@ -1,0 +1,200 @@
+- generic [ref=e4]:
+  - generic [ref=e7]:
+    - generic [ref=e8]:
+      - link [ref=e9] [cursor=pointer]:
+        - /url: /
+      - link:
+        - /url: /
+    - generic [ref=e10]:
+      - button "MORE" [ref=e11] [cursor=pointer]:
+        - generic [ref=e12]:
+          - img [ref=e13]: more_vert
+          - text: MORE
+      - generic [ref=e15]:
+        - button "CANCEL" [ref=e16] [cursor=pointer]: CANCEL
+        - button "SAVE" [ref=e17] [cursor=pointer]: SAVE
+  - generic [ref=e18]:
+    - generic [ref=e20]:
+      - generic [ref=e21]: Edit Sale
+      - generic [ref=e22]:
+        - generic [ref=e23]: Astana Tegal Gundul - INV-00000513
+        - generic [ref=e25]: UNPAID
+    - generic [ref=e26]:
+      - generic [ref=e29]:
+        - generic [ref=e32]:
+          - generic [ref=e37]:
+            - textbox "Reference" [ref=e38]: testNew 001_PAYMENT
+            - generic:
+              - generic: Reference *
+          - generic [ref=e39]:
+            - generic [ref=e42]:
+              - generic [ref=e43]:
+                - textbox "Issue date" [ref=e44]: 13/02/2026
+                - generic:
+                  - generic: Issue date *
+              - button "Open calendar" [ref=e47] [cursor=pointer]:
+                - img [ref=e48]
+            - generic [ref=e54]:
+              - generic [ref=e55]:
+                - textbox "Due date" [ref=e56]: 16/02/2026
+                - generic:
+                  - generic: Due date *
+              - button "Open calendar" [ref=e59] [cursor=pointer]:
+                - img [ref=e60]
+          - generic [ref=e66]:
+            - generic [ref=e68] [cursor=pointer]:
+              - combobox "Owner Juan Francisco fasss (faris+astanaorg@chronicle.rip)" [ref=e69]:
+                - generic [ref=e72]: Juan Francisco fasss (faris+astanaorg@chronicle.rip)
+              - generic:
+                - generic: Owner *
+            - generic [ref=e77]: Internal use only
+          - generic [ref=e81]:
+            - generic [ref=e83]:
+              - textbox "Note" [ref=e84]
+              - generic:
+                - generic: Note
+            - generic [ref=e87]: Internal use only
+        - generic [ref=e90]:
+          - generic [ref=e92]: Purchaser
+          - generic [ref=e94]:
+            - generic [ref=e95]:
+              - generic [ref=e96]: Jennifer Robinson
+              - generic [ref=e97]:
+                - generic [ref=e98]: Email
+                - generic [ref=e99]: faris+308@chronicle.rip
+            - button "EDIT PURCHASER" [ref=e101] [cursor=pointer]:
+              - generic [ref=e102]:
+                - img [ref=e103]:
+                  - img [ref=e104]
+                - text: EDIT PURCHASER
+        - generic [ref=e110]:
+          - heading "Documents" [level=4] [ref=e111]
+          - generic [ref=e117] [cursor=pointer]:
+            - button "SELECT FILE" [ref=e118]:
+              - generic [ref=e119]:
+                - img [ref=e120]:
+                  - img [ref=e121]
+                - text: SELECT FILE
+            - paragraph [ref=e124]: or drag it here
+            - paragraph [ref=e125]: "Maximum file size: 8 MB"
+        - text: com
+        - generic [ref=e128]:
+          - generic [ref=e129]:
+            - generic [ref=e130]: Activity
+            - listbox "Filter Selection" [ref=e131]:
+              - generic [ref=e132]:
+                - option "Notes" [selected] [ref=e133]: Notes
+                - option "Changes" [ref=e134]: Changes
+                - option "All" [ref=e135]: All
+            - button [ref=e136] [cursor=pointer]:
+              - img [ref=e138]:
+                - img [ref=e139]
+              - generic: "1"
+          - generic [ref=e143]: No previous activity recorded in Chronicle.
+      - generic [ref=e146]:
+        - generic [ref=e147]:
+          - generic [ref=e148]:
+            - generic [ref=e149]:
+              - generic [ref=e150]: Item
+              - generic [ref=e151]: Related Plot
+              - generic [ref=e152]: Qty
+              - generic [ref=e153]: Price
+              - generic [ref=e154]: Discount (amt)
+              - generic [ref=e155]: Total
+            - generic [ref=e156]:
+              - generic [ref=e157]:
+                - generic [ref=e159]: item a
+                - generic [ref=e161]: B F 1
+                - generic [ref=e163]: "1"
+                - generic [ref=e165]: $1,313.56
+                - generic [ref=e167]: $0.00
+                - generic [ref=e169]: $1,313.56
+              - generic [ref=e170]:
+                - generic [ref=e172]: item b
+                - generic [ref=e174]: B F 2
+                - generic [ref=e176]: "1"
+                - generic [ref=e178]: $178.35
+                - generic [ref=e180]: $0.00
+                - generic [ref=e182]: $178.35
+              - generic [ref=e183]:
+                - generic [ref=e185]: item c
+                - generic [ref=e187]: B F 3
+                - generic [ref=e189]: "2"
+                - generic [ref=e191]: $32.95
+                - generic [ref=e193]: $0.00
+                - generic [ref=e195]: $65.90
+              - generic [ref=e196]:
+                - generic [ref=e198]: item d
+                - generic [ref=e200]: B F 4
+                - generic [ref=e202]: "1"
+                - generic [ref=e204]: $105.08
+                - generic [ref=e206]: $0.00
+                - generic [ref=e208]: $105.08
+              - generic [ref=e209]:
+                - generic [ref=e211]: item e
+                - generic [ref=e213]: B F 5
+                - generic [ref=e215]: "1"
+                - generic [ref=e217]: $101.21
+                - generic [ref=e219]: $0.00
+                - generic [ref=e221]: $101.21
+          - generic [ref=e223]:
+            - generic [ref=e224]:
+              - generic [ref=e225]: Subtotal
+              - generic [ref=e227]: $1,764.10
+            - generic [ref=e228]:
+              - generic [ref=e229]: Discount
+              - generic [ref=e231]: $0.00
+            - generic [ref=e232]:
+              - generic [ref=e233]: VAT
+              - generic [ref=e234]: 10%
+              - generic [ref=e236]: $176.41
+            - separator [ref=e237]
+            - generic [ref=e238]:
+              - generic [ref=e239]: Total
+              - generic [ref=e241]: $1,940.51
+        - generic [ref=e242]:
+          - generic [ref=e243]: Payments
+          - generic [ref=e244]:
+            - generic [ref=e245]:
+              - generic [ref=e246]: Date
+              - generic [ref=e247]: Time
+              - generic [ref=e248]: Method
+              - generic [ref=e249]: Note
+              - generic [ref=e250]: Payment
+            - generic [ref=e251]:
+              - generic [ref=e252]:
+                - generic [ref=e256]:
+                  - textbox [ref=e258]: 13/02/2026
+                  - button "Open calendar" [ref=e261] [cursor=pointer]:
+                    - img [ref=e262]
+                - textbox [ref=e271]: 10:30
+                - combobox "Bank Transfer" [ref=e277] [cursor=pointer]:
+                  - generic [ref=e280]: Bank Transfer
+                - textbox [ref=e288]: MCP test payment
+                - textbox [ref=e294]: "500"
+                - img [ref=e295]:
+                  - img [ref=e296]
+              - generic [ref=e299]:
+                - generic [ref=e303]:
+                  - textbox [ref=e305]
+                  - button "Open calendar" [ref=e308] [cursor=pointer]:
+                    - img [ref=e309]
+                - textbox [ref=e318]
+                - combobox [ref=e324] [cursor=pointer]
+                - textbox [ref=e335]
+                - textbox [ref=e341]: "0"
+                - img [ref=e342]:
+                  - img [ref=e343]
+            - generic [ref=e346]:
+              - button "ADD PAYMENT" [active] [ref=e347] [cursor=pointer]:
+                - generic [ref=e348]:
+                  - img [ref=e349]:
+                    - img [ref=e350]
+                  - text: ADD PAYMENT
+              - generic [ref=e354]:
+                - generic [ref=e355]:
+                  - generic [ref=e356]: Total paid
+                  - generic [ref=e357]: $500.00
+                - generic [ref=e358]:
+                  - generic [ref=e359]: Amount due
+                  - generic [ref=e360]: $1,940.51

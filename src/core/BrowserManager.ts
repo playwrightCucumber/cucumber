@@ -1,4 +1,5 @@
 import { chromium, Browser, BrowserContext, Page } from '@playwright/test';
+import { Logger } from '../utils/Logger.js';
 
 /**
  * BrowserManager - Singleton class for browser management
@@ -9,7 +10,7 @@ export class BrowserManager {
   private browser: Browser | null = null;
   private context: BrowserContext | null = null;
 
-  private constructor() {}
+  private constructor() { }
 
   /**
    * Get singleton instance
@@ -27,29 +28,34 @@ export class BrowserManager {
   async initializeBrowser(scenarioName?: string): Promise<BrowserContext> {
     if (!this.browser) {
       const isHeadless = process.env.HEADLESS === 'true';
+      // Use higher slowMo in headless mode for better video recording quality
+      // In headless mode, actions happen too fast for video to capture properly
+      const slowMoValue = isHeadless ? 200 : 50;
+
       this.browser = await chromium.launch({
         headless: isHeadless,
-        slowMo: 50, // Slow down actions for better visibility
-        args: ['--start-maximized'], // Open browser maximized
+        slowMo: slowMoValue,
+        args: [
+          '--start-maximized',
+          // Improve headless video quality
+          ...(isHeadless ? [
+            '--disable-gpu-vsync',
+            '--run-all-compositor-stages-before-draw',
+            '--disable-features=PaintHolding',
+          ] : []),
+        ],
       });
+      Logger.info(`Browser launched: headless=${isHeadless}, slowMo=${slowMoValue}ms`);
     }
 
-    // Always create fresh context for each scenario
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
-    const sanitizedName = scenarioName 
-      ? scenarioName.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 50)
-      : 'test';
-    
+    // Use original videos/ directory so dashboard history keeps working
     this.context = await this.browser.newContext({
-      viewport: null, // Disable fixed viewport to allow fullscreen
+      viewport: { width: 1920, height: 1080 },
       recordVideo: {
         dir: 'videos/',
         size: { width: 1920, height: 1080 }
       }
     });
-
-    // Store scenario name for video file naming
-    (this.context as any)._scenarioName = `${sanitizedName}_${timestamp}`;
 
     return this.context;
   }
@@ -62,10 +68,10 @@ export class BrowserManager {
       await this.initializeBrowser(scenarioName);
     }
     const page = await this.context!.newPage();
-    
-    // Maximize the page window
+
+    // Set consistent viewport for video recording
     await page.setViewportSize({ width: 1920, height: 1080 });
-    
+
     return page;
   }
 

@@ -1,5 +1,5 @@
 @p0 @sales @authenticated
-Feature: Sales Management (Authenticated)
+Feature: Sales Management Authenticated
   As a cemetery administrator
   I want to create and manage sales records
   So that I can track plot sales and customer purchases
@@ -37,3 +37,40 @@ Feature: Sales Management (Authenticated)
       | total    | $1,940.51 |
     When I click Create button
     Then the sale should be created successfully
+
+  @create-sales-with-payment @smoke @p0
+  Scenario Outline: Create new sale with payment and verify <status> status
+    When I navigate to Sales page
+    And I validate sales table is loaded
+    And I click Create Sale button
+    When I validate issue date is pre-filled with current date
+    When I validate due date is current date plus default due days
+    And I fill sale reference with "<TEST_SALES_REFERENCE>_<ref_suffix>"
+    And I add purchaser person "<TEST_SALES_PURCHASER>"
+    And I add sale items with following details:
+      | description | related_plot | quantity | price   | discount |
+      | item a      | B F 1        | 1        | 1313.56 | 0        |
+      | item b      | B F 2        | 1        | 178.35  | 0        |
+      | item c      | B F 3        | 2        | 32.95   | 0        |
+      | item d      | B F 4        | 1        | 105.08  | 0        |
+      | item e      | B F 5        | 1        | 101.21  | 0        |
+    Then I should see sale summary with following values:
+      | subtotal | $1,764.10 |
+      | discount | $0.00     |
+      | vat      | $176.41   |
+      | total    | $1,940.51 |
+    When I click Create button
+    Then the sale should be created successfully
+    When I open the latest created sale
+    And I add payment with following details:
+      | amount   | method        | note                        |
+      | <amount> | Bank Transfer | Test payment via automation |
+    When I click Save button
+    Then the invoice status should be "<status>"
+
+    Examples:
+      | ref_suffix      | amount  | status         |
+      | UNPAID          | 0       | UNPAID         |
+      | PARTIAL_PAID    | 500     | PARTIALLY PAID |
+      | PAID            | 1940.51 | PAID           |
+      | OVER_PAID       | 2500    | OVERPAID      |
