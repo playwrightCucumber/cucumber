@@ -215,7 +215,7 @@ Then('the sale should be created successfully', { timeout: 20000 }, async functi
 /**
  * Click the Save button (for draft saves)
  */
-When('I click Save button', async function () {
+When('I click Save button', { timeout: 30000 }, async function () {
   await salesPage.clickSave();
   logger.info('Clicked Save button');
 });
@@ -235,4 +235,46 @@ Then('I should see {int} sales record(s)', async function (expectedCount: number
   const actualCount = await salesPage.getSalesCount();
   expect(actualCount).toBe(expectedCount);
   logger.info(`Verified ${actualCount} sales records`);
+});
+
+/**
+ * Open the latest created sale (first row in the table)
+ */
+When('I open the latest created sale', { timeout: 15000 }, async function () {
+  await salesPage.openLatestSale();
+  logger.info('Opened the latest created sale');
+});
+
+/**
+ * Add a payment with following details
+ * Data table format:
+ * | amount | method | note |
+ * | 500   | Cash   | Test payment |
+ */
+When('I add payment with following details:', { timeout: 30000 }, async function (dataTable: DataTable) {
+  const paymentData = dataTable.hashes()[0]; // Get first row from table
+
+  // Replace placeholders in payment data
+  const amount = replacePlaceholders(paymentData.amount);
+  const method = replacePlaceholders(paymentData.method);
+  const note = replacePlaceholders(paymentData.note);
+
+  logger.info(`Adding payment: ${amount} via ${method}`);
+
+  await salesPage.addPayment({
+    amount,
+    method,
+    note
+  });
+
+  logger.info('Payment added successfully');
+});
+
+/**
+ * Verify invoice status matches expected value
+ * Valid statuses: UNPAID, PARTIALLY PAID, PAID, OVERPAID, DRAFT
+ */
+Then('the invoice status should be {string}', { timeout: 10000 }, async function (expectedStatus: string) {
+  await salesPage.validateInvoiceStatus(expectedStatus);
+  logger.info(`Invoice status validated: ${expectedStatus}`);
 });

@@ -785,10 +785,59 @@ export class SalesPage {
 
   /**
    * Click the Save button
+   * If payment was added, a confirmation dialog will appear that must be handled
    */
   async clickSave(): Promise<void> {
     this.logger.info('Clicking Save button');
+    await this.page.locator(salesSelectors.saveButton).scrollIntoViewIfNeeded();
     await this.page.locator(salesSelectors.saveButton).click();
+    
+    // Wait a moment for potential confirmation dialog
+    await this.page.waitForTimeout(2000);
+    
+    // Check if payment confirmation dialog appeared
+    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').isVisible().catch(() => false);
+    
+    if (dialogVisible) {
+      this.logger.info('Payment confirmation dialog appeared');
+      
+      // Log dialog content for debugging
+      const dialogContent = await this.page.locator('mat-dialog-container').textContent().catch(() => '');
+      this.logger.info(`Dialog content: ${dialogContent?.substring(0, 200)}`);
+      
+      // Click "Save Sale" button in the confirmation dialog
+      const saveSaleButton = this.page.locator('button:has-text("Save Sale")');
+      const buttonExists = await saveSaleButton.isVisible().catch(() => false);
+      
+      if (buttonExists) {
+        await saveSaleButton.click();
+        this.logger.info('Clicked "Save Sale" button in confirmation dialog');
+        
+        // Wait for API call to /api/v1/invoices/ to complete (PATCH - update invoice with payment)
+        this.logger.info('Waiting for /api/v1/invoices/ API endpoint (PATCH - save payment)...');
+        await NetworkHelper.waitForApiEndpoint(this.page, '/api/v1/invoices/', 30000);
+        this.logger.info('/api/v1/invoices/ API endpoint (PATCH) completed successfully');
+        
+        // Wait for dialog to close
+        await this.page.waitForSelector('mat-dialog-container', { state: 'hidden', timeout: 5000 }).catch(() => {});
+        await this.page.waitForTimeout(1000);
+        
+        // Reload page to get updated status badge
+        this.logger.info('Reloading page to refresh status badge');
+        await this.page.reload({ waitUntil: 'domcontentloaded' });
+        await this.page.waitForTimeout(2000);
+        this.logger.info('Page reloaded');
+      } else {
+        this.logger.warn('"Save Sale" button not found in dialog, trying generic confirm button');
+        // Try other common button texts
+        const confirmButton = this.page.locator('mat-dialog-container button').last();
+        await confirmButton.click();
+        this.logger.info('Clicked last button in dialog as fallback');
+      }
+    } else {
+      this.logger.info('No confirmation dialog appeared');
+    }
+    
     await this.page.waitForLoadState('domcontentloaded');
     await this.page.waitForTimeout(3000);
   }
@@ -856,5 +905,289 @@ export class SalesPage {
     await this.addItems(saleData.items);
 
     this.logger.info('Sale creation form completed');
+  }
+
+  /**
+   * Open the latest created sale (first row in the sales table)
+   */
+  async openLatestSale(): Promise<void> {
+    this.logger.info('Opening the latest created sale');
+
+    // Wait for sales table to be visible
+    await this.page.waitForSelector(salesSelectors.salesTable, { state: 'visible', timeout: 10000 });
+
+    // Wait for Angular to render and stabilize
+    await this.page.waitForTimeout(2000);
+
+    // Click on the first row's invoice ID cell (2nd column - first has checkbox, 2nd has ID)
+    const firstRowIdCell = this.page.locator('table tbody tr').first().locator('td').nth(1);
+    await firstRowIdCell.waitFor({ state: 'visible', timeout: 5000 });
+    await firstRowIdCell.click();
+    this.logger.info('Clicked on first sale ID cell');
+
+    // Wait for navigation to edit page (URL pattern: /customer-organization/sales/edit/...)
+    await this.page.waitForURL(/sales\/edit/, { timeout: 15000 });
+    this.logger.info('Navigated to sale edit page');
+
+    // Wait for page to fully load
+    await this.page.waitForLoadState('domcontentloaded');
+    await this.page.waitForTimeout(2000);
+  }
+
+  /**
+   * Add a payment to the current invoice
+   */
+  async addPayment(payment: {
+    amount: string;
+    method: string;
+    note?: string;
+    date?: string;
+    time?: string;
+  }): Promise<void> {
+    this.logger.info(`Adding payment: ${JSON.stringify(payment)}`);
+
+    // Click ADD PAYMENT button to open payment form
+    await this.page.waitForSelector(salesSelectors.addPaymentButton, { state: 'visible', timeout: 10000 });
+    await this.page.locator(salesSelectors.addPaymentButton).scrollIntoViewIfNeeded();
+    await this.page.locator(salesSelectors.addPaymentButton).click();
+    this.logger.info('Clicked ADD PAYMENT button');
+    
+    // Wait for payment form to appear
+    await this.page.waitForTimeout(2000);
+
+    // The payment form has fields: Date, Time, Method, Note, Amount
+    // All fields use formcontrolname attributes
+    // Note: date and time fields are NOT auto-filled, must be filled manually
+    
+    // 1. Fill payment date (required)
+    const paymentDateInput = this.page.locator('[formcontrolname="payment_date"]').first();
+    await paymentDateInput.waitFor({ state: 'visible', timeout: 10000 });
+    
+    if (payment.date) {
+      await paymentDateInput.fill(payment.date);
+      this.logger.info(`Payment date filled: ${payment.date}`);
+    } else {
+      // Use current date if not provided
+      const today = new Date();
+      const dateStr = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+      await paymentDateInput.fill(dateStr);
+      this.logger.info(`Payment date filled with today: ${dateStr}`);
+    }
+    await this.page.waitForTimeout(500);
+    
+    // 2. Fill payment time (required)
+    const paymentTimeInput = this.page.locator('[formcontrolname="payment_time"]').first();
+    await paymentTimeInput.waitFor({ state: 'visible', timeout: 10000 });
+    
+    if (payment.time) {
+      await paymentTimeInput.fill(payment.time);
+      this.logger.info(`Payment time filled: ${payment.time}`);
+    } else {
+      // Use current time if not provided
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      await paymentTimeInput.fill(timeStr);
+      this.logger.info(`Payment time filled with now: ${timeStr}`);
+    }
+    await this.page.waitForTimeout(500);
+    
+    // 3. Select payment method using formcontrolname
+    this.logger.info(`Selecting payment method: ${payment.method}`);
+    const methodSelect = this.page.locator('[formcontrolname="payment_method"]').first();
+    await methodSelect.waitFor({ state: 'visible', timeout: 10000 });
+    await methodSelect.scrollIntoViewIfNeeded();
+    await methodSelect.click();
+    this.logger.info('Clicked payment method dropdown');
+    await this.page.waitForTimeout(1000);
+
+    // Wait for listbox to appear
+    await this.page.waitForSelector('div[role="listbox"]', { state: 'visible', timeout: 10000 });
+    this.logger.info('Payment method listbox appeared');
+    
+    // Get all available options for logging
+    const allOptions = await this.page.locator('div[role="listbox"] mat-option').allTextContents();
+    this.logger.info(`Available payment methods: ${JSON.stringify(allOptions)}`);
+
+    // Try to find matching option by text
+    const methodOption = this.page.locator(`div[role="listbox"] mat-option:has-text("${payment.method}")`).first();
+    const optionVisible = await methodOption.isVisible().catch(() => false);
+
+    if (optionVisible) {
+      await methodOption.click();
+      this.logger.info(`  - Method selected: ${payment.method}`);
+    } else {
+      // Fallback to first option
+      this.logger.warn(`Payment method "${payment.method}" not found, selecting first option`);
+      await this.page.locator('div[role="listbox"] mat-option:nth-child(1)').click();
+    }
+    await this.page.waitForTimeout(1000);
+
+    // 4. Fill note (optional) - must use .last() to target payment form field, not main form
+    if (payment.note) {
+      this.logger.info(`Filling note: ${payment.note}`);
+      const noteInput = this.page.locator('[formcontrolname="notes"]').last();
+      const noteInputVisible = await noteInput.isVisible().catch(() => false);
+      
+      if (noteInputVisible) {
+        await noteInput.scrollIntoViewIfNeeded();
+        await noteInput.fill(payment.note);
+        this.logger.info(`  - Note filled: ${payment.note}`);
+      } else {
+        this.logger.warn('Note input not found, skipping note');
+      }
+      await this.page.waitForTimeout(500);
+    }
+
+    // 5. Fill amount using formcontrolname - use .last() to target payment form field
+    this.logger.info(`Filling amount: ${payment.amount}`);
+    const amountInput = this.page.locator('[formcontrolname="amount"]').last();
+    await amountInput.waitFor({ state: 'visible', timeout: 10000 });
+    await amountInput.scrollIntoViewIfNeeded();
+    await amountInput.fill(payment.amount);
+    this.logger.info(`  - Amount filled: ${payment.amount}`);
+    await this.page.waitForTimeout(1000);
+
+    // 6. Payment is now filled but in draft mode
+    // Do NOT click any ADD button here - payment will be saved when SAVE button at top is clicked
+    // The saveSale() method will handle clicking SAVE and the confirmation dialog
+    this.logger.info('Payment form filled successfully, will be saved with invoice');
+  }
+
+  /**
+   * Validate invoice status matches expected value
+   * This checks the status in the sales list table (first row)
+   */
+  async validateInvoiceStatus(expectedStatus: string): Promise<void> {
+    this.logger.info(`Validating invoice status: ${expectedStatus}`);
+
+    const currentUrl = this.page.url();
+    this.logger.info(`Current URL: ${currentUrl}`);
+
+    if (currentUrl.includes('/sales-table') || currentUrl.includes('/sales') && !currentUrl.includes('/edit/')) {
+      // We're on sales list - check status in the table
+      this.logger.info('Checking status in sales list table');
+      
+      // Wait for sales table to be visible
+      await this.page.waitForSelector('table tbody tr', { state: 'visible', timeout: 10000 });
+      await this.page.waitForTimeout(2000);
+
+      // Get the status from first row - status is typically in column with status badge
+      // Look for the status badge in the first row
+      const firstRow = this.page.locator('table tbody tr').first();
+      
+      // Try different approaches to find status
+      let actualStatus: string | null = null;
+      
+      // Approach 1: Look for status badge/chip in the row
+      const statusBadge = firstRow.locator('[class*="badge"], [class*="status"], [class*="chip"], mat-chip');
+      const badgeCount = await statusBadge.count();
+      
+      if (badgeCount > 0) {
+        actualStatus = await statusBadge.first().textContent();
+        this.logger.info(`Found status badge in table row: "${actualStatus}"`);
+      }
+      
+      // Approach 2: Get all cells and find the one with status text
+      if (!actualStatus) {
+        const cells = await firstRow.locator('td').all();
+        for (const cell of cells) {
+          const cellText = await cell.textContent();
+          if (cellText && /(UNPAID|PARTIALLY PAID|PAID|OVERPAID|DRAFT)/i.test(cellText)) {
+            actualStatus = cellText;
+            this.logger.info(`Found status in table cell: "${actualStatus}"`);
+            break;
+          }
+        }
+      }
+
+      if (!actualStatus) {
+        // Log all cell contents for debugging
+        const allCells = await firstRow.locator('td').allTextContents();
+        this.logger.error(`Could not find status in first row. All cells: ${JSON.stringify(allCells)}`);
+        throw new Error(`Invoice status not found in sales table. Expected: "${expectedStatus}"`);
+      }
+
+      // Normalize and compare
+      const normalizedActual = actualStatus.trim().toUpperCase();
+      const normalizedExpected = expectedStatus.trim().toUpperCase();
+
+      this.logger.info(`Expected status: "${expectedStatus}"`);
+      this.logger.info(`Actual status: "${actualStatus}"`);
+      this.logger.info(`Normalized actual: "${normalizedActual}"`);
+      this.logger.info(`Normalized expected: "${normalizedExpected}"`);
+
+      if (!normalizedActual.includes(normalizedExpected)) {
+        throw new Error(
+          `Invoice status mismatch.\n` +
+          `Expected to contain: "${expectedStatus}"\n` +
+          `Actual: "${actualStatus}"\n` +
+          `Normalized actual: "${normalizedActual}"\n` +
+          `Normalized expected: "${normalizedExpected}"`
+        );
+      }
+
+      this.logger.info(`✓ Invoice status validated: ${actualStatus}`);
+
+    } else {
+      // We're on edit page - check status badge at top
+      // After payment save, badge takes a moment to update - wait for it
+      this.logger.info('Checking status badge on edit page, waiting for status to update...');
+
+      const normalizedExpected = expectedStatus.trim().toUpperCase();
+      const maxRetries = 10; // Try for up to 10 seconds
+      let actualStatus: string | null = null;
+      
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        // Wait for status badge selectors
+        const statusBadgeSelectors = [
+          '[class*="badge"]',
+          '[class*="status"]',
+          'mat-chip',
+          '.mat-chip',
+          'span.badge'
+        ];
+
+        for (const selector of statusBadgeSelectors) {
+          const element = this.page.locator(selector).first();
+          const isVisible = await element.isVisible().catch(() => false);
+          
+          if (isVisible) {
+            const text = await element.textContent();
+            if (text && /(UNPAID|PARTIALLY PAID|PAID|OVERPAID|DRAFT)/i.test(text)) {
+              actualStatus = text;
+              const normalizedActual = actualStatus.trim().toUpperCase();
+              
+              this.logger.info(`Attempt ${attempt + 1}: Found status "${actualStatus}" (normalized: "${normalizedActual}")`);
+              
+              // Check if it matches expected status
+              if (normalizedActual.includes(normalizedExpected)) {
+                this.logger.info(`✓ Invoice status validated: ${actualStatus}`);
+                return; // Success!
+              }
+              break; // Found status but doesn't match, continue to retry
+            }
+          }
+        }
+
+        // Wait before retry
+        if (attempt < maxRetries - 1) {
+          await this.page.waitForTimeout(1000);
+        }
+      }
+
+      // If we got here, status didn't match expected
+      if (!actualStatus) {
+        throw new Error(`Invoice status badge not found on edit page after ${maxRetries} attempts. Expected: "${expectedStatus}"`);
+      }
+
+      const normalizedActual = actualStatus.trim().toUpperCase();
+      throw new Error(
+        `Invoice status mismatch after waiting ${maxRetries} seconds.\n` +
+        `Expected to contain: "${expectedStatus}"\n` +
+        `Actual: "${actualStatus}"\n` +
+        `Normalized actual: "${normalizedActual}"\n` +
+        `Normalized expected: "${normalizedExpected}"`
+      );
+    }
   }
 }

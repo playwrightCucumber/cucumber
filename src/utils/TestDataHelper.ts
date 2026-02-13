@@ -122,6 +122,11 @@ const PLACEHOLDER_MAP: Record<string, string> = {
   '<TEST_SALES_DISCOUNT>': TEST_DATA.sales.create.expectedSummary.discount,
   '<TEST_SALES_VAT>': TEST_DATA.sales.create.expectedSummary.vat,
   '<TEST_SALES_TOTAL>': TEST_DATA.sales.create.expectedSummary.total,
+
+  // Sales payment data
+  '<TEST_SALES_PAYMENT_AMOUNT>': TEST_DATA.sales.payment.amount,
+  '<TEST_SALES_PAYMENT_METHOD>': TEST_DATA.sales.payment.method,
+  '<TEST_SALES_PAYMENT_NOTE>': TEST_DATA.sales.payment.note,
 };
 
 /**

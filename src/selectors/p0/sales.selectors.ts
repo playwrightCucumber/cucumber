@@ -70,6 +70,42 @@ export const salesSelectors = {
   
   // Loading States
   loadingSpinner: '.spinner, [class*="loading"]',
+
+  // Payment Section
+  addPaymentButton: 'button:has-text("ADD PAYMENT")',
+  
+  // Payment form fields - using formcontrolname attributes
+  paymentDateInput: '[formcontrolname="payment_date"]',
+  paymentTimeInput: '[formcontrolname="payment_time"]',
+  paymentMethodSelect: '[formcontrolname="payment_method"]',
+  paymentNoteInput: '[formcontrolname="notes"]',
+  paymentAmountInput: '[formcontrolname="amount"]',
+  
+  // Payment method dropdown
+  paymentMethodListbox: 'div[role="listbox"]',
+  paymentMethodOption: (method: string) => `div[role="listbox"] mat-option:has-text("${method}")`,
+  paymentMethodFirstOption: 'div[role="listbox"] mat-option:nth-child(1)',
+
+  // Payment submit buttons
+  paymentAddButton: 'button:has-text("ADD"):visible',
+  paymentCancelButton: 'button:has-text("CANCEL"):visible',
+
+  // Payment history table
+  paymentHistorySection: 'text=Payments >> ..',
+  paymentHistoryRows: 'text=Payments >> .. >> .. >> tbody tr',
+
+  // Invoice status badges
+  invoiceStatus: '.mat-badge, [class*="badge"], [class*="status"]',
+  invoiceStatusPartialPaid: '.mat-badge:has-text("PARTIALLY PAID"), [class*="partial"]',
+  invoiceStatusUnpaid: '.mat-badge:has-text("UNPAID")',
+  invoiceStatusPaid: '.mat-badge:has-text("PAID"), [class*="paid"]',
+  invoiceStatusOverpaid: '.mat-badge:has-text("OVERPAID")',
+  invoiceStatusDraft: '.mat-badge:has-text("DRAFT")',
+
+  // Invoice table row
+  invoiceTableRow: (invoiceId: string) => `tr:has-text("${invoiceId}")`,
+  invoiceStatusInTable: (invoiceId: string) => `tr:has-text("${invoiceId}") .mat-badge, tr:has-text("${invoiceId}") [class*="badge"], tr:has-text("${invoiceId}") [class*="status"]`,
+  invoicePaidAmountInTable: (invoiceId: string) => `tr:has-text("${invoiceId}") >> td >> nth=8`,
 };
 
 export default salesSelectors;
