@@ -1,4 +1,4 @@
-@p0 @sales @authenticated
+@p0 @sales @authenticated 
 Feature: Sales Management Authenticated
   As a cemetery administrator
   I want to create and manage sales records
