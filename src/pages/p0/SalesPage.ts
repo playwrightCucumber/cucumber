@@ -1272,6 +1272,150 @@ export class SalesPage {
     this.logger.info('Payment form filled successfully, will be saved with invoice');
   }
 
+  // ─── More Menu & Re-send Payment ───────────────────────────────────────────
+
+  /**
+   * Click the MORE menu button on the invoice edit page
+   */
+  async clickMoreMenu(): Promise<void> {
+    this.logger.info('Clicking MORE menu button');
+    const moreBtn = this.page.locator(salesSelectors.moreMenuButton);
+    await moreBtn.waitFor({ state: 'visible', timeout: 10000 });
+    await moreBtn.click();
+    // Wait for menu to appear
+    await this.page.waitForSelector(salesSelectors.moreMenu, { state: 'visible', timeout: 5000 });
+    this.logger.info('MORE menu opened');
+  }
+
+  /**
+   * Close the MORE menu by pressing Escape
+   */
+  async closeMoreMenu(): Promise<void> {
+    this.logger.info('Closing MORE menu');
+    await this.page.keyboard.press('Escape');
+    await this.page.waitForTimeout(500);
+    this.logger.info('MORE menu closed');
+  }
+
+  /**
+   * Check if a specific menu item is visible inside the MORE menu (menu must be open)
+   */
+  async isMoreMenuItemVisible(itemText: string): Promise<boolean> {
+    const menuItem = this.page.locator(salesSelectors.moreMenuItem(itemText));
+    const visible = await menuItem.isVisible().catch(() => false);
+    this.logger.info(`Menu item "${itemText}" visible: ${visible}`);
+    return visible;
+  }
+
+  /**
+   * Verify "Re-send Payment" button is visible inside the MORE menu
+   * Opens the menu, checks, then closes it if not proceeding with click
+   */
+  async validateResendPaymentVisible(): Promise<void> {
+    this.logger.info('Validating "Re-send Payment" button is visible in MORE menu');
+    const resendBtn = this.page.locator(salesSelectors.resendPaymentButton);
+    const visible = await resendBtn.isVisible().catch(() => false);
+    if (!visible) {
+      // Log all menu items for debugging
+      const allItems = await this.page.locator('[role="menuitem"]').allTextContents();
+      this.logger.error(`"Re-send Payment" NOT found. Available menu items: ${JSON.stringify(allItems)}`);
+      throw new Error(`"Re-send Payment" button not found in MORE menu. Available items: ${JSON.stringify(allItems)}`);
+    }
+    this.logger.info('"Re-send Payment" button is visible in MORE menu');
+  }
+
+  /**
+   * Verify "Re-send Payment" button is NOT visible inside the MORE menu
+   */
+  async validateResendPaymentNotVisible(): Promise<void> {
+    this.logger.info('Validating "Re-send Payment" button is NOT visible in MORE menu');
+    const resendBtn = this.page.locator(salesSelectors.resendPaymentButton);
+    const visible = await resendBtn.isVisible().catch(() => false);
+    if (visible) {
+      throw new Error('"Re-send Payment" button should NOT be visible, but it is');
+    }
+    this.logger.info('"Re-send Payment" button is correctly hidden in MORE menu');
+  }
+
+  /**
+   * Click the "Re-send Payment" menu item (menu must be open)
+   */
+  async clickResendPayment(): Promise<void> {
+    this.logger.info('Clicking "Re-send Payment" button');
+    const resendBtn = this.page.locator(salesSelectors.resendPaymentButton);
+    await resendBtn.waitFor({ state: 'visible', timeout: 5000 });
+    await resendBtn.click();
+    this.logger.info('"Re-send Payment" button clicked');
+    // Wait for API response
+    await this.page.waitForTimeout(2000);
+  }
+
+  /**
+   * Validate that a toast/snackbar notification with the expected message appears
+   */
+  async validateToastNotification(expectedMessage: string): Promise<void> {
+    this.logger.info(`Waiting for toast notification: "${expectedMessage}"`);
+
+    // Wait for toast/snackbar to appear
+    const toastLocator = this.page.locator(salesSelectors.toastNotification);
+    await toastLocator.first().waitFor({ state: 'visible', timeout: 10000 });
+
+    // Verify message content
+    const toastText = await toastLocator.first().textContent();
+    this.logger.info(`Toast notification text: "${toastText}"`);
+
+    if (!toastText || !toastText.toLowerCase().includes(expectedMessage.toLowerCase())) {
+      throw new Error(
+        `Toast notification mismatch.\n` +
+        `Expected to contain: "${expectedMessage}"\n` +
+        `Actual: "${toastText}"`
+      );
+    }
+    this.logger.info(`✓ Toast notification validated: "${expectedMessage}"`);
+  }
+
+  // ─── Void Invoice ──────────────────────────────────────────────────────────
+
+  /**
+   * Click the Void menu item (MORE menu must be open)
+   * Handles the confirmation dialog and waits for redirect to sales table
+   */
+  async clickVoidInvoice(): Promise<void> {
+    this.logger.info('Clicking Void menu item');
+    const voidItem = this.page.locator(salesSelectors.voidMenuItem);
+    await voidItem.waitFor({ state: 'visible', timeout: 5000 });
+    await voidItem.click();
+    this.logger.info('Void menu item clicked, waiting for confirmation dialog');
+
+    // Wait for void confirmation dialog
+    await this.page.waitForSelector(salesSelectors.voidConfirmDialog, { state: 'visible', timeout: 5000 });
+    this.logger.info('Void confirmation dialog appeared');
+
+    // Click "void this sale" button
+    const confirmBtn = this.page.locator(salesSelectors.voidConfirmButton);
+    await confirmBtn.waitFor({ state: 'visible', timeout: 5000 });
+    await confirmBtn.click();
+    this.logger.info('Clicked "void this sale" confirmation button');
+
+    // Wait for redirect to sales table
+    await this.page.waitForURL(/sales-table/, { timeout: 15000 });
+    await this.page.waitForLoadState('domcontentloaded');
+    await this.page.waitForTimeout(2000);
+    this.logger.info('Voided successfully, redirected to sales table');
+  }
+
+  /**
+   * Check if the Void menu item is disabled (for VOID status invoices)
+   */
+  async isVoidMenuItemDisabled(): Promise<boolean> {
+    const voidItem = this.page.locator(salesSelectors.voidMenuItem);
+    const isDisabled = await voidItem.getAttribute('aria-disabled') === 'true'
+      || await voidItem.getAttribute('disabled') !== null
+      || await voidItem.isDisabled().catch(() => false);
+    this.logger.info(`Void menu item disabled: ${isDisabled}`);
+    return isDisabled;
+  }
+
   /**
    * Validate invoice status matches expected value
    * This checks the status in the sales list table (first row)
@@ -1311,7 +1455,7 @@ export class SalesPage {
         const cells = await firstRow.locator('td').all();
         for (const cell of cells) {
           const cellText = await cell.textContent();
-          if (cellText && /(UNPAID|PARTIALLY PAID|PAID|OVERPAID|DRAFT)/i.test(cellText)) {
+          if (cellText && /(UNPAID|PARTIALLY PAID|PAID|OVERPAID|VOID|DRAFT)/i.test(cellText)) {
             actualStatus = cellText;
             this.logger.info(`Found status in table cell: "${actualStatus}"`);
             break;
@@ -1372,7 +1516,7 @@ export class SalesPage {
           
           if (isVisible) {
             const text = await element.textContent();
-            if (text && /(UNPAID|PARTIALLY PAID|PAID|OVERPAID|DRAFT)/i.test(text)) {
+            if (text && /(UNPAID|PARTIALLY PAID|PAID|OVERPAID|VOID|DRAFT)/i.test(text)) {
               actualStatus = text;
               const normalizedActual = actualStatus.trim().toUpperCase();
               
