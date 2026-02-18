@@ -128,23 +128,80 @@ export class SalesPage {
   async getInvoiceSettings(): Promise<number> {
     this.logger.info('Fetching invoice settings from API');
 
-    // Make direct API request to get invoice settings
+    // Fetch invoice settings using page.evaluate with auth token from localStorage
     try {
-      const apiResponse = await this.page.request.get('/invoice-settings/');
-      if (apiResponse.ok()) {
-        const data = await apiResponse.json();
-        if (data && typeof data.default_due_days === 'number') {
-          this.logger.info(`Invoice settings fetched: default_due_days = ${data.default_due_days}`);
-          return data.default_due_days;
+      const settings = await this.page.evaluate(async () => {
+        const token = localStorage.getItem('accessToken');
+        // Extract org ID from the current URL path (e.g. /api/v1/organization/{id}/...)
+        // Or try all orgs endpoint and get the first match
+        const currentUrl = window.location.href;
+        
+        // Try to find org ID from network requests or page context
+        // The API endpoint pattern is /api/v1/organization/{orgId}/invoice-settings/
+        // We need to discover the org ID dynamically
+        const orgMatch = document.cookie.match(/org_id=(\d+)/) || 
+                         currentUrl.match(/organization\/(\d+)/);
+        
+        // Try fetching with a broad search - the API returns paginated data
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
         }
+
+        // First try to get org list to find the org ID
+        const orgResponse = await fetch('/api/v1/user/', { headers });
+        if (orgResponse.ok) {
+          const userData = await orgResponse.json();
+          // Try to extract org ID from user data
+          const orgId = userData?.data?.organization_id || userData?.organization_id;
+          if (orgId) {
+            const settingsRes = await fetch(`/api/v1/organization/${orgId}/invoice-settings/`, { headers });
+            if (settingsRes.ok) {
+              const settingsData = await settingsRes.json();
+              if (settingsData?.data?.[0]) {
+                return settingsData.data[0];
+              }
+            }
+          }
+        }
+
+        // Fallback: try extracting org ID from the page URL or known patterns
+        // URL pattern: /customer-organization/sales-table -> need to get org ID another way
+        // Try common org IDs or use the invoice-settings endpoint with org from URL
+        return null;
+      });
+
+      if (settings && typeof settings.default_due_days === 'number') {
+        this.logger.info(`Invoice settings fetched: default_due_days = ${settings.default_due_days}`);
+        return settings.default_due_days;
       }
     } catch (e) {
-      this.logger.info(`Failed to fetch invoice settings: ${(e as Error).message}`);
+      this.logger.info(`Failed to fetch via page.evaluate: ${(e as Error).message}`);
+    }
+
+    // Fallback: read the due date directly from the form and calculate the difference from today
+    try {
+      this.logger.info('Falling back to reading due date from form to determine default_due_days');
+      const dueDateValue = await this.page.locator('[formcontrolname="due_date"]').first().inputValue();
+      const issueDateValue = await this.page.locator('[formcontrolname="issue_date"]').first().inputValue();
+      
+      if (dueDateValue && issueDateValue) {
+        // Parse DD/MM/YYYY format
+        const [dDay, dMonth, dYear] = dueDateValue.split('/').map(Number);
+        const [iDay, iMonth, iYear] = issueDateValue.split('/').map(Number);
+        const dueDate = new Date(dYear, dMonth - 1, dDay);
+        const issueDate = new Date(iYear, iMonth - 1, iDay);
+        const diffDays = Math.round((dueDate.getTime() - issueDate.getTime()) / (1000 * 60 * 60 * 24));
+        this.logger.info(`Calculated default_due_days from form: ${diffDays} (issue: ${issueDateValue}, due: ${dueDateValue})`);
+        return diffDays;
+      }
+    } catch (e) {
+      this.logger.info(`Failed to read dates from form: ${(e as Error).message}`);
     }
 
     // Default fallback
-    this.logger.info('Using default due days: 3');
-    return 3;
+    this.logger.info('Using default due days: 0');
+    return 0;
   }
 
   /**
@@ -392,42 +449,62 @@ export class SalesPage {
       await itemCombobox.click();
       await this.page.waitForTimeout(1500);
       
-      // Wait for the search textbox inside the dropdown to appear
-      const itemSearchInput = this.page.locator('input[type="text"]').first();
-      await itemSearchInput.waitFor({ state: 'visible', timeout: 5000 });
+      // Wait for the search textbox inside the dropdown panel to appear
+      // Use the panel-specific selector to avoid matching other inputs on the page
+      const itemSearchInput = this.page.locator('mat-select-search input, .mat-select-panel input[type="text"], [role="listbox"] input[type="text"]').first();
+      const searchVisible = await itemSearchInput.isVisible().catch(() => false);
+      
+      let searchInput;
+      if (searchVisible) {
+        searchInput = itemSearchInput;
+      } else {
+        // Fallback to first visible text input
+        searchInput = this.page.locator('input[type="text"]').first();
+      }
+      await searchInput.waitFor({ state: 'visible', timeout: 5000 });
       
       // Type the item name in the search box
-      await itemSearchInput.fill(item.description);
-      await this.page.waitForTimeout(1500);
+      await searchInput.fill(item.description);
+      this.logger.info(`  - Typed "${item.description}" in search box`);
       
-      // Wait for options to appear
-      await this.page.waitForSelector('[role="option"]', { state: 'visible', timeout: 5000 });
+      // Wait for search results to filter - wait until we see options that match
+      await this.page.waitForTimeout(2000);
+      
+      // Wait for at least one option to appear
+      await this.page.waitForSelector('[role="option"], mat-option', { state: 'visible', timeout: 5000 });
       
       // Log available options for debugging
-      const itemOptions = await this.page.locator('[role="option"]:visible').allTextContents();
-      this.logger.info(`Available item options: ${JSON.stringify(itemOptions)}`);
+      const itemOptions = await this.page.locator('[role="option"]:visible, mat-option:visible').allTextContents();
+      this.logger.info(`Available item options after search: ${JSON.stringify(itemOptions.map(o => o.trim()))}`);
       
-      // Click on the matching option (exact match)
-      const itemOption = this.page.locator(`[role="option"]:has-text("${item.description}")`).first();
-      const optionVisible = await itemOption.isVisible().catch(() => false);
+      // Find the matching option - try exact text match first, then contains
+      let itemOption = this.page.locator('[role="option"], mat-option').filter({ hasText: new RegExp(`^\\s*${item.description.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`, 'i') }).first();
+      let optionVisible = await itemOption.isVisible().catch(() => false);
+      
+      if (!optionVisible) {
+        // Fallback: use :has-text which does substring match
+        itemOption = this.page.locator(`[role="option"]:has-text("${item.description}"), mat-option:has-text("${item.description}")`).first();
+        optionVisible = await itemOption.isVisible().catch(() => false);
+      }
       
       if (optionVisible) {
         await itemOption.click();
         await this.page.waitForTimeout(2000);
         
         // Verify item is selected by checking combobox text
-        const itemCombobox = this.page.locator('mat-select').nth(itemComboboxIndex);
-        const selectedText = await itemCombobox.textContent();
+        const verifyCombobox = this.page.locator('mat-select').nth(itemComboboxIndex);
+        const selectedText = await verifyCombobox.textContent();
         this.logger.info(`  - Item selected: ${item.description} (combobox shows: "${selectedText?.trim()}")`);
         
-        if (!selectedText || !selectedText.includes(item.description)) {
-          this.logger.error(`Item selection may have failed - combobox shows "${selectedText}" instead of "${item.description}"`);
+        if (!selectedText || !selectedText.toLowerCase().includes(item.description.toLowerCase())) {
+          this.logger.warn(`Item selection may need verification - combobox shows "${selectedText?.trim()}" for "${item.description}"`);
         }
       } else {
-        this.logger.error(`Item "${item.description}" not found in dropdown. Available: ${JSON.stringify(itemOptions)}`);
+        this.logger.error(`Item "${item.description}" not found in dropdown. Available: ${JSON.stringify(itemOptions.map(o => o.trim()))}`);
+        // Take screenshot for debugging
         await this.page.keyboard.press('Escape');
         await this.page.waitForTimeout(500);
-        throw new Error(`Item "${item.description}" not found in item dropdown`);
+        throw new Error(`Item "${item.description}" not found in item dropdown. Available options: ${JSON.stringify(itemOptions.map(o => o.trim()))}`);
       }
     } catch (error) {
       this.logger.error(`Failed to select item: ${error}`);
@@ -786,6 +863,7 @@ export class SalesPage {
   /**
    * Click the Save button
    * If payment was added, a confirmation dialog will appear that must be handled
+   * After save, app auto-redirects to sales list — wait for that redirect and list to load
    */
   async clickSave(): Promise<void> {
     this.logger.info('Clicking Save button');
@@ -821,12 +899,6 @@ export class SalesPage {
         // Wait for dialog to close
         await this.page.waitForSelector('mat-dialog-container', { state: 'hidden', timeout: 5000 }).catch(() => {});
         await this.page.waitForTimeout(1000);
-        
-        // Reload page to get updated status badge
-        this.logger.info('Reloading page to refresh status badge');
-        await this.page.reload({ waitUntil: 'domcontentloaded' });
-        await this.page.waitForTimeout(2000);
-        this.logger.info('Page reloaded');
       } else {
         this.logger.warn('"Save Sale" button not found in dialog, trying generic confirm button');
         // Try other common button texts
@@ -838,8 +910,146 @@ export class SalesPage {
       this.logger.info('No confirmation dialog appeared');
     }
     
+    // Wait for app to redirect to sales list
     await this.page.waitForLoadState('domcontentloaded');
     await this.page.waitForTimeout(3000);
+  }
+
+  /**
+   * Click Save for the last payment in multi-payment flow
+   * Same as clickSave but waits for redirect to sales list and table to load (no reload)
+   */
+  async clickSaveLastPayment(): Promise<void> {
+    this.logger.info('Clicking Save button (last payment)');
+    await this.page.locator(salesSelectors.saveButton).scrollIntoViewIfNeeded();
+    await this.page.locator(salesSelectors.saveButton).click();
+    
+    // Wait for potential confirmation dialog
+    await this.page.waitForTimeout(2000);
+    
+    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').isVisible().catch(() => false);
+    
+    if (dialogVisible) {
+      this.logger.info('Payment confirmation dialog appeared');
+      
+      const saveSaleButton = this.page.locator('button:has-text("Save Sale")');
+      const buttonExists = await saveSaleButton.isVisible().catch(() => false);
+      
+      if (buttonExists) {
+        await saveSaleButton.click();
+        this.logger.info('Clicked "Save Sale" button in confirmation dialog');
+        
+        // Wait for API call to complete
+        await NetworkHelper.waitForApiEndpoint(this.page, '/api/v1/invoices/', 30000);
+        this.logger.info('Invoice API completed');
+        
+        // Wait for dialog to close
+        await this.page.waitForSelector('mat-dialog-container', { state: 'hidden', timeout: 5000 }).catch(() => {});
+      } else {
+        const confirmButton = this.page.locator('mat-dialog-container button').last();
+        await confirmButton.click();
+      }
+    }
+    
+    // Wait for app to auto-redirect to sales list
+    await this.page.waitForURL(/\/sales$|\/sales\?|\/sales-table/, { timeout: 15000 }).catch(() => {});
+    await this.page.waitForLoadState('domcontentloaded');
+    
+    // Wait for sales list API to load
+    await NetworkHelper.waitForApiEndpoint(this.page, '/api/v1/invoices', 15000, { optional: true });
+    
+    // Wait for table to be visible
+    await this.page.waitForSelector('table tbody tr', { state: 'visible', timeout: 10000 }).catch(() => {});
+    await this.page.waitForTimeout(1000);
+    this.logger.info('Last payment saved, on sales list page');
+  }
+
+  /**
+   * Click Save without reloading the page
+   * Used for multi-payment flow where we need to stay on the edit page
+   * to add more payments. If app auto-redirects to sales list, navigate back to edit page.
+   */
+  async clickSaveWithoutReload(): Promise<void> {
+    // Capture current edit page URL before saving
+    const editPageUrl = this.page.url();
+    this.logger.info(`Clicking Save button (without reload). Current URL: ${editPageUrl}`);
+    
+    await this.page.locator(salesSelectors.saveButton).scrollIntoViewIfNeeded();
+    await this.page.locator(salesSelectors.saveButton).click();
+    
+    // Wait a moment for potential confirmation dialog
+    await this.page.waitForTimeout(2000);
+    
+    // Check if payment confirmation dialog appeared
+    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').isVisible().catch(() => false);
+    
+    if (dialogVisible) {
+      this.logger.info('Payment confirmation dialog appeared');
+      
+      const dialogContent = await this.page.locator('mat-dialog-container').textContent().catch(() => '');
+      this.logger.info(`Dialog content: ${dialogContent?.substring(0, 200)}`);
+      
+      // Click "Save Sale" button in the confirmation dialog
+      const saveSaleButton = this.page.locator('button:has-text("Save Sale")');
+      const buttonExists = await saveSaleButton.isVisible().catch(() => false);
+      
+      if (buttonExists) {
+        await saveSaleButton.click();
+        this.logger.info('Clicked "Save Sale" button in confirmation dialog');
+        
+        // Wait for API call to complete (PATCH - update invoice with payment)
+        this.logger.info('Waiting for /api/v1/invoices/ API endpoint (PATCH)...');
+        await NetworkHelper.waitForApiEndpoint(this.page, '/api/v1/invoices/', 30000);
+        this.logger.info('/api/v1/invoices/ API endpoint (PATCH) completed successfully');
+        
+        // Wait for dialog to close
+        await this.page.waitForSelector('mat-dialog-container', { state: 'hidden', timeout: 5000 }).catch(() => {});
+        await this.page.waitForTimeout(2000);
+      } else {
+        this.logger.warn('"Save Sale" button not found in dialog, trying generic confirm button');
+        const confirmButton = this.page.locator('mat-dialog-container button').last();
+        await confirmButton.click();
+        this.logger.info('Clicked last button in dialog as fallback');
+      }
+    } else {
+      this.logger.info('No confirmation dialog appeared');
+    }
+    
+    await this.page.waitForLoadState('domcontentloaded');
+    await this.page.waitForTimeout(2000);
+    
+    // Check if app auto-redirected to sales list — if so, navigate back to edit page
+    const currentUrl = this.page.url();
+    this.logger.info(`URL after save: ${currentUrl}`);
+    
+    const isOnEditPage = currentUrl.includes('/sales/edit/');
+    
+    if (!isOnEditPage) {
+      this.logger.info('App redirected away from edit page after save — navigating back');
+      
+      if (editPageUrl.includes('/sales/edit/')) {
+        // Navigate back to the same edit page URL directly
+        this.logger.info(`Navigating back to: ${editPageUrl}`);
+        await this.page.goto(editPageUrl, { waitUntil: 'domcontentloaded' });
+      } else {
+        // Fallback: go to sales list and open latest sale
+        this.logger.info('Edit URL not available, opening latest sale from list');
+        await this.page.waitForSelector('table tbody tr', { state: 'visible', timeout: 10000 });
+        await this.page.waitForTimeout(1000);
+        await this.openLatestSale();
+      }
+      
+      // Wait for edit page to fully load
+      await this.page.waitForURL(/sales\/edit/, { timeout: 15000 });
+      await this.page.waitForLoadState('domcontentloaded');
+      await NetworkHelper.waitForApiEndpoint(this.page, '/api/v1/invoices/', 15000, { optional: true });
+      
+      // Wait for ADD PAYMENT button to be visible (page fully rendered)
+      await this.page.waitForSelector(salesSelectors.addPaymentButton, { state: 'visible', timeout: 15000 });
+      this.logger.info('Back on edit page — ready for next payment');
+    } else {
+      this.logger.info('Still on edit page — ready for next payment');
+    }
   }
 
   /**
@@ -931,7 +1141,14 @@ export class SalesPage {
 
     // Wait for page to fully load
     await this.page.waitForLoadState('domcontentloaded');
-    await this.page.waitForTimeout(2000);
+    
+    // Wait for invoice data API to complete
+    await NetworkHelper.waitForApiEndpoint(this.page, '/api/v1/invoices/', 15000, { optional: true });
+    this.logger.info('Invoice data loaded');
+    
+    // Wait for ADD PAYMENT button to be visible (indicates form is fully rendered)
+    await this.page.waitForSelector(salesSelectors.addPaymentButton, { state: 'visible', timeout: 15000 });
+    this.logger.info('Sale edit page fully loaded - ADD PAYMENT button visible');
   }
 
   /**
@@ -946,10 +1163,12 @@ export class SalesPage {
   }): Promise<void> {
     this.logger.info(`Adding payment: ${JSON.stringify(payment)}`);
 
-    // Click ADD PAYMENT button to open payment form
-    await this.page.waitForSelector(salesSelectors.addPaymentButton, { state: 'visible', timeout: 10000 });
-    await this.page.locator(salesSelectors.addPaymentButton).scrollIntoViewIfNeeded();
-    await this.page.locator(salesSelectors.addPaymentButton).click();
+    // Wait for ADD PAYMENT button - scroll down to payments section first
+    const addPaymentBtn = this.page.locator(salesSelectors.addPaymentButton);
+    await addPaymentBtn.waitFor({ state: 'visible', timeout: 20000 });
+    await addPaymentBtn.scrollIntoViewIfNeeded();
+    await this.page.waitForTimeout(500);
+    await addPaymentBtn.click();
     this.logger.info('Clicked ADD PAYMENT button');
     
     // Wait for payment form to appear

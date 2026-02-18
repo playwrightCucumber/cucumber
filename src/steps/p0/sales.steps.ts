@@ -3,6 +3,7 @@ import { expect } from '@playwright/test';
 import { SalesPage, SaleItem } from '../../pages/p0/SalesPage.js';
 import { replacePlaceholders } from '../../utils/TestDataHelper.js';
 import { Logger } from '../../utils/Logger.js';
+import { NetworkHelper } from '../../utils/NetworkHelper.js';
 
 // Initialize page objects
 let salesPage: SalesPage;
@@ -199,7 +200,10 @@ When('I click Create button', { timeout: 60000 }, async function () {
  * Verify that sale was created successfully
  * This checks that we're redirected to sales table page and purchaser name is correct
  */
-Then('the sale should be created successfully', { timeout: 20000 }, async function () {
+Then('the sale should be created successfully', { timeout: 30000 }, async function () {
+  // Note: NetworkHelper.waitForApiEndpoint for invoices is already handled inside clickCreate()
+  // No need to wait again here — the API calls (POST create + GET list) are already completed
+
   // Verify we're back on sales table page
   await salesPage.validateSalesTableLoaded();
   logger.info('Sale created successfully and redirected to sales table');
@@ -268,6 +272,44 @@ When('I add payment with following details:', { timeout: 30000 }, async function
   });
 
   logger.info('Payment added successfully');
+});
+
+/**
+ * Add multiple payments with following details (add + save for each row)
+ * Each row triggers: add payment → click save → wait for page reload
+ * Data table format:
+ * | amount | method | note |
+ * | 100    | Bank Transfer | First payment  |
+ * | 200    | Bank Transfer | Second payment |
+ */
+When('I add multiple payments with following details:', { timeout: 120000 }, async function (dataTable: DataTable) {
+  const payments = dataTable.hashes();
+
+  logger.info(`Adding ${payments.length} payments sequentially`);
+
+  for (let i = 0; i < payments.length; i++) {
+    const paymentData = payments[i];
+    const amount = replacePlaceholders(paymentData.amount);
+    const method = replacePlaceholders(paymentData.method);
+    const note = replacePlaceholders(paymentData.note);
+    const isLastPayment = i === payments.length - 1;
+
+    logger.info(`Payment ${i + 1}/${payments.length}: ${amount} via ${method}`);
+
+    await salesPage.addPayment({ amount, method, note });
+    logger.info(`Payment ${i + 1} form filled, clicking Save`);
+
+    if (isLastPayment) {
+      // Last payment: save and let app redirect to sales list (no need to navigate back)
+      await salesPage.clickSaveLastPayment();
+    } else {
+      // Not last payment: save then navigate back to edit page for next payment
+      await salesPage.clickSaveWithoutReload();
+    }
+    logger.info(`Payment ${i + 1} saved successfully`);
+  }
+
+  logger.info(`All ${payments.length} payments added and saved`);
 });
 
 /**
