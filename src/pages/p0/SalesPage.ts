@@ -1476,7 +1476,7 @@ export class SalesPage {
         const cells = await firstRow.locator('td').all();
         for (const cell of cells) {
           const cellText = await cell.textContent();
-          if (cellText && /(UNPAID|PARTIALLY PAID|PAID|OVERPAID|VOID|DRAFT)/i.test(cellText)) {
+          if (cellText && /(UNPAID|PARTIALLY PAID|PAID|OVERPAID|OVERDUE|VOID|DRAFT)/i.test(cellText)) {
             actualStatus = cellText;
             this.logger.info(`Found status in table cell: "${actualStatus}"`);
             break;
@@ -1537,7 +1537,7 @@ export class SalesPage {
           
           if (isVisible) {
             const text = await element.textContent();
-            if (text && /(UNPAID|PARTIALLY PAID|PAID|OVERPAID|VOID|DRAFT)/i.test(text)) {
+            if (text && /(UNPAID|PARTIALLY PAID|PAID|OVERPAID|OVERDUE|VOID|DRAFT)/i.test(text)) {
               actualStatus = text;
               const normalizedActual = actualStatus.trim().toUpperCase();
               
