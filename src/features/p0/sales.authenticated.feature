@@ -150,8 +150,8 @@ Feature: Sales Management Authenticated
     When I open the latest created sale
     And I add multiple payments with following details:
       | amount | method        | note            |
-      | 1000   | Bank Transfer | First payment   |
-      | 1000   | Bank Transfer | Second payment  |
+      | 1001   | Bank Transfer | First payment   |
+      | 1002   | Bank Transfer | Second payment  |
       | 500    | Bank Transfer | Extra payment   |
     Then the invoice status should be "OVERPAID"
     # Re-send Payment: NOT visible for OVERPAID invoice
