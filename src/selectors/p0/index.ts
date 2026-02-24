@@ -11,3 +11,4 @@ export * from './advanceSearch.selectors.js';
 export * from './person.selectors.js';
 export * from './requestSalesForm.selectors.js';
 export * from './sales.selectors.js';
+export * from './feedback.selectors.js';
