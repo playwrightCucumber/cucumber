@@ -466,45 +466,66 @@ export class SalesPage {
       // Type the item name in the search box
       await searchInput.fill(item.description);
       this.logger.info(`  - Typed "${item.description}" in search box`);
-      
-      // Wait for search results to filter - wait until we see options that match
-      await this.page.waitForTimeout(2000);
-      
-      // Wait for at least one option to appear
-      await this.page.waitForSelector('[role="option"], mat-option', { state: 'visible', timeout: 5000 });
-      
-      // Log available options for debugging
-      const itemOptions = await this.page.locator('[role="option"]:visible, mat-option:visible').allTextContents();
-      this.logger.info(`Available item options after search: ${JSON.stringify(itemOptions.map(o => o.trim()))}`);
-      
-      // Find the matching option - try exact text match first, then contains
-      let itemOption = this.page.locator('[role="option"], mat-option').filter({ hasText: new RegExp(`^\\s*${item.description.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`, 'i') }).first();
-      let optionVisible = await itemOption.isVisible().catch(() => false);
-      
-      if (!optionVisible) {
-        // Fallback: use :has-text which does substring match
-        itemOption = this.page.locator(`[role="option"]:has-text("${item.description}"), mat-option:has-text("${item.description}")`).first();
-        optionVisible = await itemOption.isVisible().catch(() => false);
-      }
-      
-      if (optionVisible) {
-        await itemOption.click();
+
+      // Retry mechanism: if item not found, delete last char with Backspace and retype it
+      const maxSearchRetries = 3;
+      let itemFound = false;
+      let itemOptions: string[] = [];
+
+      for (let searchAttempt = 0; searchAttempt < maxSearchRetries; searchAttempt++) {
+        // Wait for search results to filter
         await this.page.waitForTimeout(2000);
-        
-        // Verify item is selected by checking combobox text
-        const verifyCombobox = this.page.locator('mat-select').nth(itemComboboxIndex);
-        const selectedText = await verifyCombobox.textContent();
-        this.logger.info(`  - Item selected: ${item.description} (combobox shows: "${selectedText?.trim()}")`);
-        
-        if (!selectedText || !selectedText.toLowerCase().includes(item.description.toLowerCase())) {
-          this.logger.warn(`Item selection may need verification - combobox shows "${selectedText?.trim()}" for "${item.description}"`);
+
+        // Wait for at least one option to appear
+        await this.page.waitForSelector('[role="option"], mat-option', { state: 'visible', timeout: 5000 });
+
+        // Log available options for debugging
+        itemOptions = await this.page.locator('[role="option"]:visible, mat-option:visible').allTextContents();
+        this.logger.info(`[Attempt ${searchAttempt + 1}/${maxSearchRetries}] Available item options after search: ${JSON.stringify(itemOptions.map(o => o.trim()))}`);
+
+        // Find the matching option - try exact text match first, then contains
+        let itemOption = this.page.locator('[role="option"], mat-option').filter({ hasText: new RegExp(`^\\s*${item.description.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`, 'i') }).first();
+        let optionVisible = await itemOption.isVisible().catch(() => false);
+
+        if (!optionVisible) {
+          // Fallback: use :has-text which does substring match
+          itemOption = this.page.locator(`[role="option"]:has-text("${item.description}"), mat-option:has-text("${item.description}")`).first();
+          optionVisible = await itemOption.isVisible().catch(() => false);
         }
-      } else {
-        this.logger.error(`Item "${item.description}" not found in dropdown. Available: ${JSON.stringify(itemOptions.map(o => o.trim()))}`);
+
+        if (optionVisible) {
+          await itemOption.click();
+          await this.page.waitForTimeout(2000);
+
+          // Verify item is selected by checking combobox text
+          const verifyCombobox = this.page.locator('mat-select').nth(itemComboboxIndex);
+          const selectedText = await verifyCombobox.textContent();
+          this.logger.info(`  - Item selected: ${item.description} (combobox shows: "${selectedText?.trim()}")`);
+
+          if (!selectedText || !selectedText.toLowerCase().includes(item.description.toLowerCase())) {
+            this.logger.warn(`Item selection may need verification - combobox shows "${selectedText?.trim()}" for "${item.description}"`);
+          }
+          itemFound = true;
+          break;
+        }
+
+        // Item not found - retry by pressing Backspace to delete last char, then retype it
+        if (searchAttempt < maxSearchRetries - 1) {
+          const lastChar = item.description.slice(-1);
+          this.logger.info(`  - Item "${item.description}" not found, retrying: Backspace last char "${lastChar}" and retype`);
+          await this.page.keyboard.press('Backspace');
+          await this.page.waitForTimeout(1000);
+          await this.page.keyboard.type(lastChar, { delay: 100 });
+          this.logger.info(`  - Retyped "${lastChar}", waiting for search results to refresh...`);
+        }
+      }
+
+      if (!itemFound) {
+        this.logger.error(`Item "${item.description}" not found in dropdown after ${maxSearchRetries} attempts. Available: ${JSON.stringify(itemOptions.map(o => o.trim()))}`);
         // Take screenshot for debugging
         await this.page.keyboard.press('Escape');
         await this.page.waitForTimeout(500);
-        throw new Error(`Item "${item.description}" not found in item dropdown. Available options: ${JSON.stringify(itemOptions.map(o => o.trim()))}`);
+        throw new Error(`Item "${item.description}" not found in item dropdown after ${maxSearchRetries} search attempts. Available options: ${JSON.stringify(itemOptions.map(o => o.trim()))}`);
       }
     } catch (error) {
       this.logger.error(`Failed to select item: ${error}`);
