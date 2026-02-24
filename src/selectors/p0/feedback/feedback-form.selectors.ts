@@ -1,82 +1,51 @@
 /**
  * Selectors for Feedback feature at Cemetery level
- * Used for submitting feedback via sidebar request menu
+ * Multi-step wizard form with 5 expansion panels
+ * Based on actual element inspection from staging.chronicle.rip
+ *
+ * NOTE: All continue buttons share the SAME data-testid.
+ * Use panel scoping + :visible or button:has-text("continue") to disambiguate.
  */
 
 export const FeedbackSelectors = {
-  // Sidebar / Cemetery Navigation
-  sidebar: {
-    cemeterySection: '[data-testid="sidebar-cemetery"], .sidebar-cemetery, [class*="cemetery"]',
-    requestButton: 'button:has-text("Request"), button:has-text("REQUEST"), [data-testid*="request"]',
-    requestMenu: '[role="menu"], .mat-menu-panel',
-    feedbackMenuItem: '[role="menuitem"]:has-text("Feedback"), [role="menuitem"]:has-text("feedback")',
+  // Navigation - REQUESTS button in content area (NOT sidebar)
+  navigation: {
+    requestsButton: '[data-testid="cemetery-info-wrapper-button-btn-service"]',
+    feedbackMenuItem: '[role="menuitem"]:has-text("Feedback")',
   },
 
-  // Feedback Form Page
-  feedbackPage: {
-    heading: 'h1:has-text("Feedback"), h2:has-text("Feedback"), [class*="heading"]:has-text("Feedback")',
-    pageContainer: '[class*="feedback"], [data-testid*="feedback"]',
+  // Feedback page structure
+  page: {
+    title: '[data-testid="form-general-purpose-h1-title"]',
+    formContainer: '[data-testid="form-general-purpose-div-form-container"]',
+    submitButton: '[data-testid="form-general-purpose-button-submit-request-btn"]',
   },
 
-  // Feedback Form Fields
-  form: {
-    // Subject / Title field
-    subjectInput: 'input[formcontrolname="subject"], input[placeholder*="Subject"], input[placeholder*="Title"], #subject',
+  // Shared continue button data-testid (same for ALL sections)
+  continueButton: '[data-testid="render-custom-form-button-section-continue-btn"]',
 
-    // Category / Type dropdown
-    categorySelect: 'mat-select[formcontrolname="category"], [data-testid*="category"], mat-select:has-text("Category")',
-    categoryOption: (category: string) => `mat-option:has-text("${category}"), [role="option"]:has-text("${category}")`,
-
-    // Message / Description textarea
-    messageInput: 'textarea[formcontrolname="message"], textarea[formcontrolname="description"], textarea[placeholder*="Message"], textarea[placeholder*="Description"], #message',
-
-    // Email field (if required)
-    emailInput: 'input[formcontrolname="email"], input[type="email"], input[placeholder*="Email"]',
-
-    // Name field (if required)
-    nameInput: 'input[formcontrolname="name"], input[placeholder*="Name"]',
-
-    // Phone field (if required)
-    phoneInput: 'input[formcontrolname="phone"], input[type="tel"], input[placeholder*="Phone"]',
-
-    // Rating (if applicable)
-    ratingStars: '[class*="rating"], [data-testid*="rating"]',
-    ratingStar: (rating: number) => `[data-testid*="rating-${rating}"], [class*="rating"] button:nth-child(${rating})`,
-
-    // File upload (if applicable)
-    attachmentButton: 'button:has-text("Attach"), button:has-text("Upload"), input[type="file"]',
-    attachmentInput: 'input[type="file"]',
+  // Section 2: Applicant details — label-based field targeting
+  section2_applicant: {
+    firstName: 'mat-form-field:has(mat-label:has-text("First Name")) input',
+    lastName: 'mat-form-field:has(mat-label:has-text("Last Name")) input',
+    middleName: 'mat-form-field:has(mat-label:has-text("Middle Name")) input',
+    gender: 'mat-form-field:has(mat-label:has-text("Gender")) mat-select',
+    title: 'mat-form-field:has(mat-label:has-text("Title")) input',
+    phoneMobile: 'mat-form-field:has(mat-label:has-text("Phone Mobile")) input',
+    phoneHome: 'mat-form-field:has(mat-label:has-text("Phone Home")) input',
+    phoneOffice: 'mat-form-field:has(mat-label:has-text("Phone Office")) input',
+    email: 'mat-form-field:has(mat-label:has-text("Email")) input',
+    address: 'mat-form-field:has(mat-label:has-text("Address")) input',
+    suburb: 'mat-form-field:has(mat-label:has-text("Suburb")) input',
+    state: 'mat-form-field:has(mat-label:has-text("State")) input',
+    country: 'mat-form-field:has(mat-label:has-text("Country")) input',
+    postcode: 'mat-form-field:has(mat-label:has-text("Postcode")) input',
+    postalAddressDiff: 'mat-checkbox:has-text("Postal Address Different")',
+    alsoROIHolder: 'mat-checkbox:has-text("Also ROI Holder")',
   },
 
-  // Form Actions
-  actions: {
-    submitButton: 'button:has-text("Submit"), button:has-text("SUBMIT"), button[type="submit"]',
-    cancelButton: 'button:has-text("Cancel"), button:has-text("CANCEL")',
-    clearButton: 'button:has-text("Clear"), button:has-text("CLEAR")',
+  // Section 3: Feedback Category
+  section3_category: {
+    option: (text: string) => `mat-option:has-text("${text}")`,
   },
-
-  // Success / Confirmation
-  confirmation: {
-    successMessage: '[class*="success"]:has-text("success"), .mat-snack-bar-container:has-text("success"), [role="alert"]:has-text("success"), h3:has-text("success"), p:has-text("submitted successfully")',
-    successDialog: '[role="dialog"]:has-text("success"), mat-dialog-container:has-text("success")',
-    confirmationText: 'text=feedback has been submitted, text=successfully submitted, text=Thank you',
-    okButton: '[role="dialog"] button:has-text("OK"), [role="dialog"] button:has-text("Close")',
-  },
-
-  // Error states
-  errors: {
-    errorMessage: '.mat-error, [class*="error-message"], [role="alert"]:has-text("error")',
-    requiredFieldError: '.mat-error:has-text("required"), [class*="error"]:has-text("required")',
-  },
-
-  // Loading states
-  loading: {
-    spinner: '.mat-spinner, [class*="spinner"], [class*="loading"]',
-    progressBar: '.mat-progress-bar, [role="progressbar"]',
-  },
-} as const;
-
-export const FeedbackUrls = {
-  feedbackPage: '/feedback',
-  feedbackPattern: '**/feedback**',
 } as const;

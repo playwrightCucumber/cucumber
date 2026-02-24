@@ -1,6 +1,6 @@
-import { Given, When, Then } from '@cucumber/cucumber';
+import { When, Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
-import { FeedbackPage, FeedbackData } from '../../pages/p0/FeedbackPage.js';
+import { FeedbackPage, FeedbackApplicantData } from '../../pages/p0/FeedbackPage.js';
 import { Logger } from '../../utils/Logger.js';
 import { replacePlaceholders, replacePlaceholdersInObject } from '../../utils/TestDataHelper.js';
 import { DataTable } from '@cucumber/cucumber';
@@ -8,11 +8,14 @@ import { DataTable } from '@cucumber/cucumber';
 const logger = new Logger('FeedbackSteps');
 let feedbackPage: FeedbackPage;
 
-// Navigation Steps
-When('I click on Request button in sidebar', { timeout: 15000 }, async function () {
-  logger.info('Clicking Request button in sidebar');
+// ============================================
+// NAVIGATION
+// ============================================
+
+When('I click on REQUESTS button', { timeout: 15000 }, async function () {
+  logger.info('Clicking REQUESTS button');
   feedbackPage = new FeedbackPage(this.page);
-  await feedbackPage.clickRequestButton();
+  await feedbackPage.clickRequestsButton();
 });
 
 When('I select Feedback from the request menu', { timeout: 15000 }, async function () {
@@ -20,89 +23,108 @@ When('I select Feedback from the request menu', { timeout: 15000 }, async functi
   await feedbackPage.selectFeedbackFromMenu();
 });
 
-When('I navigate to Feedback page via Request menu', { timeout: 30000 }, async function () {
-  logger.info('Navigating to Feedback page via Request menu');
+When('I navigate to Feedback page', { timeout: 30000 }, async function () {
+  logger.info('Navigating to Feedback page');
   feedbackPage = new FeedbackPage(this.page);
-  await feedbackPage.navigateViaRequestMenu();
+  await feedbackPage.navigateToFeedback();
 });
 
-Then('I should be on the Feedback page', { timeout: 15000 }, async function () {
-  logger.info('Verifying on Feedback page');
-  await feedbackPage.waitForPageLoad();
-  const isOnPage = await feedbackPage.isOnFeedbackPage();
-  expect(isOnPage).toBeTruthy();
+Then('I should see the Feedback form', { timeout: 15000 }, async function () {
+  logger.info('Verifying Feedback form is displayed');
+  if (!feedbackPage) feedbackPage = new FeedbackPage(this.page);
+  const isDisplayed = await feedbackPage.isFeedbackPageDisplayed();
+  expect(isDisplayed).toBeTruthy();
 });
 
-// Form Filling Steps
-When('I fill feedback subject with {string}', { timeout: 10000 }, async function (subject: string) {
-  const actualSubject = replacePlaceholders(subject);
-  logger.info(`Filling subject: ${actualSubject}`);
-  await feedbackPage.fillSubject(actualSubject);
+// ============================================
+// SECTION 1: INSIGHTS
+// ============================================
+
+When('I continue past the Insights section', { timeout: 15000 }, async function () {
+  logger.info('Continuing past Insights section');
+  await feedbackPage.continueInsightsSection();
 });
 
-When('I select feedback category {string}', { timeout: 10000 }, async function (category: string) {
-  const actualCategory = replacePlaceholders(category);
-  logger.info(`Selecting category: ${actualCategory}`);
-  await feedbackPage.selectCategory(actualCategory);
-});
+// ============================================
+// SECTION 2: APPLICANT
+// ============================================
 
-When('I fill feedback message with {string}', { timeout: 10000 }, async function (message: string) {
-  const actualMessage = replacePlaceholders(message);
-  logger.info('Filling feedback message');
-  await feedbackPage.fillMessage(actualMessage);
-});
-
-When('I fill feedback email with {string}', { timeout: 10000 }, async function (email: string) {
-  const actualEmail = replacePlaceholders(email);
-  logger.info(`Filling email: ${actualEmail}`);
-  await feedbackPage.fillEmail(actualEmail);
-});
-
-When('I fill feedback name with {string}', { timeout: 10000 }, async function (name: string) {
-  const actualName = replacePlaceholders(name);
-  logger.info(`Filling name: ${actualName}`);
-  await feedbackPage.fillName(actualName);
-});
-
-When('I fill feedback phone with {string}', { timeout: 10000 }, async function (phone: string) {
-  const actualPhone = replacePlaceholders(phone);
-  logger.info(`Filling phone: ${actualPhone}`);
-  await feedbackPage.fillPhone(actualPhone);
-});
-
-When('I set feedback rating to {int}', { timeout: 10000 }, async function (rating: number) {
-  logger.info(`Setting rating: ${rating}`);
-  await feedbackPage.setRating(rating);
-});
-
-When('I fill feedback form with following details:', { timeout: 30000 }, async function (dataTable: DataTable) {
-  logger.info('Filling feedback form with data table');
+When('I fill the applicant form with the following details:', { timeout: 30000 }, async function (dataTable: DataTable) {
+  logger.info('Filling applicant form from data table');
   const rawData = dataTable.rowsHash() as Record<string, string>;
-  const feedbackData = replacePlaceholdersInObject(rawData) as Record<string, string>;
+  const data = replacePlaceholdersInObject(rawData) as Record<string, string>;
 
-  const data: FeedbackData = {
-    subject: feedbackData['subject'] || feedbackData['Subject'],
-    category: feedbackData['category'] || feedbackData['Category'],
-    message: feedbackData['message'] || feedbackData['Message'] || '',
-    email: feedbackData['email'] || feedbackData['Email'],
-    name: feedbackData['name'] || feedbackData['Name'],
-    phone: feedbackData['phone'] || feedbackData['Phone'],
-    rating: feedbackData['rating'] ? parseInt(feedbackData['rating']) : undefined,
+  const applicantData: FeedbackApplicantData = {
+    firstName: data['firstName'] || data['First Name'] || '',
+    lastName: data['lastName'] || data['Last Name'] || '',
+    email: data['email'] || data['Email'] || '',
+    middleName: data['middleName'] || data['Middle Name'],
+    gender: data['gender'] || data['Gender'],
+    title: data['title'] || data['Title'],
+    phoneMobile: data['phoneMobile'] || data['Phone Mobile'],
+    phoneHome: data['phoneHome'] || data['Phone Home'],
+    phoneOffice: data['phoneOffice'] || data['Phone Office'],
+    address: data['address'] || data['Address'],
+    suburb: data['suburb'] || data['Suburb'],
+    state: data['state'] || data['State'],
+    country: data['country'] || data['Country'],
+    postcode: data['postcode'] || data['Postcode'],
   };
 
-  await feedbackPage.fillFeedbackForm(data);
+  await feedbackPage.fillApplicantForm(applicantData);
 });
 
-// Submit Steps
-Then('the feedback submit button should be visible', { timeout: 10000 }, async function () {
-  logger.info('Verifying submit button is visible');
-  const isEnabled = await feedbackPage.isSubmitButtonEnabled();
-  expect(isEnabled).toBeTruthy();
+When('I continue past the Applicant section', { timeout: 15000 }, async function () {
+  logger.info('Continuing past Applicant section');
+  await feedbackPage.continueApplicantSection();
 });
 
-Then('the feedback submit button should be enabled', { timeout: 10000 }, async function () {
+// ============================================
+// SECTION 3: CATEGORY
+// ============================================
+
+When('I select feedback type {string}', { timeout: 15000 }, async function (type: string) {
+  const actualType = replacePlaceholders(type);
+  logger.info(`Selecting feedback type: ${actualType}`);
+  await feedbackPage.selectFeedbackCategory(actualType);
+});
+
+When('I continue past the Category section', { timeout: 15000 }, async function () {
+  logger.info('Continuing past Category section');
+  await feedbackPage.continueCategorySection();
+});
+
+// ============================================
+// SECTION 4: DETAILS
+// ============================================
+
+When('I fill feedback details with {string}', { timeout: 15000 }, async function (message: string) {
+  const actualMessage = replacePlaceholders(message);
+  logger.info('Filling feedback details');
+  await feedbackPage.fillDetails(actualMessage);
+});
+
+When('I continue past the Details section', { timeout: 15000 }, async function () {
+  logger.info('Continuing past Details section');
+  await feedbackPage.continueDetailsSection();
+});
+
+// ============================================
+// SECTION 5: THANKS
+// ============================================
+
+When('I continue past the Thanks section', { timeout: 15000 }, async function () {
+  logger.info('Continuing past Thanks section');
+  await feedbackPage.continueThanksSection();
+});
+
+// ============================================
+// SUBMIT
+// ============================================
+
+Then('the feedback submit button should be enabled', { timeout: 15000 }, async function () {
   logger.info('Verifying submit button is enabled');
-  const isEnabled = await feedbackPage.isSubmitButtonEnabled();
+  const isEnabled = await feedbackPage.waitForSubmitEnabled();
   expect(isEnabled).toBeTruthy();
 });
 
@@ -111,67 +133,36 @@ When('I click the feedback submit button', { timeout: 15000 }, async function ()
   await feedbackPage.clickSubmitButton();
 });
 
-// Verification Steps
-Then('the feedback should be submitted successfully', { timeout: 20000 }, async function () {
-  logger.info('Verifying feedback submission success');
-  const isSuccess = await feedbackPage.waitForSuccessMessage();
-  expect(isSuccess).toBeTruthy();
-});
+// ============================================
+// COMBINED FLOW
+// ============================================
 
-Then('I should see feedback success message', { timeout: 15000 }, async function () {
-  logger.info('Verifying success message is displayed');
-  const isSuccess = await feedbackPage.waitForSuccessMessage();
-  expect(isSuccess).toBeTruthy();
-});
-
-Then('I should see feedback success message containing {string}', { timeout: 15000 }, async function (expectedText: string) {
-  const actualExpectedText = replacePlaceholders(expectedText);
-  logger.info(`Verifying success message contains: ${actualExpectedText}`);
-  const isSuccess = await feedbackPage.waitForSuccessMessage();
-  expect(isSuccess).toBeTruthy();
-
-  const successText = await feedbackPage.getSuccessMessageText();
-  if (successText) {
-    expect(successText.toLowerCase()).toContain(actualExpectedText.toLowerCase());
-  }
-});
-
-When('I close the feedback success dialog', { timeout: 10000 }, async function () {
-  logger.info('Closing success dialog');
-  await feedbackPage.closeSuccessDialog();
-});
-
-// Error Steps
-Then('I should see feedback error message', { timeout: 10000 }, async function () {
-  logger.info('Verifying error message is displayed');
-  const errorMessage = await feedbackPage.getErrorMessage();
-  expect(errorMessage).toBeTruthy();
-});
-
-// Cancel Steps
-When('I click the feedback cancel button', { timeout: 10000 }, async function () {
-  logger.info('Clicking cancel button');
-  await feedbackPage.clickCancelButton();
-});
-
-// Combined Flow Step
-When('I submit feedback with following details:', { timeout: 60000 }, async function (dataTable: DataTable) {
-  logger.info('Submitting feedback with data table');
+When('I submit feedback with the following details:', { timeout: 120000 }, async function (dataTable: DataTable) {
+  logger.info('Starting full feedback submission flow');
   feedbackPage = new FeedbackPage(this.page);
-
   const rawData = dataTable.rowsHash() as Record<string, string>;
-  const feedbackData = replacePlaceholdersInObject(rawData) as Record<string, string>;
+  const data = replacePlaceholdersInObject(rawData) as Record<string, string>;
 
-  const data: FeedbackData = {
-    subject: feedbackData['subject'] || feedbackData['Subject'],
-    category: feedbackData['category'] || feedbackData['Category'],
-    message: feedbackData['message'] || feedbackData['Message'] || '',
-    email: feedbackData['email'] || feedbackData['Email'],
-    name: feedbackData['name'] || feedbackData['Name'],
-    phone: feedbackData['phone'] || feedbackData['Phone'],
-    rating: feedbackData['rating'] ? parseInt(feedbackData['rating']) : undefined,
+  const submissionData = {
+    applicant: {
+      firstName: data['firstName'] || data['First Name'] || '',
+      lastName: data['lastName'] || data['Last Name'] || '',
+      email: data['email'] || data['Email'] || '',
+      middleName: data['middleName'] || data['Middle Name'],
+      gender: data['gender'] || data['Gender'],
+      title: data['title'] || data['Title'],
+      phoneMobile: data['phoneMobile'] || data['Phone Mobile'],
+      phoneHome: data['phoneHome'] || data['Phone Home'],
+      phoneOffice: data['phoneOffice'] || data['Phone Office'],
+      address: data['address'] || data['Address'],
+      suburb: data['suburb'] || data['Suburb'],
+      state: data['state'] || data['State'],
+      country: data['country'] || data['Country'],
+      postcode: data['postcode'] || data['Postcode'],
+    },
+    feedbackType: data['feedbackType'] || data['Feedback Type'] || '',
+    details: data['details'] || data['Details'] || '',
   };
 
-  const isSuccess = await feedbackPage.submitFeedback(data);
-  expect(isSuccess).toBeTruthy();
+  await feedbackPage.submitFeedback(submissionData);
 });

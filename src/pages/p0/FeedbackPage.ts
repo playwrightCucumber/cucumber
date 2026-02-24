@@ -1,16 +1,29 @@
-import { Page } from '@playwright/test';
+import { Page, Locator } from '@playwright/test';
 import { Logger } from '../../utils/Logger.js';
 import { NetworkHelper } from '../../utils/NetworkHelper.js';
-import { FeedbackSelectors, FeedbackUrls } from '../../selectors/p0/feedback/index.js';
+import { FeedbackSelectors } from '../../selectors/p0/feedback/index.js';
 
-export interface FeedbackData {
-  subject?: string;
-  category?: string;
-  message: string;
-  email?: string;
-  name?: string;
-  phone?: string;
-  rating?: number;
+export interface FeedbackApplicantData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  middleName?: string;
+  gender?: string;
+  title?: string;
+  phoneMobile?: string;
+  phoneHome?: string;
+  phoneOffice?: string;
+  address?: string;
+  suburb?: string;
+  state?: string;
+  country?: string;
+  postcode?: string;
+}
+
+export interface FeedbackSubmissionData {
+  applicant: FeedbackApplicantData;
+  feedbackType: string;
+  details: string;
 }
 
 export class FeedbackPage {
@@ -21,311 +34,297 @@ export class FeedbackPage {
     this.page = page;
   }
 
-  /**
-   * Click on Request button in sidebar to open the menu
-   */
-  async clickRequestButton(): Promise<void> {
-    this.logger.info('Clicking Request button in sidebar');
-    await this.page.locator(FeedbackSelectors.sidebar.requestButton).first().click();
-    await this.page.waitForTimeout(300);
+  // ============================================
+  // PANEL HELPERS
+  // ============================================
+
+  private getPanel(index: number): Locator {
+    return this.page.locator('mat-expansion-panel').nth(index);
+  }
+
+  private getPanelBody(index: number): Locator {
+    return this.getPanel(index).locator('.mat-expansion-panel-body');
   }
 
   /**
-   * Select Feedback from the request menu dropdown
+   * Ensure a panel is expanded. If not, click its header to expand it.
    */
+  private async ensurePanelExpanded(index: number): Promise<void> {
+    const panel = this.getPanel(index);
+    const body = this.getPanelBody(index);
+
+    const isVisible = await body.isVisible({ timeout: 3000 }).catch(() => false);
+    if (!isVisible) {
+      this.logger.info(`Panel ${index} not expanded, clicking header to expand`);
+      await panel.locator('mat-expansion-panel-header').click();
+      await this.page.waitForTimeout(500);
+      await body.waitFor({ state: 'visible', timeout: 5000 });
+    }
+  }
+
+  /**
+   * Click continue button within the currently expanded section.
+   * All continue buttons share the same data-testid, so we target
+   * the visible one scoped to the panel body.
+   */
+  private async clickContinueInPanel(panelIndex: number): Promise<void> {
+    const body = this.getPanelBody(panelIndex);
+    const continueBtn = body.locator('button:has-text("continue")');
+    await continueBtn.scrollIntoViewIfNeeded();
+    await continueBtn.click();
+    await this.page.waitForTimeout(500);
+  }
+
+  // ============================================
+  // NAVIGATION
+  // ============================================
+
+  async clickRequestsButton(): Promise<void> {
+    this.logger.info('Clicking REQUESTS button in content area');
+    await this.page.locator(FeedbackSelectors.navigation.requestsButton).click();
+    await this.page.waitForTimeout(1500);
+  }
+
   async selectFeedbackFromMenu(): Promise<void> {
-    this.logger.info('Selecting Feedback from request menu');
-    await this.page.locator(FeedbackSelectors.sidebar.feedbackMenuItem).click();
+    this.logger.info('Selecting Feedback from menu');
+    await this.page.locator(FeedbackSelectors.navigation.feedbackMenuItem).click();
     await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 });
     await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
   }
 
-  /**
-   * Navigate to feedback page via sidebar request menu
-   */
-  async navigateViaRequestMenu(): Promise<void> {
-    this.logger.info('Navigating to Feedback page via Request menu');
-    await this.clickRequestButton();
+  async navigateToFeedback(): Promise<void> {
+    this.logger.info('Navigating to Feedback page');
+    await this.clickRequestsButton();
     await this.selectFeedbackFromMenu();
     this.logger.success('Navigated to Feedback page');
   }
 
-  /**
-   * Wait for feedback page to be loaded
-   */
-  async waitForPageLoad(): Promise<void> {
-    this.logger.info('Waiting for Feedback page to load');
-    try {
-      await this.page.waitForURL(new RegExp(FeedbackUrls.feedbackPattern), { timeout: 15000 });
-    } catch {
-      this.logger.warn('URL pattern not matched, checking for page heading');
-    }
-    await this.page.waitForLoadState('domcontentloaded', { timeout: 10000 });
-    await NetworkHelper.waitForApiRequestsComplete(this.page, 3000);
-    this.logger.success('Feedback page loaded');
-  }
+  // ============================================
+  // PAGE VERIFICATION
+  // ============================================
 
-  /**
-   * Check if feedback page is displayed
-   */
-  async isOnFeedbackPage(): Promise<boolean> {
+  async isFeedbackPageDisplayed(): Promise<boolean> {
     try {
-      const heading = this.page.locator(FeedbackSelectors.feedbackPage.heading);
-      return await heading.isVisible({ timeout: 5000 });
+      const title = this.page.locator(FeedbackSelectors.page.title);
+      return await title.isVisible({ timeout: 10000 });
     } catch {
       return false;
     }
   }
 
-  /**
-   * Fill subject/title field
-   */
-  async fillSubject(subject: string): Promise<void> {
-    this.logger.info(`Filling subject: ${subject}`);
-    const subjectInput = this.page.locator(FeedbackSelectors.form.subjectInput);
-    await subjectInput.click();
-    await this.page.waitForTimeout(200);
-    await subjectInput.fill(subject);
+  async getFeedbackPageTitle(): Promise<string> {
+    const title = this.page.locator(FeedbackSelectors.page.title);
+    await title.waitFor({ state: 'visible', timeout: 10000 });
+    return await title.textContent() || '';
   }
 
-  /**
-   * Select category from dropdown
-   */
-  async selectCategory(category: string): Promise<void> {
-    this.logger.info(`Selecting category: ${category}`);
-    const categorySelect = this.page.locator(FeedbackSelectors.form.categorySelect);
-    await categorySelect.click();
+  // ============================================
+  // SECTION 1: INSIGHTS (no fields, just continue)
+  // ============================================
+
+  async continueInsightsSection(): Promise<void> {
+    this.logger.info('Section 1: Continuing past Insights');
+    await this.ensurePanelExpanded(0);
+    await this.clickContinueInPanel(0);
+    this.logger.success('Section 1 completed');
+  }
+
+  // ============================================
+  // SECTION 2: APPLICANT
+  // ============================================
+
+  private async fillFieldInPanel(panelIndex: number, selector: string, value: string): Promise<void> {
+    const body = this.getPanelBody(panelIndex);
+    const input = body.locator(selector);
+    await input.click();
+    await this.page.waitForTimeout(200);
+    await input.fill(value);
+  }
+
+  private async selectDropdownInPanel(panelIndex: number, selectSelector: string, optionText: string): Promise<void> {
+    const body = this.getPanelBody(panelIndex);
+    const select = body.locator(selectSelector);
+    await select.click();
     await this.page.waitForTimeout(300);
-    await this.page.locator(FeedbackSelectors.form.categoryOption(category)).click();
+    await this.page.locator(`mat-option:has-text("${optionText}")`).click();
     await this.page.waitForTimeout(200);
   }
 
-  /**
-   * Fill message/description textarea
-   */
-  async fillMessage(message: string): Promise<void> {
-    this.logger.info('Filling message/description');
-    const messageInput = this.page.locator(FeedbackSelectors.form.messageInput);
-    await messageInput.click();
+  async fillApplicantForm(data: FeedbackApplicantData): Promise<void> {
+    this.logger.info('Section 2: Filling applicant form');
+    await this.ensurePanelExpanded(1);
+
+    // Required fields
+    await this.fillFieldInPanel(1, FeedbackSelectors.section2_applicant.firstName, data.firstName);
+    await this.fillFieldInPanel(1, FeedbackSelectors.section2_applicant.lastName, data.lastName);
+    await this.fillFieldInPanel(1, FeedbackSelectors.section2_applicant.email, data.email);
+
+    // Optional fields
+    if (data.middleName) {
+      await this.fillFieldInPanel(1, FeedbackSelectors.section2_applicant.middleName, data.middleName);
+    }
+    if (data.gender) {
+      await this.selectDropdownInPanel(1, FeedbackSelectors.section2_applicant.gender, data.gender);
+    }
+    if (data.title) {
+      await this.fillFieldInPanel(1, FeedbackSelectors.section2_applicant.title, data.title);
+    }
+    if (data.phoneMobile) {
+      await this.fillFieldInPanel(1, FeedbackSelectors.section2_applicant.phoneMobile, data.phoneMobile);
+    }
+    if (data.phoneHome) {
+      await this.fillFieldInPanel(1, FeedbackSelectors.section2_applicant.phoneHome, data.phoneHome);
+    }
+    if (data.phoneOffice) {
+      await this.fillFieldInPanel(1, FeedbackSelectors.section2_applicant.phoneOffice, data.phoneOffice);
+    }
+    if (data.address) {
+      await this.fillFieldInPanel(1, FeedbackSelectors.section2_applicant.address, data.address);
+    }
+    if (data.suburb) {
+      await this.fillFieldInPanel(1, FeedbackSelectors.section2_applicant.suburb, data.suburb);
+    }
+    if (data.state) {
+      await this.fillFieldInPanel(1, FeedbackSelectors.section2_applicant.state, data.state);
+    }
+    if (data.country) {
+      await this.fillFieldInPanel(1, FeedbackSelectors.section2_applicant.country, data.country);
+    }
+    if (data.postcode) {
+      await this.fillFieldInPanel(1, FeedbackSelectors.section2_applicant.postcode, data.postcode);
+    }
+
+    this.logger.success('Applicant form filled');
+  }
+
+  async continueApplicantSection(): Promise<void> {
+    this.logger.info('Section 2: Clicking continue');
+    await this.clickContinueInPanel(1);
+    this.logger.success('Section 2 completed');
+  }
+
+  // ============================================
+  // SECTION 3: CATEGORY
+  // ============================================
+
+  async selectFeedbackCategory(type: string): Promise<void> {
+    this.logger.info(`Section 3: Selecting feedback type "${type}"`);
+    await this.ensurePanelExpanded(2);
+
+    // Use the expanded panel's mat-select (more reliable than label matching)
+    const body = this.getPanelBody(2);
+    const select = body.locator('mat-select').first();
+    await select.waitFor({ state: 'visible', timeout: 10000 });
+    await select.click();
+    await this.page.waitForTimeout(500);
+    await this.page.locator(FeedbackSelectors.section3_category.option(type)).click();
+    await this.page.waitForTimeout(300);
+    this.logger.success(`Feedback type "${type}" selected`);
+  }
+
+  async continueCategorySection(): Promise<void> {
+    this.logger.info('Section 3: Clicking continue');
+    await this.clickContinueInPanel(2);
+    this.logger.success('Section 3 completed');
+  }
+
+  // ============================================
+  // SECTION 4: DETAILS
+  // ============================================
+
+  async fillDetails(message: string): Promise<void> {
+    this.logger.info('Section 4: Filling feedback details');
+    await this.ensurePanelExpanded(3);
+
+    const body = this.getPanelBody(3);
+    const textarea = body.locator('textarea').first();
+    await textarea.waitFor({ state: 'visible', timeout: 10000 });
+    await textarea.click();
     await this.page.waitForTimeout(200);
-    await messageInput.fill(message);
+    await textarea.fill(message);
+    this.logger.success('Feedback details filled');
   }
 
-  /**
-   * Fill email field (if visible)
-   */
-  async fillEmail(email: string): Promise<void> {
-    const emailInput = this.page.locator(FeedbackSelectors.form.emailInput);
-    if (await emailInput.isVisible({ timeout: 2000 })) {
-      this.logger.info(`Filling email: ${email}`);
-      await emailInput.click();
-      await this.page.waitForTimeout(200);
-      await emailInput.fill(email);
-    }
+  async continueDetailsSection(): Promise<void> {
+    this.logger.info('Section 4: Clicking continue');
+    await this.clickContinueInPanel(3);
+    this.logger.success('Section 4 completed');
   }
 
-  /**
-   * Fill name field (if visible)
-   */
-  async fillName(name: string): Promise<void> {
-    const nameInput = this.page.locator(FeedbackSelectors.form.nameInput);
-    if (await nameInput.isVisible({ timeout: 2000 })) {
-      this.logger.info(`Filling name: ${name}`);
-      await nameInput.click();
-      await this.page.waitForTimeout(200);
-      await nameInput.fill(name);
-    }
+  // ============================================
+  // SECTION 5: THANKS (no fields, just continue)
+  // ============================================
+
+  async continueThanksSection(): Promise<void> {
+    this.logger.info('Section 5: Continuing past Thanks');
+    await this.ensurePanelExpanded(4);
+    await this.clickContinueInPanel(4);
+    this.logger.success('Section 5 completed');
   }
 
-  /**
-   * Fill phone field (if visible)
-   */
-  async fillPhone(phone: string): Promise<void> {
-    const phoneInput = this.page.locator(FeedbackSelectors.form.phoneInput);
-    if (await phoneInput.isVisible({ timeout: 2000 })) {
-      this.logger.info(`Filling phone: ${phone}`);
-      await phoneInput.click();
-      await this.page.waitForTimeout(200);
-      await phoneInput.fill(phone);
-    }
-  }
+  // ============================================
+  // SUBMIT
+  // ============================================
 
-  /**
-   * Set rating stars (if visible)
-   */
-  async setRating(rating: number): Promise<void> {
-    const ratingElement = this.page.locator(FeedbackSelectors.form.ratingStars);
-    if (await ratingElement.isVisible({ timeout: 2000 })) {
-      this.logger.info(`Setting rating: ${rating}`);
-      await this.page.locator(FeedbackSelectors.form.ratingStar(rating)).click();
-      await this.page.waitForTimeout(200);
-    }
-  }
-
-  /**
-   * Fill the feedback form with provided data
-   */
-  async fillFeedbackForm(data: FeedbackData): Promise<void> {
-    this.logger.info('Filling feedback form');
-
-    // Fill subject if provided
-    if (data.subject) {
-      await this.fillSubject(data.subject);
-    }
-
-    // Select category if provided
-    if (data.category) {
-      await this.selectCategory(data.category);
-    }
-
-    // Fill message (required)
-    await this.fillMessage(data.message);
-
-    // Fill optional fields if provided
-    if (data.email) {
-      await this.fillEmail(data.email);
-    }
-
-    if (data.name) {
-      await this.fillName(data.name);
-    }
-
-    if (data.phone) {
-      await this.fillPhone(data.phone);
-    }
-
-    if (data.rating) {
-      await this.setRating(data.rating);
-    }
-
-    this.logger.success('Feedback form filled successfully');
-  }
-
-  /**
-   * Check if submit button is visible and enabled
-   */
-  async isSubmitButtonEnabled(): Promise<boolean> {
-    const submitButton = this.page.locator(FeedbackSelectors.actions.submitButton);
+  async isSubmitEnabled(): Promise<boolean> {
+    const submitBtn = this.page.locator(FeedbackSelectors.page.submitButton);
     try {
-      await submitButton.waitFor({ state: 'visible', timeout: 5000 });
-      const isDisabled = await submitButton.isDisabled();
-      return !isDisabled;
+      await submitBtn.waitFor({ state: 'visible', timeout: 5000 });
+      return !(await submitBtn.isDisabled());
     } catch {
       return false;
     }
   }
 
-  /**
-   * Click submit button to submit feedback
-   */
-  async clickSubmitButton(): Promise<void> {
-    this.logger.info('Clicking Submit button');
-    const submitButton = this.page.locator(FeedbackSelectors.actions.submitButton);
-    await submitButton.waitFor({ state: 'visible', timeout: 10000 });
-    await submitButton.click();
-    this.logger.info('Submit button clicked');
-  }
-
-  /**
-   * Wait for and verify success message
-   */
-  async waitForSuccessMessage(): Promise<boolean> {
-    this.logger.info('Waiting for success message');
-    try {
-      // Wait for any success indicator
-      const successLocator = this.page.locator(FeedbackSelectors.confirmation.successMessage);
-      await successLocator.first().waitFor({ state: 'visible', timeout: 15000 });
-      this.logger.success('Success message displayed');
-      return true;
-    } catch {
-      this.logger.warn('Success message not found, checking for confirmation text');
-      try {
-        const confirmationLocator = this.page.locator(FeedbackSelectors.confirmation.confirmationText);
-        await confirmationLocator.first().waitFor({ state: 'visible', timeout: 5000 });
-        this.logger.success('Confirmation text displayed');
+  async waitForSubmitEnabled(timeout: number = 10000): Promise<boolean> {
+    const startTime = Date.now();
+    while (Date.now() - startTime < timeout) {
+      if (await this.isSubmitEnabled()) {
         return true;
-      } catch {
-        this.logger.error('No success indicator found');
-        return false;
       }
+      await this.page.waitForTimeout(500);
     }
+    return false;
   }
 
-  /**
-   * Get success message text
-   */
-  async getSuccessMessageText(): Promise<string | null> {
-    try {
-      const successElement = this.page.locator(FeedbackSelectors.confirmation.successMessage).first();
-      if (await successElement.isVisible({ timeout: 3000 })) {
-        return await successElement.textContent();
-      }
-    } catch {
-      this.logger.debug('Could not get success message text');
-    }
-    return null;
+  async clickSubmitButton(): Promise<void> {
+    this.logger.info('Clicking Submit Request button');
+    const submitBtn = this.page.locator(FeedbackSelectors.page.submitButton);
+    await submitBtn.waitFor({ state: 'visible', timeout: 10000 });
+    await submitBtn.scrollIntoViewIfNeeded();
+    await submitBtn.click();
+    this.logger.success('Submit button clicked');
   }
 
-  /**
-   * Click OK/Close button on success dialog (if present)
-   */
-  async closeSuccessDialog(): Promise<void> {
-    const okButton = this.page.locator(FeedbackSelectors.confirmation.okButton);
-    if (await okButton.isVisible({ timeout: 3000 })) {
-      this.logger.info('Closing success dialog');
-      await okButton.click();
-      await this.page.waitForTimeout(300);
-    }
-  }
+  // ============================================
+  // COMBINED FLOW
+  // ============================================
 
-  /**
-   * Get error message if displayed
-   */
-  async getErrorMessage(): Promise<string | null> {
-    try {
-      const errorElement = this.page.locator(FeedbackSelectors.errors.errorMessage).first();
-      if (await errorElement.isVisible({ timeout: 3000 })) {
-        return await errorElement.textContent();
-      }
-    } catch {
-      this.logger.debug('No error message found');
-    }
-    return null;
-  }
+  async submitFeedback(data: FeedbackSubmissionData): Promise<void> {
+    this.logger.info('Starting full feedback submission flow');
 
-  /**
-   * Click cancel button
-   */
-  async clickCancelButton(): Promise<void> {
-    this.logger.info('Clicking Cancel button');
-    await this.page.locator(FeedbackSelectors.actions.cancelButton).click();
-  }
+    // Section 1: Insights - just continue
+    await this.continueInsightsSection();
 
-  /**
-   * Complete feedback submission flow
-   */
-  async submitFeedback(data: FeedbackData): Promise<boolean> {
-    this.logger.info('Starting feedback submission flow');
+    // Section 2: Applicant - fill and continue
+    await this.fillApplicantForm(data.applicant);
+    await this.continueApplicantSection();
 
-    // Fill the form
-    await this.fillFeedbackForm(data);
+    // Section 3: Category - select and continue
+    await this.selectFeedbackCategory(data.feedbackType);
+    await this.continueCategorySection();
 
-    // Verify submit button is enabled
-    const isSubmitEnabled = await this.isSubmitButtonEnabled();
-    if (!isSubmitEnabled) {
-      this.logger.error('Submit button is not enabled');
-      return false;
-    }
+    // Section 4: Details - fill and continue
+    await this.fillDetails(data.details);
+    await this.continueDetailsSection();
 
-    // Click submit
+    // Section 5: Thanks - continue
+    await this.continueThanksSection();
+
+    // Submit
+    await this.waitForSubmitEnabled();
     await this.clickSubmitButton();
 
-    // Wait for success
-    const isSuccess = await this.waitForSuccessMessage();
-
-    // Close dialog if present
-    await this.closeSuccessDialog();
-
-    return isSuccess;
+    this.logger.success('Feedback submission flow completed');
   }
 }

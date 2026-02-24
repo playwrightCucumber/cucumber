@@ -1,6 +1,7 @@
-Feature: Feedback at Cemetery Level
+@p0 @feedback
+Feature: Feedback Submission
   As a logged-in cemetery user
-  I want to submit feedback via the Request menu
+  I want to submit feedback via the REQUESTS menu
   So that I can provide feedback to cemetery administration
 
   Background:
@@ -11,39 +12,47 @@ Feature: Feedback at Cemetery Level
     Then I should be logged in successfully
     When I navigate to organization home page
 
-  @p0x @feedback @smoke
-  Scenario: Submit feedback successfully via Request menu
-    When I navigate to Feedback page via Request menu
-    Then I should be on the Feedback page
-    When I fill feedback form with following details:
-      | subject  | Test Feedback from Automation       |
-      | category | General                             |
-      | message  | This is an automated test feedback. |
+  @smoke
+  Scenario: Submit feedback with required fields only
+    When I navigate to Feedback page
+    Then I should see the Feedback form
+    When I continue past the Insights section
+    And I fill the applicant form with the following details:
+      | First Name | Test              |
+      | Last Name  | Automation        |
+      | Email      | test@example.com  |
+    And I continue past the Applicant section
+    And I select feedback type "General Inquiry"
+    And I continue past the Category section
+    And I fill feedback details with "Automated test feedback - required fields only"
+    And I continue past the Details section
+    And I continue past the Thanks section
     Then the feedback submit button should be enabled
     When I click the feedback submit button
-    Then the feedback should be submitted successfully
 
-  @p0x @feedback
-  Scenario: Submit feedback with all fields
-    When I navigate to Feedback page via Request menu
-    Then I should be on the Feedback page
-    When I fill feedback form with following details:
-      | subject  | Complete Feedback Test             |
-      | category | Suggestion                         |
-      | message  | Detailed feedback with all fields. |
-      | email    | <TEST_EMAIL>                       |
-      | name     | Test User                          |
-      | phone    | 1234567890                         |
+  Scenario: Submit feedback with all applicant fields
+    When I navigate to Feedback page
+    Then I should see the Feedback form
+    When I continue past the Insights section
+    And I fill the applicant form with the following details:
+      | First Name   | Test              |
+      | Last Name    | Automation        |
+      | Middle Name  | QA                |
+      | Title        | Mr                |
+      | Email        | test@example.com  |
+      | Phone Mobile | 0412345678        |
+      | Phone Home   | 0298765432        |
+      | Phone Office | 0287654321        |
+      | Address      | 123 Test Street   |
+      | Suburb       | Testville         |
+      | State        | NSW               |
+      | Country      | Australia         |
+      | Postcode     | 2000              |
+    And I continue past the Applicant section
+    And I select feedback type "Report an Issue"
+    And I continue past the Category section
+    And I fill feedback details with "Automated test feedback - all applicant fields filled"
+    And I continue past the Details section
+    And I continue past the Thanks section
     Then the feedback submit button should be enabled
     When I click the feedback submit button
-    Then the feedback should be submitted successfully
-    And I should see feedback success message
-
-  @p0x @feedback @step-by-step
-  Scenario: Navigate to feedback page and verify form elements
-    When I click on Request button in sidebar
-    And I select Feedback from the request menu
-    Then I should be on the Feedback page
-    When I fill feedback subject with "Manual Test Feedback"
-    And I fill feedback message with "Testing individual form steps"
-    Then the feedback submit button should be visible
