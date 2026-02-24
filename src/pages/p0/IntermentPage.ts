@@ -1,5 +1,5 @@
 import { Page, expect } from '@playwright/test';
-import { IntermentSelectors } from '../../selectors/p0/interment.selectors.js';
+import { IntermentSelectors } from '../../selectors/p0/interment/index.js';
 import { Logger } from '../../utils/Logger.js';
 
 export interface IntermentData {

@@ -35,7 +35,7 @@ export const RequestSalesFormSelectors = {
   // Purchase form
   purchaseForm: {
     heading: 'h1:has-text("Pre-need Plot Purchase")',
-    
+
     // Description section
     description: {
       continueButton: 'button:has-text("CONTINUE")',

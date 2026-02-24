@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { RequestSalesFormSelectors } from '../../selectors/p0/requestSalesForm.selectors.js';
+import { RequestSalesFormSelectors } from '../../selectors/p0/request-sales-form/index.js';
 import { REQUEST_SALES_FORM_DATA, getApplicantName } from '../../data/test-data.js';
 import { Logger } from '../../utils/Logger.js';
 import { waitForEndpoint } from '../../utils/NetworkUtils.js';

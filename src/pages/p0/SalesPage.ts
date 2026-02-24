@@ -1,7 +1,7 @@
 import { Page, expect } from '@playwright/test';
 import { Logger } from '../../utils/Logger.js';
 import { NetworkHelper } from '../../utils/NetworkHelper.js';
-import { salesSelectors } from '../../selectors/p0/sales.selectors.js';
+import { salesSelectors } from '../../selectors/p0/sales/index.js';
 
 export interface SaleItem {
   description: string;

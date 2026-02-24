@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 import { Logger } from '../../utils/Logger.js';
 import { NetworkHelper } from '../../utils/NetworkHelper.js';
-import { FeedbackSelectors, FeedbackUrls } from '../../selectors/p0/feedback.selectors.js';
+import { FeedbackSelectors, FeedbackUrls } from '../../selectors/p0/feedback/index.js';
 
 export interface FeedbackData {
   subject?: string;

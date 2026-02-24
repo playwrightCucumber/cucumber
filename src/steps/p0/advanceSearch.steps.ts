@@ -1,7 +1,7 @@
 import { When, Then, Given } from '@cucumber/cucumber';
 import { Page } from '@playwright/test';
 import { expect } from '@playwright/test';
-import { AdvanceSearchSelectors } from '../../selectors/p0/advanceSearch.selectors.js';
+import { AdvanceSearchSelectors } from '../../selectors/p0/advance-search/index.js';
 import { AdvanceSearchPage } from '../../pages/p0/AdvanceSearchPage.js';
 import { Logger } from '../../utils/Logger.js';
 import { replacePlaceholders } from '../../utils/TestDataHelper.js';

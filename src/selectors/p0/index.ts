@@ -3,12 +3,13 @@
  * Export all P0 selectors for easy importing
  */
 
-export * from './login.selectors.js';
-export * from './roi.selectors.js';
-export * from './interment.selectors.js';
-export * from './searchBox.selectors.js';
-export * from './advanceSearch.selectors.js';
-export * from './person.selectors.js';
-export * from './requestSalesForm.selectors.js';
-export * from './sales.selectors.js';
-export * from './feedback.selectors.js';
+// All selectors migrated to folder structure
+export * from './login/index.js';
+export * from './search-box/index.js';
+export * from './person/index.js';
+export * from './advance-search/index.js';
+export * from './interment/index.js';
+export * from './feedback/index.js';
+export * from './request-sales-form/index.js';
+export * from './roi/index.js';
+export * from './sales/index.js';

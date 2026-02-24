@@ -3,6 +3,9 @@
  * Main entry point for all selectors across priorities
  */
 
+// Shared Selectors (used across all pages)
+export * from './shared/index.js';
+
 // P0 Selectors (Critical)
 export * from './p0/index.js';
 
