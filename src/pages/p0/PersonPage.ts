@@ -1,5 +1,5 @@
 import { Page, expect } from '@playwright/test';
-import { PersonSelectors } from '../../selectors/p0/person.selectors.js';
+import { PersonSelectors } from '../../selectors/p0/person/index.js';
 import { Logger } from '../../utils/Logger.js';
 import { NetworkHelper } from '../../utils/NetworkHelper.js';
 

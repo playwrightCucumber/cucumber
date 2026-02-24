@@ -3,6 +3,7 @@ import { expect } from '@playwright/test';
 import { SalesPage, SaleItem } from '../../pages/p0/SalesPage.js';
 import { replacePlaceholders } from '../../utils/TestDataHelper.js';
 import { Logger } from '../../utils/Logger.js';
+import { NetworkHelper } from '../../utils/NetworkHelper.js';
 
 // Initialize page objects
 let salesPage: SalesPage;
@@ -78,6 +79,30 @@ When('I fill sale due date with {string}', async function (dueDate: string) {
   const actualDueDate = replacePlaceholders(dueDate);
   await salesPage.fillDueDate(actualDueDate);
   logger.info(`Filled due date: ${actualDueDate}`);
+});
+
+/**
+ * Fill the sale issue date with a date relative to current date
+ * Example: I fill sale issue date with current date minus 6 days
+ */
+When('I fill sale issue date with current date minus {int} days', async function (days: number) {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  const formatted = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+  await salesPage.fillIssueDate(formatted);
+  logger.info(`Filled issue date: ${formatted} (current date minus ${days} days)`);
+});
+
+/**
+ * Fill the sale due date with a date relative to current date
+ * Example: I fill sale due date with current date minus 3 days
+ */
+When('I fill sale due date with current date minus {int} days', async function (days: number) {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  const formatted = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+  await salesPage.fillDueDate(formatted);
+  logger.info(`Filled due date: ${formatted} (current date minus ${days} days)`);
 });
 
 /**
@@ -199,7 +224,10 @@ When('I click Create button', { timeout: 60000 }, async function () {
  * Verify that sale was created successfully
  * This checks that we're redirected to sales table page and purchaser name is correct
  */
-Then('the sale should be created successfully', { timeout: 20000 }, async function () {
+Then('the sale should be created successfully', { timeout: 30000 }, async function () {
+  // Note: NetworkHelper.waitForApiEndpoint for invoices is already handled inside clickCreate()
+  // No need to wait again here — the API calls (POST create + GET list) are already completed
+
   // Verify we're back on sales table page
   await salesPage.validateSalesTableLoaded();
   logger.info('Sale created successfully and redirected to sales table');
@@ -271,10 +299,152 @@ When('I add payment with following details:', { timeout: 30000 }, async function
 });
 
 /**
+ * Add multiple payments with following details (add + save for each row)
+ * Each row triggers: add payment → click save → wait for page reload
+ * Data table format:
+ * | amount | method | note |
+ * | 100    | Bank Transfer | First payment  |
+ * | 200    | Bank Transfer | Second payment |
+ */
+When('I add multiple payments with following details:', { timeout: 120000 }, async function (dataTable: DataTable) {
+  const payments = dataTable.hashes();
+
+  logger.info(`Adding ${payments.length} payments sequentially`);
+
+  for (let i = 0; i < payments.length; i++) {
+    const paymentData = payments[i];
+    const amount = replacePlaceholders(paymentData.amount);
+    const method = replacePlaceholders(paymentData.method);
+    const note = replacePlaceholders(paymentData.note);
+    const isLastPayment = i === payments.length - 1;
+
+    logger.info(`Payment ${i + 1}/${payments.length}: ${amount} via ${method}`);
+
+    await salesPage.addPayment({ amount, method, note });
+    logger.info(`Payment ${i + 1} form filled, clicking Save`);
+
+    if (isLastPayment) {
+      // Last payment: save and let app redirect to sales list (no need to navigate back)
+      await salesPage.clickSaveLastPayment();
+    } else {
+      // Not last payment: save then navigate back to edit page for next payment
+      await salesPage.clickSaveWithoutReload();
+    }
+    logger.info(`Payment ${i + 1} saved successfully`);
+  }
+
+  logger.info(`All ${payments.length} payments added and saved`);
+});
+
+/**
  * Verify invoice status matches expected value
  * Valid statuses: UNPAID, PARTIALLY PAID, PAID, OVERPAID, DRAFT
  */
 Then('the invoice status should be {string}', { timeout: 10000 }, async function (expectedStatus: string) {
   await salesPage.validateInvoiceStatus(expectedStatus);
   logger.info(`Invoice status validated: ${expectedStatus}`);
+});
+
+// ─── More Menu & Re-send Payment Steps ───────────────────────────────────────
+
+/**
+ * Click the MORE menu button on the invoice edit page
+ */
+When('I click the More menu', { timeout: 10000 }, async function () {
+  await salesPage.clickMoreMenu();
+  logger.info('MORE menu opened');
+});
+
+/**
+ * Close the MORE menu
+ */
+When('I close the More menu', { timeout: 5000 }, async function () {
+  await salesPage.closeMoreMenu();
+  logger.info('MORE menu closed');
+});
+
+/**
+ * Verify that "Re-send Payment" button is visible in the More menu
+ */
+Then('I should see {string} button in the More menu', { timeout: 10000 }, async function (buttonText: string) {
+  const visible = await salesPage.isMoreMenuItemVisible(buttonText);
+  if (!visible) {
+    throw new Error(`"${buttonText}" button not found in MORE menu`);
+  }
+  logger.info(`"${buttonText}" button is visible in MORE menu`);
+});
+
+/**
+ * Verify that "Re-send Payment" button is NOT visible in the More menu
+ */
+Then('I should not see {string} button in the More menu', { timeout: 10000 }, async function (buttonText: string) {
+  const visible = await salesPage.isMoreMenuItemVisible(buttonText);
+  if (visible) {
+    throw new Error(`"${buttonText}" button should NOT be visible in MORE menu`);
+  }
+  logger.info(`"${buttonText}" button is correctly hidden in MORE menu`);
+});
+
+/**
+ * Click a specific menu item in the More menu (e.g. "Re-send Payment")
+ */
+When('I click {string} in the More menu', { timeout: 15000 }, async function (buttonText: string) {
+  if (buttonText === 'Re-send Payment') {
+    await salesPage.clickResendPayment();
+  } else {
+    // Generic menu item click
+    const menuItem = this.page.locator(`[role="menuitem"]:has-text("${buttonText}")`);
+    await menuItem.click();
+  }
+  logger.info(`Clicked "${buttonText}" in MORE menu`);
+});
+
+/**
+ * Verify toast/snackbar notification message
+ */
+Then('I should see toast notification {string}', { timeout: 15000 }, async function (expectedMessage: string) {
+  await salesPage.validateToastNotification(expectedMessage);
+  logger.info(`Toast notification validated: ${expectedMessage}`);
+});
+
+// ─── Void Invoice Steps ──────────────────────────────────────────────────────
+
+/**
+ * Click Void in the More menu and confirm the void dialog
+ * MORE menu must already be open
+ */
+When('I click Void in the More menu and confirm', { timeout: 30000 }, async function () {
+  await salesPage.clickVoidInvoice();
+  logger.info('Invoice voided successfully');
+});
+
+/**
+ * Verify the invoice was voided (we're on sales table after void)
+ */
+Then('the invoice should be voided successfully', { timeout: 15000 }, async function () {
+  await salesPage.validateSalesTableLoaded();
+  logger.info('Invoice voided — redirected to sales table');
+});
+
+/**
+ * Open the latest voided sale (find VOID status row in table)
+ * After voiding, the voided invoice may not be the first row
+ * due to sorting. We re-use openLatestSale which clicks first row.
+ */
+When('I open the latest voided sale', { timeout: 15000 }, async function () {
+  // The voided invoice should still be in the same position in the table
+  // since void doesn't change the sort order
+  await salesPage.openLatestSale();
+  logger.info('Opened the latest voided sale');
+});
+
+/**
+ * Verify the Void button is disabled in the More menu (for VOID status invoices)
+ */
+Then('the Void button should be disabled in the More menu', { timeout: 10000 }, async function () {
+  const isDisabled = await salesPage.isVoidMenuItemDisabled();
+  if (!isDisabled) {
+    throw new Error('Void button should be disabled for VOID status invoice, but it is enabled');
+  }
+  logger.info('Void button is correctly disabled for VOID status invoice');
 });

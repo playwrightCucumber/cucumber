@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { RoiSelectors, RoiUrls } from '../../selectors/p0/roi.selectors.js';
+import { RoiSelectors, RoiUrls } from '../../selectors/p0/roi/index.js';
 import { Logger } from '../../utils/Logger.js';
 
 export class ROIPage {

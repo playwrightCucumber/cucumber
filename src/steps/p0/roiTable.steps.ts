@@ -6,7 +6,7 @@
 
 import { When, Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
-import { RoiTableSelectors, RoiTableUrls } from '../../selectors/p0/roiTable.selectors.js';
+import { RoiTableSelectors, RoiTableUrls } from '../../selectors/p0/roi/index.js';
 import { replacePlaceholders } from '../../utils/TestDataHelper.js';
 import { NetworkHelper } from '../../utils/NetworkHelper.js';
 

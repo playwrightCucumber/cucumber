@@ -79,8 +79,3 @@ export const RoiTableSelectors = {
     // Row Actions
     rowActionButton: 'button:has(mat-icon:has-text("more_vert"))' // Standard 3-dots menu
 };
-
-export const RoiTableUrls = {
-    tablesPage: '/advance-table',
-    tablesRoisPage: '/advance-table?tab=rois'
-};

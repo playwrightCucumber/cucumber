@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { RoiSelectors, RoiUrls, PlotStatus } from '../../selectors/p0/roi.selectors.js';
+import { RoiSelectors, RoiUrls, PlotStatus } from '../../selectors/p0/roi/index.js';
 import { Logger } from '../../utils/Logger.js';
 import { getCustomerOrgUrl } from '../../data/test-data.js';
 
