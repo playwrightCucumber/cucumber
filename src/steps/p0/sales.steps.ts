@@ -82,6 +82,30 @@ When('I fill sale due date with {string}', async function (dueDate: string) {
 });
 
 /**
+ * Fill the sale issue date with a date relative to current date
+ * Example: I fill sale issue date with current date minus 6 days
+ */
+When('I fill sale issue date with current date minus {int} days', async function (days: number) {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  const formatted = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+  await salesPage.fillIssueDate(formatted);
+  logger.info(`Filled issue date: ${formatted} (current date minus ${days} days)`);
+});
+
+/**
+ * Fill the sale due date with a date relative to current date
+ * Example: I fill sale due date with current date minus 3 days
+ */
+When('I fill sale due date with current date minus {int} days', async function (days: number) {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  const formatted = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+  await salesPage.fillDueDate(formatted);
+  logger.info(`Filled due date: ${formatted} (current date minus ${days} days)`);
+});
+
+/**
  * Fill the sale note field
  * Supports placeholders like <TEST_SALES_NOTE>
  */

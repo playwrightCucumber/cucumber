@@ -161,6 +161,32 @@ Feature: Sales Management Authenticated
     # Then I should not see "Re-send Payment" button in the More menu
     # And I close the More menu
 
+  @sales-overdue @smoke @p0
+  Scenario: Create new sale with past due date and verify OVERDUE status
+    When I navigate to Sales page
+    And I validate sales table is loaded
+    And I click Create Sale button
+    And I fill sale reference with "<TEST_SALES_REFERENCE>_OVERDUE"
+    And I fill sale issue date with current date minus 6 days
+    And I fill sale due date with current date minus 3 days
+    And I add purchaser person "<TEST_SALES_PURCHASER>"
+    And I add sale items with following details:
+      | description | related_plot | quantity | price   | discount |
+      | item a      | B F 1        | 1        | 1313.56 | 0        |
+      | item b      | B F 2        | 1        | 178.35  | 0        |
+      | item c      | B F 3        | 2        | 32.95   | 0        |
+      | item d      | B F 4        | 1        | 105.08  | 0        |
+      | item e      | B F 5        | 1        | 101.21  | 0        |
+    Then I should see sale summary with following values:
+      | subtotal | $1,764.10 |
+      | discount | $0.00     |
+      | vat      | $176.41   |
+      | total    | $1,940.51 |
+    When I click Create button
+    Then the sale should be created successfully
+    When I open the latest created sale
+    Then the invoice status should be "OVERDUE"
+
   @sales-void @smoke @p0
   Scenario: Void an unpaid sale and verify VOID status with disabled Void button
     When I navigate to Sales page
