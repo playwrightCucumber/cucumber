@@ -60,24 +60,8 @@ Before({ tags: '@person' }, async function () {
   }
 });
 
-When('I navigate to the advance table page', { timeout: 15000 }, async function () {
-  const page = this.page;
-  personPage = new PersonPage(page);
-
-  // Navigate to advance table page - use full URL
-  const baseUrl = page.url().split('/customer-organization')[0]; // Get base URL from current page
-  await page.goto(`${baseUrl}/customer-organization/advance-table?tab=plots`);
-
-  // Wait for page to load - use domcontentloaded with fallback networkidle
-  await page.waitForLoadState('domcontentloaded');
-  try {
-    await page.waitForLoadState('networkidle', { timeout: 10000 });
-  } catch {
-    // Network still active but page is usable
-  }
-});
-
 When('I click on the PERSONS tab', { timeout: 45000 }, async function () {
+  personPage = new PersonPage(this.page);
   await personPage.navigateToPersonTab();
 });
 
@@ -149,10 +133,7 @@ Then('I should see the person with first name {string} and last name {string} in
   await personPage.searchAndVerifyPersonInFirstRow(actualFirstName, actualLastName);
 });
 
-// Filter steps
-When('I click the filter button', { timeout: 15000 }, async function () {
-  await personPage.clickFilterButton();
-});
+// Filter steps - "I click the filter button" is defined in advanceTable.steps.ts (shared)
 
 When('I fill in the filter form with first name {string} and last name {string}', { timeout: 15000 }, async function (firstName: string, lastName: string) {
   const usesPlaceholder = firstName.includes('<TEST_PERSON_') || lastName.includes('<TEST_PERSON_');
