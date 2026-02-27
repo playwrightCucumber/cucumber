@@ -1360,6 +1360,7 @@ export class SalesPage {
 
   /**
    * Click the "Re-send Payment" menu item (menu must be open)
+   * Waits for modal to appear, clicks send button, waits for modal to disappear and API to complete
    */
   async clickResendPayment(): Promise<void> {
     this.logger.info('Clicking "Re-send Payment" button');
@@ -1367,8 +1368,55 @@ export class SalesPage {
     await resendBtn.waitFor({ state: 'visible', timeout: 5000 });
     await resendBtn.click();
     this.logger.info('"Re-send Payment" button clicked');
-    // Wait for API response
+
+    // Wait for modal/dialog to appear
     await this.page.waitForTimeout(2000);
+
+    // Try the specific modal selector first
+    const resendModal = this.page.locator('[data-testid="modal-sales-mail-div-modal-sales-mail-component-0"]');
+    const specificModalVisible = await resendModal.isVisible().catch(() => false);
+
+    if (specificModalVisible) {
+      this.logger.info('Resend payment modal appeared');
+
+      // Click the Send button in the modal
+      const sendButton = this.page.locator('[data-testid="modal-sales-mail-div-modal-sales-mail-component-0"] button:has-text("Send")').first();
+      await sendButton.waitFor({ state: 'visible', timeout: 5000 });
+      await sendButton.click();
+      this.logger.info('Send button clicked');
+
+      // Wait for the modal to disappear
+      await resendModal.waitFor({ state: 'hidden', timeout: 10000 });
+      this.logger.info('Modal disappeared');
+    } else {
+      // Fallback: Try generic mat-dialog-container
+      const genericDialog = this.page.locator('mat-dialog-container, [role="dialog"]').first();
+      const genericVisible = await genericDialog.isVisible().catch(() => false);
+
+      if (genericVisible) {
+        this.logger.info('Generic dialog appeared');
+
+        // Look for Send button in generic dialog
+        const sendButton = genericDialog.locator('button:has-text("Send"), button:has-text("send")').first();
+        const sendBtnVisible = await sendButton.isVisible().catch(() => false);
+
+        if (sendBtnVisible) {
+          await sendButton.click();
+          this.logger.info('Send button clicked');
+
+          // Wait for dialog to disappear
+          await genericDialog.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {
+            this.logger.warn('Dialog may not have disappeared');
+          });
+          this.logger.info('Dialog disappeared');
+        }
+      }
+    }
+
+    // Wait for resend payment API to complete
+    this.logger.info('Waiting for resend payment API endpoint...');
+    await NetworkHelper.waitForApiEndpoint(this.page, '/api/v1/resend-payment-link', 15000);
+    this.logger.info('Resend payment API completed - toast should now be visible');
   }
 
   /**

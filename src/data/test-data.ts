@@ -58,6 +58,10 @@ export const BASE_CONFIG = {
 
   // Convenience property for public URLs (environment.domain)
   get baseUrl(): string {
+    // Production uses map.chronicle.rip instead of production.chronicle.rip
+    if (this.environment === 'production') {
+      return `https://map.${this.baseDomain}`;
+    }
     return `https://${this.environment}.${this.baseDomain}`;
   },
 
@@ -112,13 +116,20 @@ export function getCemeteryDisplayName(region: string = BASE_CONFIG.region): str
 }
 
 /**
- * Build AUTHENTICATED customer organization base URL (with region in subdomain)
- * Format: https://{environment}-{region}.chronicle.rip
- * Example: https://staging-aus.chronicle.rip
+ * Build AUTHENTICATED customer organization base URL
+ * After login:
+ * - Production: region only (aus.chronicle.rip)
+ * - Staging/Dev: {environment}-{region} (staging-aus.chronicle.rip, dev-aus.chronicle.rip)
+ * Format: https://[{environment}-]{region}.chronicle.rip
+ * Example: https://aus.chronicle.rip (prod) or https://staging-aus.chronicle.rip (staging)
  */
 export function getCustomerOrgBaseUrl(region: string = BASE_CONFIG.region): string {
   const env = BASE_CONFIG.environment;
   const domain = BASE_CONFIG.baseDomain;
+  // Production uses region only, staging/dev use environment-region format
+  if (env === 'production') {
+    return `https://${region}.${domain}`;
+  }
   return `https://${env}-${region}.${domain}`;
 }
 
