@@ -10,8 +10,6 @@
     "test:headless": "node scripts/check-playwright.js && cross-env HEADLESS=true NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts'",
     "test:dev": "node scripts/check-playwright.js && dotenv -e .env.dev -- cross-env NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts'",
     "test:dev:headless": "node scripts/check-playwright.js && dotenv -e .env.dev -- cross-env HEADLESS=true NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts'",
-    "test:map": "node scripts/check-playwright.js && dotenv -e .env.map -- cross-env NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts'",
-    "test:map:headless": "node scripts/check-playwright.js && dotenv -e .env.map -- cross-env HEADLESS=true NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts'",
     "test:staging": "node scripts/check-playwright.js && dotenv -e .env.chronicle -- cross-env NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts'",
     "test:staging:headless": "node scripts/check-playwright.js && dotenv -e .env.chronicle -- cross-env HEADLESS=true NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts'",
     "test:prod": "node scripts/check-playwright.js && dotenv -e .env.chronicle.prod -- cross-env NODE_OPTIONS='--loader ts-node/esm' cucumber-js 'src/features/**/*.feature' --import 'src/**/*.ts'",
