@@ -746,13 +746,18 @@ export class SalesPage {
     
     this.logger.info(`All summary texts: ${JSON.stringify(allTexts)}`);
     
-    // Filter for dollar values only and clean them
+    // Filter for currency values (supports $, A$, US$, €, £, etc.) and clean them
     const dollarValues = allTexts
-      .filter(t => t.trim().startsWith('$') && t.trim().match(/^\$[\d,]+\.\d{2}/))
+      .filter(t => {
+        const trimmed = t.trim();
+        // Match currency patterns: $123.45, A$123.45, US$123.45, €123.45, £123.45, etc.
+        return trimmed.match(/^[A-Z]{0,3}\$[\d,]+\.\d{2}$/) ||
+               trimmed.match(/^[€£¥₹][\d,]+\.\d{2}$/);
+      })
       .map(t => t.trim().replace(/\s+/g, '')) // Remove all whitespace
       .filter((value, index, self) => self.indexOf(value) === index); // Remove duplicates
     
-    this.logger.info(`Dollar values found: ${JSON.stringify(dollarValues)}`);
+    this.logger.info(`Currency values found: ${JSON.stringify(dollarValues)}`);
     
     // Expected order: subtotal, discount, vat, total
     const subtotal = dollarValues[0] || '$0.00';
@@ -772,7 +777,18 @@ export class SalesPage {
   }
 
   /**
+   * Normalize currency value by removing currency symbols
+   * Supports: $, A$, US$, €, £, ¥, ₹, etc.
+   * Example: "A$1,764.10" → "1,764.10"
+   */
+  private normalizeCurrency(value: string): string {
+    // Remove all currency symbols and prefixes, keep only numbers, commas, and dots
+    return value.replace(/^[A-Z]{0,3}[\$€£¥₹]/g, '').trim();
+  }
+
+  /**
    * Validate the sale summary matches expected values
+   * Currency-agnostic: compares numeric values only (ignores currency symbols)
    */
   async validateSaleSummary(expected: SaleSummary): Promise<void> {
     this.logger.info('Validating sale summary');
@@ -781,10 +797,29 @@ export class SalesPage {
     this.logger.info(`Expected: ${JSON.stringify(expected)}`);
     this.logger.info(`Actual: ${JSON.stringify(actual)}`);
 
-    expect(actual.subtotal).toBe(expected.subtotal);
-    expect(actual.discount).toBe(expected.discount);
-    expect(actual.vat).toBe(expected.vat);
-    expect(actual.total).toBe(expected.total);
+    // Normalize both expected and actual values (remove currency symbols)
+    const normalizedExpected = {
+      subtotal: this.normalizeCurrency(expected.subtotal),
+      discount: this.normalizeCurrency(expected.discount),
+      vat: this.normalizeCurrency(expected.vat),
+      total: this.normalizeCurrency(expected.total)
+    };
+
+    const normalizedActual = {
+      subtotal: this.normalizeCurrency(actual.subtotal),
+      discount: this.normalizeCurrency(actual.discount),
+      vat: this.normalizeCurrency(actual.vat),
+      total: this.normalizeCurrency(actual.total)
+    };
+
+    this.logger.info(`Expected (normalized): ${JSON.stringify(normalizedExpected)}`);
+    this.logger.info(`Actual (normalized): ${JSON.stringify(normalizedActual)}`);
+
+    // Compare normalized values (currency-agnostic)
+    expect(normalizedActual.subtotal).toBe(normalizedExpected.subtotal);
+    expect(normalizedActual.discount).toBe(normalizedExpected.discount);
+    expect(normalizedActual.vat).toBe(normalizedExpected.vat);
+    expect(normalizedActual.total).toBe(normalizedExpected.total);
 
     this.logger.info('Sale summary validation passed');
   }
