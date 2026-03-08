@@ -81,6 +81,7 @@ Feature: Sales Management Authenticated
     Then the invoice status should be "PARTIALLY PAID"
     # Re-send Payment: should be visible for PARTIALLY PAID invoice (still has outstanding balance)
     # BUG: Blocked — "Re-send Payment" button not implemented yet in MORE menu.
+    But I open the latest created sale
     When I click the More menu
     Then I should see "Re-send Payment" button in the More menu
     And I close the More menu
