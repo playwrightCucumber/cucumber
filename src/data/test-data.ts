@@ -251,10 +251,10 @@ export const ROI_DATA = {
     email: process.env.TEST_ROI_HOLDER_EMAIL || 'john.doe@example.com'
   },
 
-  // ROI Applicant person data
+  // ROI Applicant person data (random names by default to avoid conflicts)
   applicant: {
-    firstName: process.env.TEST_ROI_APPLICANT_FIRSTNAME || 'Jane',
-    lastName: process.env.TEST_ROI_APPLICANT_LASTNAME || 'Smith',
+    firstName: process.env.TEST_ROI_APPLICANT_FIRSTNAME || randomFirstName(),
+    lastName: process.env.TEST_ROI_APPLICANT_LASTNAME || randomLastName(),
     phone: process.env.TEST_ROI_APPLICANT_PHONE || '+9876543210',
     email: process.env.TEST_ROI_APPLICANT_EMAIL || 'jane.smith@example.com'
   },

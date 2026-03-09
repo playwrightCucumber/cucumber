@@ -1,4 +1,4 @@
-@p0 @roi-table @authenticated
+@p0 @roi @roi-table @authenticated
 Feature: ROI Table Menu Management
     As a cemetery administrator
     I want to add ROI from the table menu
@@ -27,17 +27,20 @@ Feature: ROI Table Menu Management
     @add-roi-table @p0
     Scenario: Add new ROI from table menu
         When I click the sidebar table menu
+        And I filter plots by status "Vacant" in Plots tab
+        And I get the first plot name from the filtered table
         And I click the ROIs tab
         And I click the Add ROI button from table
         Then I should see the Add ROI form
-        When I search and select plot for ROI
+        When I search and select the saved vacant plot for ROI
         And I fill ROI form from table with following details
             | rightType         | <TEST_ROI_TABLE_RIGHT_TYPE> |
             | termOfRight       | <TEST_ROI_TABLE_TERM>       |
             | fee               | <TEST_ROI_TABLE_FEE>        |
             | certificateNumber | <TEST_ROI_TABLE_CERT>       |
         And I save the ROI from table
-        Then I should see ROI in the table
+        Then I should see toast message "Data saved successfully."
+        And I should see ROI in the table
 
     @edit-roi-table @p0
     Scenario: Edit ROI from table menu

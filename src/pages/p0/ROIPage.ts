@@ -968,6 +968,83 @@ export class ROIPage {
   }
 
   /**
+   * Remove ROI applicant by person name
+   * Flow: Find applicant card → click "REMOVE & REPLACE" → click "REMOVE ONLY" → confirm "REMOVE"
+   * @param personName - Full name of applicant to remove (e.g., "Jane Smith")
+   */
+  async removeRoiApplicant(personName: string): Promise<void> {
+    this.logger.info(`Removing ROI applicant: ${personName}`);
+
+    // Wait for edit page to be fully loaded
+    await this.page.waitForTimeout(2000);
+
+    // Find the applicant card directly by its exact data-testid
+    const applicantCard = this.page.locator('[data-testid="roi-form-div-info-card"]');
+    await applicantCard.waitFor({ state: 'visible', timeout: 10000 });
+    this.logger.info(`Found applicant card for "${personName}"`);
+
+    // Click "REMOVE & REPLACE" button within the applicant card
+    const removeReplaceBtn = applicantCard.getByRole('button', { name: 'REMOVE & REPLACE' });
+    await removeReplaceBtn.scrollIntoViewIfNeeded();
+    await removeReplaceBtn.click();
+    this.logger.info('Clicked REMOVE & REPLACE button');
+
+    // Click "REMOVE ONLY" button (appears after expansion)
+    const removeOnlyBtn = applicantCard.getByRole('button', { name: 'REMOVE ONLY' });
+    await removeOnlyBtn.waitFor({ state: 'visible', timeout: 5000 });
+    await removeOnlyBtn.click();
+    this.logger.info('Clicked REMOVE ONLY button');
+
+    // Click "REMOVE" in the confirmation dialog
+    const dialog = this.page.getByRole('dialog');
+    await dialog.waitFor({ state: 'visible', timeout: 5000 });
+    const confirmBtn = dialog.getByRole('button', { name: 'remove' });
+    await confirmBtn.click();
+    this.logger.info('Clicked REMOVE in confirmation dialog');
+
+    // Wait for removal to process
+    await this.page.waitForTimeout(3000);
+
+    this.logger.success(`ROI applicant "${personName}" removed successfully`);
+  }
+
+  /**
+   * Verify ROI applicant is NOT present in ROI tab (after deletion)
+   * @param personName - Full name of applicant that should not exist
+   */
+  async verifyRoiApplicantRemoved(personName: string): Promise<boolean> {
+    this.logger.info(`Verifying ROI applicant "${personName}" has been removed`);
+
+    // Make sure we're on ROI tab
+    await this.clickRoiTab();
+
+    // Wait for ROI content to load
+    await this.page.waitForTimeout(3000);
+
+    // Check if the person name exists on the page
+    const personCount = await this.page.getByText(personName, { exact: false }).count();
+
+    if (personCount === 0) {
+      this.logger.success(`✓ ROI applicant "${personName}" is NOT present - removal verified`);
+      return true;
+    } else {
+      // Check if the person is still listed as ROI APPLICANT (they might still be listed as holder)
+      const pageContent = await this.page.content();
+      const applicantIndex = pageContent.indexOf(personName);
+      const nearbyContent = pageContent.substring(Math.max(0, applicantIndex - 100), applicantIndex + 200);
+
+      if (nearbyContent.toUpperCase().includes('ROI APPLICANT')) {
+        this.logger.info(`❌ ROI applicant "${personName}" is STILL present on page`);
+        return false;
+      }
+
+      // Person exists but not as ROI APPLICANT (maybe as holder)
+      this.logger.success(`✓ "${personName}" exists but NOT as ROI APPLICANT - removal verified`);
+      return true;
+    }
+  }
+
+  /**
    * Get certificate number from ROI tab content on plot detail page
    */
   async getCertificateNumberFromRoiTab(): Promise<string> {

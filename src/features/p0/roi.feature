@@ -72,7 +72,7 @@ Feature: ROI Management
       | firstName | <TEST_ROI_APPLICANT_FIRSTNAME> |
       | lastName  | <TEST_ROI_APPLICANT_LASTNAME>  |
       | phone     | <TEST_ROI_APPLICANT_PHONE>     |
-      | email     | jane.smith@example.com         |
+      | email     | <TEST_ROI_APPLICANT_EMAIL>     |
     And I save the ROI
     Then the plot status should be "RESERVED"
     And I should see ROI applicant "<TEST_ROI_APPLICANT_FIRSTNAME> <TEST_ROI_APPLICANT_LASTNAME>" in the ROI tab
@@ -101,7 +101,7 @@ Feature: ROI Management
       | firstName | <TEST_ROI_APPLICANT_FIRSTNAME> |
       | lastName  | <TEST_ROI_APPLICANT_LASTNAME>  |
       | phone     | <TEST_ROI_APPLICANT_PHONE>     |
-      | email     | jane.smith@example.com         |
+      | email     | <TEST_ROI_APPLICANT_EMAIL>     |
     And I save the ROI
     Then the plot status should be "RESERVED"
     And I should see both ROI holder "<TEST_ROI_HOLDER_FIRSTNAME> <TEST_ROI_HOLDER_LASTNAME>" and applicant "<TEST_ROI_APPLICANT_FIRSTNAME> <TEST_ROI_APPLICANT_LASTNAME>"
@@ -114,6 +114,15 @@ Feature: ROI Management
     And I remove ROI holder "<TEST_ROI_HOLDER_FIRSTNAME> <TEST_ROI_HOLDER_LASTNAME>"
     And I save the ROI
     Then I should not see ROI holder "<TEST_ROI_HOLDER_FIRSTNAME> <TEST_ROI_HOLDER_LASTNAME>" in the ROI tab
+
+  @delete-roi-applicant @p0
+  Scenario: Delete ROI applicant from recently created ROI
+    When I search for "<TEST_ROI_APPLICANT_FIRSTNAME> <TEST_ROI_APPLICANT_LASTNAME>" in global search
+    And I click on the first search result
+    And I click Edit ROI button
+    And I remove ROI applicant "<TEST_ROI_APPLICANT_FIRSTNAME> <TEST_ROI_APPLICANT_LASTNAME>"
+    And I save the ROI
+    Then I should not see ROI applicant "<TEST_ROI_APPLICANT_FIRSTNAME> <TEST_ROI_APPLICANT_LASTNAME>" in the ROI tab
 
   @edit-roi @p0
   Scenario: Edit ROI details on reserved plot

@@ -252,3 +252,20 @@ Then('I should not see ROI holder {string} in the ROI tab', { timeout: 20000 }, 
     throw new Error(`❌ ROI holder "${actualName}" is still present in ROI tab after removal`);
   }
 });
+
+// Remove ROI applicant by name
+When('I remove ROI applicant {string}', { timeout: 30000 }, async function (applicantName: string) {
+  ensurePageObjects(this.page);
+  const actualName = replacePlaceholders(applicantName);
+  await roiPage.removeRoiApplicant(actualName);
+});
+
+// Verify ROI applicant has been removed
+Then('I should not see ROI applicant {string} in the ROI tab', { timeout: 20000 }, async function (applicantName: string) {
+  ensurePageObjects(this.page);
+  const actualName = replacePlaceholders(applicantName);
+  const isRemoved = await roiPage.verifyRoiApplicantRemoved(actualName);
+  if (!isRemoved) {
+    throw new Error(`❌ ROI applicant "${actualName}" is still present in ROI tab after removal`);
+  }
+});

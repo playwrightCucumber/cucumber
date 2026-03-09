@@ -31,7 +31,7 @@ export const RoiTableSelectors = {
     // ROI Table - Filter and Search
     filterButton: 'button[data-testid="content-wrapper-button-action"]',
     filterDrawer: '.mat-drawer-content',
-    filterApplyButton: 'button.mat-flat-button.mat-primary:has-text("APPLY")',
+    filterApplyButton: 'button[data-testid="button-apply"]',
     filterCloseButton: 'button:has-text("CLOSE")',
 
     // ROI Table - Rows and Data
@@ -77,5 +77,30 @@ export const RoiTableSelectors = {
     cancelButton: 'button:has-text("cancel")',
 
     // Row Actions
-    rowActionButton: 'button:has(mat-icon:has-text("more_vert"))' // Standard 3-dots menu
+    rowActionButton: 'button:has(mat-icon:has-text("more_vert"))', // Standard 3-dots menu
+
+    // ============================================
+    // PLOTS TAB - Filter by Status
+    // ============================================
+    plotsTab: 'a[data-testid="content-wrapper-a-0"]',
+    plotsTabByText: 'a.mat-tab-link:has-text("PLOTS")',
+
+    // Filter dialog - Status dropdown
+    filterStatusCombobox: '[role="combobox"][aria-label="Status"]',
+    filterVacantOption: '[role="option"]:has-text("Vacant")',
+    filterClearButton: 'button:has-text("CLEAR")',
+
+    // Plots tab - first row Plot ID
+    plotsFirstRowPlotId: 'mat-row:first-of-type mat-cell:nth-of-type(2)',
+
+    // ============================================
+    // ADD ROI FORM - Plot Search
+    // ============================================
+    plotSearchInput: 'input[data-testid="input-start-typing-to-search-0"]',
+    plotEventTypeCombobox: '[role="combobox"][aria-label="Event Type"]',
+    plotOptionByName: (name: string) => `mat-option:has-text("${name}")`,
+
+    // Toast / Snackbar
+    toastMessage: 'simple-snack-bar, .mat-snack-bar-container, [role="status"]',
+    toastSuccessText: 'Data saved successfully.'
 };
