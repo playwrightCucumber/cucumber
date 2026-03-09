@@ -48,7 +48,8 @@ export function randomFullName(): string {
 // ============================================
 export const BASE_CONFIG = {
   // Environment: staging, map, production, etc. (used for domain)
-  environment: process.env.ENV || process.env.ENVIRONMENT || 'dev',
+  // ENVIRONMENT shell var takes priority over ENV in .env file
+  environment: process.env.ENVIRONMENT || process.env.ENV || 'dev',
 
   // Base domain (will be combined with environment)
   baseDomain: process.env.BASE_DOMAIN || 'chronicle.rip',

@@ -42,7 +42,7 @@ Before(async function (scenario) {
   this.scenarioName = scenario.pickle.name;
 });
 
-After(async function (scenario) {
+After({ timeout: 30000 }, async function (scenario) {
   const status = scenario.result?.status.toLowerCase() === 'passed' ? 'PASSED' : 'FAILED';
 
   // Auto-capture screenshot on failure

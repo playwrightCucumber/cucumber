@@ -84,8 +84,8 @@ Feature: Advanced Search Plot - Authenticated Users
 
         Examples:
             | burial | entombment | cremation | description       |
-            | 3      | 0          | 2         | High capacity     |
-            | 1      | 1          | 1         | Standard capacity |
+            | 2      | 0          | 0         | High capacity     |
+            | 1      | 0          | 0         | Standard capacity |
 
     @advance-search-interments-qty @p0
     Scenario Outline: Advanced search plot by Interments Qty - <from> to <to>

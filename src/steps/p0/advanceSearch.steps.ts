@@ -168,15 +168,26 @@ Then('I should see search results information', { timeout: 10000 }, async functi
   const page: Page = this.page;
   logger.info('Verifying search results information');
 
-  // Check for search results heading (e.g., "0 plots found...")
+  // Check for search results heading (e.g., "5 plots found...")
   const heading = page.locator(AdvanceSearchSelectors.searchResultsHeading);
   await expect(heading).toBeVisible({ timeout: 5000 });
 
-  // Check for subheading (e.g., "in 0 cemeteries")
+  // Parse the count from the heading text and assert it is > 0
+  const headingText = await heading.textContent();
+  const match = headingText?.match(/^(\d+)\s+plots?\s+found/i);
+  if (!match) {
+    throw new Error(`Unexpected heading format: "${headingText}"`);
+  }
+  const count = parseInt(match[1], 10);
+  if (count === 0) {
+    throw new Error(`Expected search results to be non-empty, but got: "${headingText}"`);
+  }
+
+  // Check for subheading (e.g., "in 1 cemeteries")
   const subheading = page.locator(AdvanceSearchSelectors.searchResultsSubheading);
   await expect(subheading).toBeVisible({ timeout: 5000 });
 
-  logger.success('Search results information verified');
+  logger.success(`Search results information verified: ${headingText}`);
 });
 
 Then('I should see plot number {string} in sidebar results', { timeout: 10000 }, async function (plotNumber: string) {
