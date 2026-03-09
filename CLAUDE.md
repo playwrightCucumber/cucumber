@@ -44,6 +44,39 @@ See `package.json` scripts for all test commands (`test:staging`, `test:p0`, etc
 3. Steps in `src/steps/p0/<feature>.steps.ts`
 4. Feature in `src/features/p0/<feature>.{public|authenticated}.feature` with required tags
 
+## Debug Snapshots
+
+Accessibility tree snapshots disimpan di `docs/snapshots/<feature>/` sebagai referensi selector & debugging.
+
+### Cara Capture
+```bash
+# 1. Buka browser & navigasi ke halaman target
+playwright-cli open https://staging-aus.chronicle.rip
+
+# 2. Ambil snapshot → simpan ke .yml
+playwright-cli snapshot
+
+# 3. Simpan output ke docs/snapshots/<feature>/<nama>.yml
+```
+
+### Aturan
+- **Simpan snapshot setiap debug flow baru** — taruh di `docs/snapshots/<feature>/`
+- **Jika file sudah ada, replace** dengan yang terbaru jika UI berubah
+- **Jika ada state baru** (misal: form setelah diisi), tambahkan file baru
+- Gunakan YAML snapshot untuk cari selector **tanpa perlu buka browser ulang**
+- `ref=eXXXX` berubah setiap session — jangan jadikan selector, gunakan `data-testid`, `role`, `aria-label`, atau text
+
+### Snapshot yang Tersedia
+```
+docs/snapshots/
+├── README.md
+└── roi/
+    ├── plots-tab.yml          # Tables > tab PLOTS (default)
+    ├── filtered-plots.yml     # Tab PLOTS filter Status: Vacant
+    ├── add-roi-form.yml       # Form Add ROI (kosong)
+    └── plot-search-result.yml # Form Add ROI setelah search plot
+```
+
 ## Environment
 
 `.env` files: `.env` (active), `.env.chronicle` (staging), `.env.chronicle.prod` (prod), `.env.dev`, `.env.map`. Never commit `.env`.

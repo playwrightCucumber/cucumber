@@ -1,0 +1,980 @@
+- generic [ref=e8]:
+  - generic [ref=e9]:
+    - generic [ref=e16]:
+      - button "Notifications - 6 unread" [ref=e1632] [cursor=pointer]:
+        - img "Notification bell" [ref=e1633]
+      - generic [ref=e20]: "6"
+    - button "Astana Tegal Gundul faris+astanaorg@chronicle.rip" [ref=e1634] [cursor=pointer]:
+      - generic [ref=e26]:
+        - paragraph [ref=e27]: Astana Tegal Gundul
+        - generic [ref=e28]: faris+astanaorg@chronicle.rip
+  - generic [ref=e31]:
+    - generic [ref=e36] [cursor=pointer]:
+      - group [ref=e38]:
+        - button "Map" [ref=e1635]:
+          - generic [ref=e40]:
+            - img [ref=e42]:
+              - img [ref=e43]
+            - generic [ref=e47]: Map
+        - button "Tables" [pressed] [ref=e1636]:
+          - generic [ref=e49]:
+            - img [ref=e51]:
+              - img [ref=e52]
+            - generic [ref=e54]: Tables
+        - button "Calendar" [ref=e1637]:
+          - generic [ref=e56]:
+            - img [ref=e58]:
+              - img [ref=e59]
+            - generic [ref=e61]: Calendar
+        - button "Request 67" [ref=e1638]:
+          - generic [ref=e63]:
+            - img [ref=e65]:
+              - img [ref=e66]
+            - generic [ref=e69]: Request
+            - generic [ref=e70]: "67"
+        - button "Sales" [ref=e1639]:
+          - generic [ref=e72]:
+            - img [ref=e74]:
+              - img [ref=e75]
+            - generic [ref=e78]: Sales
+        - button "Reports" [ref=e1640]:
+          - generic [ref=e80]:
+            - img [ref=e82]:
+              - img [ref=e83]
+            - generic [ref=e86]: Reports
+      - group [disabled] [ref=e88]:
+        - button "help" [disabled] [ref=e1641]:
+          - link "help" [disabled] [ref=e1642]:
+            - /url: https://help.chronicle.rip/
+            - img "help" [ref=e1643]
+        - button "home" [disabled] [ref=e1644]:
+          - link "home" [disabled] [ref=e1645]:
+            - /url: https://chronicle.rip/
+            - img "home" [ref=e1646]
+    - generic [ref=e104]:
+      - generic [ref=e105]:
+        - generic [ref=e109]: Astana Tegal Gundul
+        - generic [ref=e110]:
+          - button "FILTER" [active] [ref=e1647] [cursor=pointer]:
+            - generic [ref=e112]:
+              - img [ref=e113]:
+                - img [ref=e114]
+              - generic [ref=e118]: FILTER
+            - generic: "1"
+          - button "EXPORT" [ref=e1648] [cursor=pointer]:
+            - generic [ref=e120]:
+              - img [ref=e121]: download
+              - generic [ref=e122]: EXPORT
+          - button "ADD PLOT" [ref=e1649] [cursor=pointer]:
+            - generic [ref=e124]:
+              - img [ref=e125]: add
+              - text: ADD PLOT
+              - button [ref=e126]
+      - navigation [ref=e128]:
+        - generic [ref=e131]:
+          - generic [ref=e132] [cursor=pointer]:
+            - paragraph [ref=e133]: PLOTS
+            - generic [ref=e1650]: "131"
+          - paragraph [ref=e136] [cursor=pointer]: INTERMENTS
+          - paragraph [ref=e138] [cursor=pointer]: ROIS
+          - paragraph [ref=e140] [cursor=pointer]: PERSONS
+          - paragraph [ref=e142] [cursor=pointer]: BUSINESS
+      - table [ref=e145]:
+        - row "select all Plot ID Section Row Number Status Interments Plot Type Price Headstone Headstone Inscription Burial Capacity Entombment Capacity Cremation Capacity Direction" [ref=e1651]:
+          - columnheader "select all" [ref=e1652]:
+            - generic [ref=e151] [cursor=pointer]:
+              - checkbox "select all" [ref=e1653]
+              - generic:
+                - img
+          - columnheader "Plot ID" [ref=e1654]:
+            - generic [ref=e154]:
+              - generic [ref=e155]: Plot ID
+              - button [ref=e158] [cursor=pointer]:
+                - img [ref=e160]: more_vert
+          - columnheader "Section" [ref=e1655]:
+            - generic [ref=e162]:
+              - generic [ref=e163]: Section
+              - button [ref=e166] [cursor=pointer]:
+                - img [ref=e168]: more_vert
+          - columnheader "Row" [ref=e1656]:
+            - generic [ref=e170]:
+              - generic [ref=e171]: Row
+              - button [ref=e174] [cursor=pointer]:
+                - img [ref=e176]: more_vert
+          - columnheader "Number" [ref=e1657]:
+            - generic [ref=e178]:
+              - generic [ref=e179]: Number
+              - button [ref=e182] [cursor=pointer]:
+                - img [ref=e184]: more_vert
+          - columnheader "Status" [ref=e1658]:
+            - generic [ref=e186]:
+              - generic [ref=e187]: Status
+              - button [ref=e190] [cursor=pointer]:
+                - img [ref=e192]: more_vert
+          - columnheader "Interments" [ref=e1659]:
+            - generic [ref=e194]:
+              - generic [ref=e195]: Interments
+              - button [ref=e198] [cursor=pointer]:
+                - img [ref=e200]: more_vert
+          - columnheader "Plot Type" [ref=e1660]:
+            - generic [ref=e202]:
+              - generic [ref=e203]: Plot Type
+              - button [ref=e206] [cursor=pointer]:
+                - img [ref=e208]: more_vert
+          - columnheader "Price" [ref=e1661]:
+            - generic [ref=e210]:
+              - generic [ref=e211]: Price
+              - button [ref=e214] [cursor=pointer]:
+                - img [ref=e216]: more_vert
+          - columnheader "Headstone" [ref=e1662]:
+            - generic [ref=e219]: Headstone
+          - columnheader "Headstone Inscription" [ref=e1663]:
+            - generic [ref=e221]:
+              - generic [ref=e222]: Headstone Inscription
+              - button [ref=e225] [cursor=pointer]:
+                - img [ref=e227]: more_vert
+          - columnheader "Burial Capacity" [ref=e1664]:
+            - generic [ref=e229]:
+              - generic [ref=e230]: Burial Capacity
+              - button [ref=e233] [cursor=pointer]:
+                - img [ref=e235]: more_vert
+          - columnheader "Entombment Capacity" [ref=e1665]:
+            - generic [ref=e237]:
+              - generic [ref=e238]: Entombment Capacity
+              - button [ref=e241] [cursor=pointer]:
+                - img [ref=e243]: more_vert
+          - columnheader "Cremation Capacity" [ref=e1666]:
+            - generic [ref=e245]:
+              - generic [ref=e246]: Cremation Capacity
+              - button [ref=e249] [cursor=pointer]:
+                - img [ref=e251]: more_vert
+          - columnheader "Direction" [ref=e1667]:
+            - generic [ref=e253]:
+              - generic [ref=e254]: Direction
+              - button [ref=e257] [cursor=pointer]:
+                - img [ref=e259]: more_vert
+        - row "select row B G 9 B G 9 vacant -- Lawn $0.00 -- -- 1 -- -- West" [ref=e1668]:
+          - cell "select row" [ref=e1669]:
+            - generic [ref=e1672] [cursor=pointer]:
+              - checkbox "select row" [ref=e1673]
+              - generic:
+                - img
+          - cell "B G 9" [ref=e1674]:
+            - generic [ref=e1675]: B G 9
+          - cell "B" [ref=e1676]:
+            - generic [ref=e1677]: B
+          - cell "G" [ref=e1678]:
+            - generic [ref=e1679]: G
+          - cell "9" [ref=e1680]:
+            - generic [ref=e1681]: "9"
+          - cell "vacant" [ref=e1682]:
+            - generic [ref=e1683]: vacant
+          - cell "--" [ref=e1684]:
+            - generic [ref=e1685]: "--"
+          - cell "Lawn" [ref=e1686]:
+            - generic [ref=e1687]: Lawn
+          - cell "$0.00" [ref=e1688]:
+            - generic [ref=e1689]: $0.00
+          - cell "--" [ref=e1690]
+          - cell "--" [ref=e1691]:
+            - generic [ref=e1692]: "--"
+          - cell "1" [ref=e1693]:
+            - generic [ref=e1694]: "1"
+          - cell "--" [ref=e1695]:
+            - generic [ref=e1696]: "--"
+          - cell "--" [ref=e1697]:
+            - generic [ref=e1698]: "--"
+          - cell "West" [ref=e1699]:
+            - generic [ref=e1700]: West
+        - row "select row B G 8 B G 8 vacant -- Lawn $0.00 -- -- 1 -- -- West" [ref=e1701]:
+          - cell "select row" [ref=e1702]:
+            - generic [ref=e1705] [cursor=pointer]:
+              - checkbox "select row" [ref=e1706]
+              - generic:
+                - img
+          - cell "B G 8" [ref=e1707]:
+            - generic [ref=e1708]: B G 8
+          - cell "B" [ref=e1709]:
+            - generic [ref=e1710]: B
+          - cell "G" [ref=e1711]:
+            - generic [ref=e1712]: G
+          - cell "8" [ref=e1713]:
+            - generic [ref=e1714]: "8"
+          - cell "vacant" [ref=e1715]:
+            - generic [ref=e1716]: vacant
+          - cell "--" [ref=e1717]:
+            - generic [ref=e1718]: "--"
+          - cell "Lawn" [ref=e1719]:
+            - generic [ref=e1720]: Lawn
+          - cell "$0.00" [ref=e1721]:
+            - generic [ref=e1722]: $0.00
+          - cell "--" [ref=e1723]
+          - cell "--" [ref=e1724]:
+            - generic [ref=e1725]: "--"
+          - cell "1" [ref=e1726]:
+            - generic [ref=e1727]: "1"
+          - cell "--" [ref=e1728]:
+            - generic [ref=e1729]: "--"
+          - cell "--" [ref=e1730]:
+            - generic [ref=e1731]: "--"
+          - cell "West" [ref=e1732]:
+            - generic [ref=e1733]: West
+        - row "select row B G 7 B G 7 vacant -- Lawn $0.00 -- -- 1 -- -- West" [ref=e1734]:
+          - cell "select row" [ref=e1735]:
+            - generic [ref=e1738] [cursor=pointer]:
+              - checkbox "select row" [ref=e1739]
+              - generic:
+                - img
+          - cell "B G 7" [ref=e1740]:
+            - generic [ref=e1741]: B G 7
+          - cell "B" [ref=e1742]:
+            - generic [ref=e1743]: B
+          - cell "G" [ref=e1744]:
+            - generic [ref=e1745]: G
+          - cell "7" [ref=e1746]:
+            - generic [ref=e1747]: "7"
+          - cell "vacant" [ref=e1748]:
+            - generic [ref=e1749]: vacant
+          - cell "--" [ref=e1750]:
+            - generic [ref=e1751]: "--"
+          - cell "Lawn" [ref=e1752]:
+            - generic [ref=e1753]: Lawn
+          - cell "$0.00" [ref=e1754]:
+            - generic [ref=e1755]: $0.00
+          - cell "--" [ref=e1756]
+          - cell "--" [ref=e1757]:
+            - generic [ref=e1758]: "--"
+          - cell "1" [ref=e1759]:
+            - generic [ref=e1760]: "1"
+          - cell "--" [ref=e1761]:
+            - generic [ref=e1762]: "--"
+          - cell "--" [ref=e1763]:
+            - generic [ref=e1764]: "--"
+          - cell "West" [ref=e1765]:
+            - generic [ref=e1766]: West
+        - row "select row B G 6 B G 6 vacant -- Lawn $0.00 -- -- 1 -- -- West" [ref=e1767]:
+          - cell "select row" [ref=e1768]:
+            - generic [ref=e1771] [cursor=pointer]:
+              - checkbox "select row" [ref=e1772]
+              - generic:
+                - img
+          - cell "B G 6" [ref=e1773]:
+            - generic [ref=e1774]: B G 6
+          - cell "B" [ref=e1775]:
+            - generic [ref=e1776]: B
+          - cell "G" [ref=e1777]:
+            - generic [ref=e1778]: G
+          - cell "6" [ref=e1779]:
+            - generic [ref=e1780]: "6"
+          - cell "vacant" [ref=e1781]:
+            - generic [ref=e1782]: vacant
+          - cell "--" [ref=e1783]:
+            - generic [ref=e1784]: "--"
+          - cell "Lawn" [ref=e1785]:
+            - generic [ref=e1786]: Lawn
+          - cell "$0.00" [ref=e1787]:
+            - generic [ref=e1788]: $0.00
+          - cell "--" [ref=e1789]
+          - cell "--" [ref=e1790]:
+            - generic [ref=e1791]: "--"
+          - cell "1" [ref=e1792]:
+            - generic [ref=e1793]: "1"
+          - cell "--" [ref=e1794]:
+            - generic [ref=e1795]: "--"
+          - cell "--" [ref=e1796]:
+            - generic [ref=e1797]: "--"
+          - cell "West" [ref=e1798]:
+            - generic [ref=e1799]: West
+        - row "select row B G 5 B G 5 vacant -- Lawn $0.00 -- -- 1 -- -- West" [ref=e1800]:
+          - cell "select row" [ref=e1801]:
+            - generic [ref=e1804] [cursor=pointer]:
+              - checkbox "select row" [ref=e1805]
+              - generic:
+                - img
+          - cell "B G 5" [ref=e1806]:
+            - generic [ref=e1807]: B G 5
+          - cell "B" [ref=e1808]:
+            - generic [ref=e1809]: B
+          - cell "G" [ref=e1810]:
+            - generic [ref=e1811]: G
+          - cell "5" [ref=e1812]:
+            - generic [ref=e1813]: "5"
+          - cell "vacant" [ref=e1814]:
+            - generic [ref=e1815]: vacant
+          - cell "--" [ref=e1816]:
+            - generic [ref=e1817]: "--"
+          - cell "Lawn" [ref=e1818]:
+            - generic [ref=e1819]: Lawn
+          - cell "$0.00" [ref=e1820]:
+            - generic [ref=e1821]: $0.00
+          - cell "--" [ref=e1822]
+          - cell "--" [ref=e1823]:
+            - generic [ref=e1824]: "--"
+          - cell "1" [ref=e1825]:
+            - generic [ref=e1826]: "1"
+          - cell "--" [ref=e1827]:
+            - generic [ref=e1828]: "--"
+          - cell "--" [ref=e1829]:
+            - generic [ref=e1830]: "--"
+          - cell "West" [ref=e1831]:
+            - generic [ref=e1832]: West
+        - row "select row B G 4 B G 4 vacant -- Monumental $0.00 -- -- 1 -- -- West" [ref=e1833]:
+          - cell "select row" [ref=e1834]:
+            - generic [ref=e1837] [cursor=pointer]:
+              - checkbox "select row" [ref=e1838]
+              - generic:
+                - img
+          - cell "B G 4" [ref=e1839]:
+            - generic [ref=e1840]: B G 4
+          - cell "B" [ref=e1841]:
+            - generic [ref=e1842]: B
+          - cell "G" [ref=e1843]:
+            - generic [ref=e1844]: G
+          - cell "4" [ref=e1845]:
+            - generic [ref=e1846]: "4"
+          - cell "vacant" [ref=e1847]:
+            - generic [ref=e1848]: vacant
+          - cell "--" [ref=e1849]:
+            - generic [ref=e1850]: "--"
+          - cell "Monumental" [ref=e1851]:
+            - generic [ref=e1852]: Monumental
+          - cell "$0.00" [ref=e1853]:
+            - generic [ref=e1854]: $0.00
+          - cell "--" [ref=e1855]
+          - cell "--" [ref=e1856]:
+            - generic [ref=e1857]: "--"
+          - cell "1" [ref=e1858]:
+            - generic [ref=e1859]: "1"
+          - cell "--" [ref=e1860]:
+            - generic [ref=e1861]: "--"
+          - cell "--" [ref=e1862]:
+            - generic [ref=e1863]: "--"
+          - cell "West" [ref=e1864]:
+            - generic [ref=e1865]: West
+        - row "select row B G 3 B G 3 vacant -- Monumental $0.00 -- -- 1 -- -- West" [ref=e1866] [cursor=pointer]:
+          - cell "select row" [ref=e1867]:
+            - generic [ref=e1870]:
+              - checkbox "select row" [ref=e1871]
+              - generic:
+                - img
+          - cell "B G 3" [ref=e1872]:
+            - generic [ref=e1873]: B G 3
+          - cell "B" [ref=e1874]:
+            - generic [ref=e1875]: B
+          - cell "G" [ref=e1876]:
+            - generic [ref=e1877]: G
+          - cell "3" [ref=e1878]:
+            - generic [ref=e1879]: "3"
+          - cell "vacant" [ref=e1880]:
+            - generic [ref=e1881]: vacant
+          - cell "--" [ref=e1882]:
+            - generic [ref=e1883]: "--"
+          - cell "Monumental" [ref=e1884]:
+            - generic [ref=e1885]: Monumental
+          - cell "$0.00" [ref=e1886]:
+            - generic [ref=e1887]: $0.00
+          - cell "--" [ref=e1888]
+          - cell "--" [ref=e1889]:
+            - generic [ref=e1890]: "--"
+          - cell "1" [ref=e1891]:
+            - generic [ref=e1892]: "1"
+          - cell "--" [ref=e1893]:
+            - generic [ref=e1894]: "--"
+          - cell "--" [ref=e1895]:
+            - generic [ref=e1896]: "--"
+          - cell "West" [ref=e1897]:
+            - generic [ref=e1898]: West
+        - row "select row B G 2 B G 2 vacant -- Monumental $0.00 -- -- 1 -- -- West" [ref=e1899]:
+          - cell "select row" [ref=e1900]:
+            - generic [ref=e1903] [cursor=pointer]:
+              - checkbox "select row" [ref=e1904]
+              - generic:
+                - img
+          - cell "B G 2" [ref=e1905]:
+            - generic [ref=e1906]: B G 2
+          - cell "B" [ref=e1907]:
+            - generic [ref=e1908]: B
+          - cell "G" [ref=e1909]:
+            - generic [ref=e1910]: G
+          - cell "2" [ref=e1911]:
+            - generic [ref=e1912]: "2"
+          - cell "vacant" [ref=e1913]:
+            - generic [ref=e1914]: vacant
+          - cell "--" [ref=e1915]:
+            - generic [ref=e1916]: "--"
+          - cell "Monumental" [ref=e1917]:
+            - generic [ref=e1918]: Monumental
+          - cell "$0.00" [ref=e1919]:
+            - generic [ref=e1920]: $0.00
+          - cell "--" [ref=e1921]
+          - cell "--" [ref=e1922]:
+            - generic [ref=e1923]: "--"
+          - cell "1" [ref=e1924]:
+            - generic [ref=e1925]: "1"
+          - cell "--" [ref=e1926]:
+            - generic [ref=e1927]: "--"
+          - cell "--" [ref=e1928]:
+            - generic [ref=e1929]: "--"
+          - cell "West" [ref=e1930]:
+            - generic [ref=e1931]: West
+        - row "select row B G 1 B G 1 vacant -- Monumental $0.00 -- -- 1 -- -- West" [ref=e1932]:
+          - cell "select row" [ref=e1933]:
+            - generic [ref=e1936] [cursor=pointer]:
+              - checkbox "select row" [ref=e1937]
+              - generic:
+                - img
+          - cell "B G 1" [ref=e1938]:
+            - generic [ref=e1939]: B G 1
+          - cell "B" [ref=e1940]:
+            - generic [ref=e1941]: B
+          - cell "G" [ref=e1942]:
+            - generic [ref=e1943]: G
+          - cell "1" [ref=e1944]:
+            - generic [ref=e1945]: "1"
+          - cell "vacant" [ref=e1946]:
+            - generic [ref=e1947]: vacant
+          - cell "--" [ref=e1948]:
+            - generic [ref=e1949]: "--"
+          - cell "Monumental" [ref=e1950]:
+            - generic [ref=e1951]: Monumental
+          - cell "$0.00" [ref=e1952]:
+            - generic [ref=e1953]: $0.00
+          - cell "--" [ref=e1954]
+          - cell "--" [ref=e1955]:
+            - generic [ref=e1956]: "--"
+          - cell "1" [ref=e1957]:
+            - generic [ref=e1958]: "1"
+          - cell "--" [ref=e1959]:
+            - generic [ref=e1960]: "--"
+          - cell "--" [ref=e1961]:
+            - generic [ref=e1962]: "--"
+          - cell "West" [ref=e1963]:
+            - generic [ref=e1964]: West
+        - row "select row B E 13 B E 13 vacant -- Monumental $0.00 -- -- 1 -- -- West" [ref=e1965]:
+          - cell "select row" [ref=e1966]:
+            - generic [ref=e1969] [cursor=pointer]:
+              - checkbox "select row" [ref=e1970]
+              - generic:
+                - img
+          - cell "B E 13" [ref=e1971]:
+            - generic [ref=e1972]: B E 13
+          - cell "B" [ref=e1973]:
+            - generic [ref=e1974]: B
+          - cell "E" [ref=e1975]:
+            - generic [ref=e1976]: E
+          - cell "13" [ref=e1977]:
+            - generic [ref=e1978]: "13"
+          - cell "vacant" [ref=e1979]:
+            - generic [ref=e1980]: vacant
+          - cell "--" [ref=e1981]:
+            - generic [ref=e1982]: "--"
+          - cell "Monumental" [ref=e1983]:
+            - generic [ref=e1984]: Monumental
+          - cell "$0.00" [ref=e1985]:
+            - generic [ref=e1986]: $0.00
+          - cell "--" [ref=e1987]
+          - cell "--" [ref=e1988]:
+            - generic [ref=e1989]: "--"
+          - cell "1" [ref=e1990]:
+            - generic [ref=e1991]: "1"
+          - cell "--" [ref=e1992]:
+            - generic [ref=e1993]: "--"
+          - cell "--" [ref=e1994]:
+            - generic [ref=e1995]: "--"
+          - cell "West" [ref=e1996]:
+            - generic [ref=e1997]: West
+        - row "select row B E 12 B E 12 vacant -- Monumental $0.00 -- -- 1 -- -- West" [ref=e1998]:
+          - cell "select row" [ref=e1999]:
+            - generic [ref=e2002] [cursor=pointer]:
+              - checkbox "select row" [ref=e2003]
+              - generic:
+                - img
+          - cell "B E 12" [ref=e2004]:
+            - generic [ref=e2005]: B E 12
+          - cell "B" [ref=e2006]:
+            - generic [ref=e2007]: B
+          - cell "E" [ref=e2008]:
+            - generic [ref=e2009]: E
+          - cell "12" [ref=e2010]:
+            - generic [ref=e2011]: "12"
+          - cell "vacant" [ref=e2012]:
+            - generic [ref=e2013]: vacant
+          - cell "--" [ref=e2014]:
+            - generic [ref=e2015]: "--"
+          - cell "Monumental" [ref=e2016]:
+            - generic [ref=e2017]: Monumental
+          - cell "$0.00" [ref=e2018]:
+            - generic [ref=e2019]: $0.00
+          - cell "--" [ref=e2020]
+          - cell "--" [ref=e2021]:
+            - generic [ref=e2022]: "--"
+          - cell "1" [ref=e2023]:
+            - generic [ref=e2024]: "1"
+          - cell "--" [ref=e2025]:
+            - generic [ref=e2026]: "--"
+          - cell "--" [ref=e2027]:
+            - generic [ref=e2028]: "--"
+          - cell "West" [ref=e2029]:
+            - generic [ref=e2030]: West
+        - row "select row B E 11 B E 11 vacant -- Monumental $0.00 -- -- 1 -- -- West" [ref=e2031]:
+          - cell "select row" [ref=e2032]:
+            - generic [ref=e2035] [cursor=pointer]:
+              - checkbox "select row" [ref=e2036]
+              - generic:
+                - img
+          - cell "B E 11" [ref=e2037]:
+            - generic [ref=e2038]: B E 11
+          - cell "B" [ref=e2039]:
+            - generic [ref=e2040]: B
+          - cell "E" [ref=e2041]:
+            - generic [ref=e2042]: E
+          - cell "11" [ref=e2043]:
+            - generic [ref=e2044]: "11"
+          - cell "vacant" [ref=e2045]:
+            - generic [ref=e2046]: vacant
+          - cell "--" [ref=e2047]:
+            - generic [ref=e2048]: "--"
+          - cell "Monumental" [ref=e2049]:
+            - generic [ref=e2050]: Monumental
+          - cell "$0.00" [ref=e2051]:
+            - generic [ref=e2052]: $0.00
+          - cell "--" [ref=e2053]
+          - cell "--" [ref=e2054]:
+            - generic [ref=e2055]: "--"
+          - cell "1" [ref=e2056]:
+            - generic [ref=e2057]: "1"
+          - cell "--" [ref=e2058]:
+            - generic [ref=e2059]: "--"
+          - cell "--" [ref=e2060]:
+            - generic [ref=e2061]: "--"
+          - cell "West" [ref=e2062]:
+            - generic [ref=e2063]: West
+        - row "select row B E 10 B E 10 vacant -- Monumental $0.00 -- -- 1 -- -- West" [ref=e2064]:
+          - cell "select row" [ref=e2065]:
+            - generic [ref=e2068] [cursor=pointer]:
+              - checkbox "select row" [ref=e2069]
+              - generic:
+                - img
+          - cell "B E 10" [ref=e2070]:
+            - generic [ref=e2071]: B E 10
+          - cell "B" [ref=e2072]:
+            - generic [ref=e2073]: B
+          - cell "E" [ref=e2074]:
+            - generic [ref=e2075]: E
+          - cell "10" [ref=e2076]:
+            - generic [ref=e2077]: "10"
+          - cell "vacant" [ref=e2078]:
+            - generic [ref=e2079]: vacant
+          - cell "--" [ref=e2080]:
+            - generic [ref=e2081]: "--"
+          - cell "Monumental" [ref=e2082]:
+            - generic [ref=e2083]: Monumental
+          - cell "$0.00" [ref=e2084]:
+            - generic [ref=e2085]: $0.00
+          - cell "--" [ref=e2086]
+          - cell "--" [ref=e2087]:
+            - generic [ref=e2088]: "--"
+          - cell "1" [ref=e2089]:
+            - generic [ref=e2090]: "1"
+          - cell "--" [ref=e2091]:
+            - generic [ref=e2092]: "--"
+          - cell "--" [ref=e2093]:
+            - generic [ref=e2094]: "--"
+          - cell "West" [ref=e2095]:
+            - generic [ref=e2096]: West
+        - row "select row B E 9 B E 9 vacant -- Monumental $0.00 -- -- 1 -- -- West" [ref=e2097]:
+          - cell "select row" [ref=e2098]:
+            - generic [ref=e2101] [cursor=pointer]:
+              - checkbox "select row" [ref=e2102]
+              - generic:
+                - img
+          - cell "B E 9" [ref=e2103]:
+            - generic [ref=e2104]: B E 9
+          - cell "B" [ref=e2105]:
+            - generic [ref=e2106]: B
+          - cell "E" [ref=e2107]:
+            - generic [ref=e2108]: E
+          - cell "9" [ref=e2109]:
+            - generic [ref=e2110]: "9"
+          - cell "vacant" [ref=e2111]:
+            - generic [ref=e2112]: vacant
+          - cell "--" [ref=e2113]:
+            - generic [ref=e2114]: "--"
+          - cell "Monumental" [ref=e2115]:
+            - generic [ref=e2116]: Monumental
+          - cell "$0.00" [ref=e2117]:
+            - generic [ref=e2118]: $0.00
+          - cell "--" [ref=e2119]
+          - cell "--" [ref=e2120]:
+            - generic [ref=e2121]: "--"
+          - cell "1" [ref=e2122]:
+            - generic [ref=e2123]: "1"
+          - cell "--" [ref=e2124]:
+            - generic [ref=e2125]: "--"
+          - cell "--" [ref=e2126]:
+            - generic [ref=e2127]: "--"
+          - cell "West" [ref=e2128]:
+            - generic [ref=e2129]: West
+        - row "select row B E 8 B E 8 vacant -- Monumental $0.00 -- -- 1 -- -- West" [ref=e2130]:
+          - cell "select row" [ref=e2131]:
+            - generic [ref=e2134] [cursor=pointer]:
+              - checkbox "select row" [ref=e2135]
+              - generic:
+                - img
+          - cell "B E 8" [ref=e2136]:
+            - generic [ref=e2137]: B E 8
+          - cell "B" [ref=e2138]:
+            - generic [ref=e2139]: B
+          - cell "E" [ref=e2140]:
+            - generic [ref=e2141]: E
+          - cell "8" [ref=e2142]:
+            - generic [ref=e2143]: "8"
+          - cell "vacant" [ref=e2144]:
+            - generic [ref=e2145]: vacant
+          - cell "--" [ref=e2146]:
+            - generic [ref=e2147]: "--"
+          - cell "Monumental" [ref=e2148]:
+            - generic [ref=e2149]: Monumental
+          - cell "$0.00" [ref=e2150]:
+            - generic [ref=e2151]: $0.00
+          - cell "--" [ref=e2152]
+          - cell "--" [ref=e2153]:
+            - generic [ref=e2154]: "--"
+          - cell "1" [ref=e2155]:
+            - generic [ref=e2156]: "1"
+          - cell "--" [ref=e2157]:
+            - generic [ref=e2158]: "--"
+          - cell "--" [ref=e2159]:
+            - generic [ref=e2160]: "--"
+          - cell "West" [ref=e2161]:
+            - generic [ref=e2162]: West
+        - row "select row B E 7 B E 7 vacant -- Monumental $0.00 -- -- 1 -- -- West" [ref=e2163]:
+          - cell "select row" [ref=e2164]:
+            - generic [ref=e2167] [cursor=pointer]:
+              - checkbox "select row" [ref=e2168]
+              - generic:
+                - img
+          - cell "B E 7" [ref=e2169]:
+            - generic [ref=e2170]: B E 7
+          - cell "B" [ref=e2171]:
+            - generic [ref=e2172]: B
+          - cell "E" [ref=e2173]:
+            - generic [ref=e2174]: E
+          - cell "7" [ref=e2175]:
+            - generic [ref=e2176]: "7"
+          - cell "vacant" [ref=e2177]:
+            - generic [ref=e2178]: vacant
+          - cell "--" [ref=e2179]:
+            - generic [ref=e2180]: "--"
+          - cell "Monumental" [ref=e2181]:
+            - generic [ref=e2182]: Monumental
+          - cell "$0.00" [ref=e2183]:
+            - generic [ref=e2184]: $0.00
+          - cell "--" [ref=e2185]
+          - cell "--" [ref=e2186]:
+            - generic [ref=e2187]: "--"
+          - cell "1" [ref=e2188]:
+            - generic [ref=e2189]: "1"
+          - cell "--" [ref=e2190]:
+            - generic [ref=e2191]: "--"
+          - cell "--" [ref=e2192]:
+            - generic [ref=e2193]: "--"
+          - cell "West" [ref=e2194]:
+            - generic [ref=e2195]: West
+        - row "select row B E 6 B E 6 vacant -- Monumental $0.00 -- -- 1 -- -- West" [ref=e2196]:
+          - cell "select row" [ref=e2197]:
+            - generic [ref=e2200] [cursor=pointer]:
+              - checkbox "select row" [ref=e2201]
+              - generic:
+                - img
+          - cell "B E 6" [ref=e2202]:
+            - generic [ref=e2203]: B E 6
+          - cell "B" [ref=e2204]:
+            - generic [ref=e2205]: B
+          - cell "E" [ref=e2206]:
+            - generic [ref=e2207]: E
+          - cell "6" [ref=e2208]:
+            - generic [ref=e2209]: "6"
+          - cell "vacant" [ref=e2210]:
+            - generic [ref=e2211]: vacant
+          - cell "--" [ref=e2212]:
+            - generic [ref=e2213]: "--"
+          - cell "Monumental" [ref=e2214]:
+            - generic [ref=e2215]: Monumental
+          - cell "$0.00" [ref=e2216]:
+            - generic [ref=e2217]: $0.00
+          - cell "--" [ref=e2218]
+          - cell "--" [ref=e2219]:
+            - generic [ref=e2220]: "--"
+          - cell "1" [ref=e2221]:
+            - generic [ref=e2222]: "1"
+          - cell "--" [ref=e2223]:
+            - generic [ref=e2224]: "--"
+          - cell "--" [ref=e2225]:
+            - generic [ref=e2226]: "--"
+          - cell "West" [ref=e2227]:
+            - generic [ref=e2228]: West
+        - row "select row B E 5 B E 5 vacant -- Monumental $0.00 -- -- 1 -- -- West" [ref=e2229]:
+          - cell "select row" [ref=e2230]:
+            - generic [ref=e2233] [cursor=pointer]:
+              - checkbox "select row" [ref=e2234]
+              - generic:
+                - img
+          - cell "B E 5" [ref=e2235]:
+            - generic [ref=e2236]: B E 5
+          - cell "B" [ref=e2237]:
+            - generic [ref=e2238]: B
+          - cell "E" [ref=e2239]:
+            - generic [ref=e2240]: E
+          - cell "5" [ref=e2241]:
+            - generic [ref=e2242]: "5"
+          - cell "vacant" [ref=e2243]:
+            - generic [ref=e2244]: vacant
+          - cell "--" [ref=e2245]:
+            - generic [ref=e2246]: "--"
+          - cell "Monumental" [ref=e2247]:
+            - generic [ref=e2248]: Monumental
+          - cell "$0.00" [ref=e2249]:
+            - generic [ref=e2250]: $0.00
+          - cell "--" [ref=e2251]
+          - cell "--" [ref=e2252]:
+            - generic [ref=e2253]: "--"
+          - cell "1" [ref=e2254]:
+            - generic [ref=e2255]: "1"
+          - cell "--" [ref=e2256]:
+            - generic [ref=e2257]: "--"
+          - cell "--" [ref=e2258]:
+            - generic [ref=e2259]: "--"
+          - cell "West" [ref=e2260]:
+            - generic [ref=e2261]: West
+        - row "select row B E 4 B E 4 vacant -- Monumental $0.00 -- -- 1 -- -- West" [ref=e2262]:
+          - cell "select row" [ref=e2263]:
+            - generic [ref=e2266] [cursor=pointer]:
+              - checkbox "select row" [ref=e2267]
+              - generic:
+                - img
+          - cell "B E 4" [ref=e2268]:
+            - generic [ref=e2269]: B E 4
+          - cell "B" [ref=e2270]:
+            - generic [ref=e2271]: B
+          - cell "E" [ref=e2272]:
+            - generic [ref=e2273]: E
+          - cell "4" [ref=e2274]:
+            - generic [ref=e2275]: "4"
+          - cell "vacant" [ref=e2276]:
+            - generic [ref=e2277]: vacant
+          - cell "--" [ref=e2278]:
+            - generic [ref=e2279]: "--"
+          - cell "Monumental" [ref=e2280]:
+            - generic [ref=e2281]: Monumental
+          - cell "$0.00" [ref=e2282]:
+            - generic [ref=e2283]: $0.00
+          - cell "--" [ref=e2284]
+          - cell "--" [ref=e2285]:
+            - generic [ref=e2286]: "--"
+          - cell "1" [ref=e2287]:
+            - generic [ref=e2288]: "1"
+          - cell "--" [ref=e2289]:
+            - generic [ref=e2290]: "--"
+          - cell "--" [ref=e2291]:
+            - generic [ref=e2292]: "--"
+          - cell "West" [ref=e2293]:
+            - generic [ref=e2294]: West
+        - row "select row B E 3 B E 3 vacant -- Monumental $0.00 -- -- 1 -- -- West" [ref=e2295]:
+          - cell "select row" [ref=e2296]:
+            - generic [ref=e2299] [cursor=pointer]:
+              - checkbox "select row" [ref=e2300]
+              - generic:
+                - img
+          - cell "B E 3" [ref=e2301]:
+            - generic [ref=e2302]: B E 3
+          - cell "B" [ref=e2303]:
+            - generic [ref=e2304]: B
+          - cell "E" [ref=e2305]:
+            - generic [ref=e2306]: E
+          - cell "3" [ref=e2307]:
+            - generic [ref=e2308]: "3"
+          - cell "vacant" [ref=e2309]:
+            - generic [ref=e2310]: vacant
+          - cell "--" [ref=e2311]:
+            - generic [ref=e2312]: "--"
+          - cell "Monumental" [ref=e2313]:
+            - generic [ref=e2314]: Monumental
+          - cell "$0.00" [ref=e2315]:
+            - generic [ref=e2316]: $0.00
+          - cell "--" [ref=e2317]
+          - cell "--" [ref=e2318]:
+            - generic [ref=e2319]: "--"
+          - cell "1" [ref=e2320]:
+            - generic [ref=e2321]: "1"
+          - cell "--" [ref=e2322]:
+            - generic [ref=e2323]: "--"
+          - cell "--" [ref=e2324]:
+            - generic [ref=e2325]: "--"
+          - cell "West" [ref=e2326]:
+            - generic [ref=e2327]: West
+        - row "select row B E 2 B E 2 vacant -- Monumental $0.00 -- -- 1 -- -- West" [ref=e2328]:
+          - cell "select row" [ref=e2329]:
+            - generic [ref=e2332] [cursor=pointer]:
+              - checkbox "select row" [ref=e2333]
+              - generic:
+                - img
+          - cell "B E 2" [ref=e2334]:
+            - generic [ref=e2335]: B E 2
+          - cell "B" [ref=e2336]:
+            - generic [ref=e2337]: B
+          - cell "E" [ref=e2338]:
+            - generic [ref=e2339]: E
+          - cell "2" [ref=e2340]:
+            - generic [ref=e2341]: "2"
+          - cell "vacant" [ref=e2342]:
+            - generic [ref=e2343]: vacant
+          - cell "--" [ref=e2344]:
+            - generic [ref=e2345]: "--"
+          - cell "Monumental" [ref=e2346]:
+            - generic [ref=e2347]: Monumental
+          - cell "$0.00" [ref=e2348]:
+            - generic [ref=e2349]: $0.00
+          - cell "--" [ref=e2350]
+          - cell "--" [ref=e2351]:
+            - generic [ref=e2352]: "--"
+          - cell "1" [ref=e2353]:
+            - generic [ref=e2354]: "1"
+          - cell "--" [ref=e2355]:
+            - generic [ref=e2356]: "--"
+          - cell "--" [ref=e2357]:
+            - generic [ref=e2358]: "--"
+          - cell "West" [ref=e2359]:
+            - generic [ref=e2360]: West
+        - row "select row B E 1 B E 1 vacant -- Monumental $0.00 -- -- 1 -- -- West" [ref=e2361]:
+          - cell "select row" [ref=e2362]:
+            - generic [ref=e2365] [cursor=pointer]:
+              - checkbox "select row" [ref=e2366]
+              - generic:
+                - img
+          - cell "B E 1" [ref=e2367]:
+            - generic [ref=e2368]: B E 1
+          - cell "B" [ref=e2369]:
+            - generic [ref=e2370]: B
+          - cell "E" [ref=e2371]:
+            - generic [ref=e2372]: E
+          - cell "1" [ref=e2373]:
+            - generic [ref=e2374]: "1"
+          - cell "vacant" [ref=e2375]:
+            - generic [ref=e2376]: vacant
+          - cell "--" [ref=e2377]:
+            - generic [ref=e2378]: "--"
+          - cell "Monumental" [ref=e2379]:
+            - generic [ref=e2380]: Monumental
+          - cell "$0.00" [ref=e2381]:
+            - generic [ref=e2382]: $0.00
+          - cell "--" [ref=e2383]
+          - cell "--" [ref=e2384]:
+            - generic [ref=e2385]: "--"
+          - cell "1" [ref=e2386]:
+            - generic [ref=e2387]: "1"
+          - cell "--" [ref=e2388]:
+            - generic [ref=e2389]: "--"
+          - cell "--" [ref=e2390]:
+            - generic [ref=e2391]: "--"
+          - cell "West" [ref=e2392]:
+            - generic [ref=e2393]: West
+        - row "select row B D 13 B D 13 vacant -- Monumental $0.00 -- -- 1 -- -- West" [ref=e2394]:
+          - cell "select row" [ref=e2395]:
+            - generic [ref=e2398] [cursor=pointer]:
+              - checkbox "select row" [ref=e2399]
+              - generic:
+                - img
+          - cell "B D 13" [ref=e2400]:
+            - generic [ref=e2401]: B D 13
+          - cell "B" [ref=e2402]:
+            - generic [ref=e2403]: B
+          - cell "D" [ref=e2404]:
+            - generic [ref=e2405]: D
+          - cell "13" [ref=e2406]:
+            - generic [ref=e2407]: "13"
+          - cell "vacant" [ref=e2408]:
+            - generic [ref=e2409]: vacant
+          - cell "--" [ref=e2410]:
+            - generic [ref=e2411]: "--"
+          - cell "Monumental" [ref=e2412]:
+            - generic [ref=e2413]: Monumental
+          - cell "$0.00" [ref=e2414]:
+            - generic [ref=e2415]: $0.00
+          - cell "--" [ref=e2416]
+          - cell "--" [ref=e2417]:
+            - generic [ref=e2418]: "--"
+          - cell "1" [ref=e2419]:
+            - generic [ref=e2420]: "1"
+          - cell "--" [ref=e2421]:
+            - generic [ref=e2422]: "--"
+          - cell "--" [ref=e2423]:
+            - generic [ref=e2424]: "--"
+          - cell "West" [ref=e2425]:
+            - generic [ref=e2426]: West
+        - row "select row B D 12 B D 12 vacant -- Monumental $0.00 -- -- 1 -- -- West" [ref=e2427]:
+          - cell "select row" [ref=e2428]:
+            - generic [ref=e2431] [cursor=pointer]:
+              - checkbox "select row" [ref=e2432]
+              - generic:
+                - img
+          - cell "B D 12" [ref=e2433]:
+            - generic [ref=e2434]: B D 12
+          - cell "B" [ref=e2435]:
+            - generic [ref=e2436]: B
+          - cell "D" [ref=e2437]:
+            - generic [ref=e2438]: D
+          - cell "12" [ref=e2439]:
+            - generic [ref=e2440]: "12"
+          - cell "vacant" [ref=e2441]:
+            - generic [ref=e2442]: vacant
+          - cell "--" [ref=e2443]:
+            - generic [ref=e2444]: "--"
+          - cell "Monumental" [ref=e2445]:
+            - generic [ref=e2446]: Monumental
+          - cell "$0.00" [ref=e2447]:
+            - generic [ref=e2448]: $0.00
+          - cell "--" [ref=e2449]
+          - cell "--" [ref=e2450]:
+            - generic [ref=e2451]: "--"
+          - cell "1" [ref=e2452]:
+            - generic [ref=e2453]: "1"
+          - cell "--" [ref=e2454]:
+            - generic [ref=e2455]: "--"
+          - cell "--" [ref=e2456]:
+            - generic [ref=e2457]: "--"
+          - cell "West" [ref=e2458]:
+            - generic [ref=e2459]: West
+        - row "select row B D 11 B D 11 vacant -- Monumental $0.00 -- -- 1 -- -- West" [ref=e2460]:
+          - cell "select row" [ref=e2461]:
+            - generic [ref=e2464] [cursor=pointer]:
+              - checkbox "select row" [ref=e2465]
+              - generic:
+                - img
+          - cell "B D 11" [ref=e2466]:
+            - generic [ref=e2467]: B D 11
+          - cell "B" [ref=e2468]:
+            - generic [ref=e2469]: B
+          - cell "D" [ref=e2470]:
+            - generic [ref=e2471]: D
+          - cell "11" [ref=e2472]:
+            - generic [ref=e2473]: "11"
+          - cell "vacant" [ref=e2474]:
+            - generic [ref=e2475]: vacant
+          - cell "--" [ref=e2476]:
+            - generic [ref=e2477]: "--"
+          - cell "Monumental" [ref=e2478]:
+            - generic [ref=e2479]: Monumental
+          - cell "$0.00" [ref=e2480]:
+            - generic [ref=e2481]: $0.00
+          - cell "--" [ref=e2482]
+          - cell "--" [ref=e2483]:
+            - generic [ref=e2484]: "--"
+          - cell "1" [ref=e2485]:
+            - generic [ref=e2486]: "1"
+          - cell "--" [ref=e2487]:
+            - generic [ref=e2488]: "--"
+          - cell "--" [ref=e2489]:
+            - generic [ref=e2490]: "--"
+          - cell "West" [ref=e2491]:
+            - generic [ref=e2492]: West

@@ -1,0 +1,110 @@
+- generic [ref=e3346]:
+  - generic [ref=e3348]:
+    - generic [ref=e3349]:
+      - link [ref=e3350] [cursor=pointer]:
+        - /url: /
+      - link:
+        - /url: /
+    - generic [ref=e3351]:
+      - button "cancel" [ref=e3352] [cursor=pointer]: cancel
+      - button "save and add interment" [ref=e3353] [cursor=pointer]: save and add interment
+      - button "save" [ref=e3354] [cursor=pointer]: save
+  - generic [ref=e3358]:
+    - generic [ref=e3360]:
+      - heading "Add ROI" [level=1] [ref=e3361]
+      - generic [ref=e3367] [cursor=pointer]:
+        - combobox "Event Type" [expanded] [ref=e3368]:
+          - generic [ref=e3369]:
+            - generic [ref=e3370]: All
+            - listbox "Event Type" [ref=e3505]:
+              - generic [ref=e3506]:
+                - generic [ref=e3507]:
+                  - textbox "Start typing to search" [active] [ref=e3508]: B G 9
+                  - button [ref=e3596]:
+                    - img [ref=e3597]:
+                      - img [ref=e3598]
+                - separator [ref=e3515]
+              - option "Unassigned" [ref=e3516]:
+                - generic [ref=e3517]: Unassigned
+              - option "B G 9" [ref=e3601]:
+                - generic [ref=e3603]: B G 9
+        - generic:
+          - generic:
+            - generic: Plot
+            - text: "*"
+    - generic [ref=e3374]:
+      - generic [ref=e3376]:
+        - generic [ref=e3377]:
+          - generic [ref=e3381] [cursor=pointer]:
+            - combobox "Right type" [ref=e3382]
+            - generic:
+              - generic: Right type *
+          - generic [ref=e3391] [cursor=pointer]:
+            - combobox "Term of right" [ref=e3392]
+            - generic:
+              - generic: Term of right
+        - generic [ref=e3398]:
+          - generic [ref=e3401]:
+            - generic [ref=e3402]: $
+            - generic [ref=e3403]:
+              - spinbutton "Fee" [ref=e3404]
+              - generic:
+                - generic: Fee
+          - generic [ref=e3407]:
+            - generic [ref=e3408]:
+              - textbox "Payment date" [ref=e3409]
+              - generic:
+                - generic: Payment date
+            - button "Open calendar" [ref=e3412] [cursor=pointer]:
+              - img [ref=e3413]
+          - generic [ref=e3418] [cursor=pointer]:
+            - switch "Charged" [ref=e3420]
+            - generic [ref=e3423]: Charged
+        - generic [ref=e3424]:
+          - generic [ref=e3427]:
+            - generic [ref=e3428]:
+              - textbox "Application date" [ref=e3429]: 09/03/2026
+              - generic:
+                - generic: Application date
+            - button "Open calendar" [ref=e3432] [cursor=pointer]:
+              - img [ref=e3433]
+          - generic [ref=e3437]:
+            - generic [ref=e3440]:
+              - generic [ref=e3441]:
+                - textbox "Expiry Date" [ref=e3442]
+                - generic:
+                  - generic: Expiry Date
+              - button "Open calendar" [ref=e3445] [cursor=pointer]:
+                - img [ref=e3446]
+            - generic [ref=e3451]:
+              - generic [ref=e3452]:
+                - checkbox "Auto add to event calendar" [disabled] [ref=e3453]
+                - generic:
+                  - img
+              - generic [ref=e3454]: Auto add to event calendar
+        - generic [ref=e3455]:
+          - generic [ref=e3459] [cursor=pointer]:
+            - combobox "Service need" [ref=e3460]
+            - generic:
+              - generic: Service need
+          - generic [ref=e3469]:
+            - textbox "Certificate number" [ref=e3470]
+            - generic:
+              - generic: Certificate number
+        - generic [ref=e3473]:
+          - heading "Documents" [level=4] [ref=e3474]
+          - generic [ref=e3480] [cursor=pointer]:
+            - button "SELECT FILE" [ref=e3481]:
+              - generic [ref=e3482]:
+                - img [ref=e3483]:
+                  - img [ref=e3484]
+                - text: SELECT FILE
+            - paragraph [ref=e3487]: or drag it here
+            - paragraph [ref=e3488]: "Maximum file size: 8 MB"
+      - generic [ref=e3489]:
+        - generic [ref=e3490]:
+          - button "ROI Holders" [ref=e3493] [cursor=pointer]:
+            - generic [ref=e3494]: ROI Holders
+          - button "ROI Applicant" [ref=e3497] [cursor=pointer]:
+            - generic [ref=e3498]: ROI Applicant
+        - textbox "Add Notes" [ref=e3504]

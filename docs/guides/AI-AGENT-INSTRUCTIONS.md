@@ -358,13 +358,58 @@ Need to debug browser?
       └─→ Use MCP Playwright (fallback)
 ```
 
-### 5. Naming Conventions
+### 5. Debug Snapshots — Accessibility Tree YAML ⭐
+
+Simpan accessibility tree snapshot dari `playwright-cli snapshot` ke `docs/snapshots/<feature>/` sebagai referensi selector & debugging.
+
+#### 5.1 Capture & Simpan Snapshot
+```bash
+# 1. Debug di browser
+playwright-cli open https://staging-aus.chronicle.rip
+playwright-cli snapshot
+
+# 2. Simpan output ke file
+# Contoh: docs/snapshots/roi/add-roi-form.yml
+```
+
+#### 5.2 Aturan Penyimpanan
+| Kondisi | Aksi |
+|---------|------|
+| Flow baru di-debug | Simpan snapshot baru di `docs/snapshots/<feature>/` |
+| File sudah ada, UI berubah | **Replace** file lama dengan yang baru |
+| State baru (misal: form terisi) | **Tambah** file baru |
+| Snapshot outdated (test gagal) | Capture ulang dan replace |
+
+#### 5.3 Penamaan File
+- `<nama-halaman>.yml` — state default (contoh: `plots-tab.yml`)
+- `<nama-halaman>-<state>.yml` — state spesifik (contoh: `filtered-plots.yml`)
+- `<form-name>.yml` — form kosong (contoh: `add-roi-form.yml`)
+- `<action>-result.yml` — hasil aksi (contoh: `plot-search-result.yml`)
+
+#### 5.4 Cara Pakai untuk Debug
+1. Buka file `.yml` di `docs/snapshots/`
+2. Cari element berdasarkan `role`, `data-testid`, `aria-label`, atau text content
+3. **JANGAN** gunakan `ref=eXXXX` — berubah setiap session
+4. Map ke selector di `src/selectors/`
+
+#### 5.5 Snapshot yang Tersedia
+```
+docs/snapshots/
+├── README.md
+└── roi/
+    ├── plots-tab.yml          # Tables > tab PLOTS (default)
+    ├── filtered-plots.yml     # Tab PLOTS filter Status: Vacant
+    ├── add-roi-form.yml       # Form Add ROI (kosong)
+    └── plot-search-result.yml # Form Add ROI setelah search plot
+```
+
+### 6. Naming Conventions
 - Feature files: `camelCase.{public|authenticated}.feature`
 - Page objects: `PascalCase.ts` (LoginPage.ts)
 - Step files: `camelCase.steps.ts` (login.steps.ts)
 - Selectors: `camelCase.selectors.ts` exported as `PascalCase`
 
-### 6. Tags Structure (ALL REQUIRED)
+### 7. Tags Structure (ALL REQUIRED)
 ```gherkin
 @p0 @feature-name @smoke @authenticated
 ```
@@ -373,13 +418,13 @@ Need to debug browser?
 - Type: `@smoke`, `@regression`, `@negative`
 - Access: `@public` or `@authenticated` (MANDATORY)
 
-### 7. Selector Priority (Use in Order)
+### 8. Selector Priority (Use in Order)
 1. `[data-testid="..."]` - most reliable
 2. `getByRole('button', { name: '...' })` - accessible
 3. `#id` or `[name="..."]` - structural
 4. CSS selectors - last resort
 
-### 8. Running Tests
+### 9. Running Tests
 
 ```bash
 # By access level
@@ -401,7 +446,7 @@ ENVIRONMENT=map REGION=us npm test -- --tags "@p0"
 npm run test:headless -- --tags "@p0"
 ```
 
-### 9. Background Setup
+### 10. Background Setup
 
 **Public scenarios:**
 ```gherkin
@@ -422,7 +467,7 @@ Feature: Search (Authenticated)
     Then I should be on dashboard
 ```
 
-### 10. Key Practices
+### 11. Key Practices
 - **DO**: Separate public/authenticated files
 - **DO**: Use `playwright-cli` (CLI) first to debug and verify selectors, then MCP Playwright as fallback
 - **DO**: Use centralized test data from `test-data.ts`
