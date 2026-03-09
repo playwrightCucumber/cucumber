@@ -92,11 +92,8 @@ export class ROIPage {
         } catch (e) {
           this.logger.warn(`Edit page load check failed: ${e}, continuing anyway`);
         }
-      } else {
-        // Add mode: wait for form title
-        await this.page.waitForSelector(RoiSelectors.roiFormTitle, { state: 'visible', timeout: 15000 });
-        this.logger.info('ROI form loaded successfully');
       }
+      // Add mode: clickAddRoi() already waits for roiFormTitle — no duplicate check needed
     } catch (e) {
       this.logger.error(`ROI form failed to load (${isEditMode ? 'edit' : 'add'} mode): ${e}`);
       throw new Error('ROI form failed to load');
@@ -106,29 +103,14 @@ export class ROIPage {
     if (roiData.rightType) {
       this.logger.info(`Selecting Right Type: ${roiData.rightType}`);
       
-      // Wait for mat-select elements to be rendered with data
-      await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
+      // Wait for the Right Type dropdown to be visible — proves form is fully rendered
+      const rightTypeDropdown = this.page.getByRole('combobox', { name: 'Right type' });
+      await rightTypeDropdown.waitFor({ state: 'visible', timeout: 15000 });
+      this.logger.info('Right Type dropdown visible - form is ready');
       
-      // Wait for the Plot name to appear in the first mat-select (Event Type)
-      // This ensures the form is fully populated
-      await this.page.waitForSelector('mat-select:has-text("A")', { state: 'visible', timeout: 15000 });
-      this.logger.info('Plot field populated - form is ready');
-      
-      // Wait for DOM stability after data load
-      await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
-      
-      // Now get all mat-select elements - they should be stable now
-      const matSelects = await this.page.locator('mat-select').all();
-      this.logger.info(`Found ${matSelects.length} mat-select elements`);
-      
-      // Validate we have at least 3 mat-selects (Event Type, Right Type, Term of Right)
-      if (matSelects.length < 3) {
-        throw new Error(`Expected at least 3 mat-select elements, found ${matSelects.length}`);
-      }
-      
-      // Click the Right Type dropdown (index 1)
-      this.logger.info('Clicking Right Type dropdown (mat-select[1])...');
-      await matSelects[1].click();
+      // Click the Right Type dropdown
+      this.logger.info('Clicking Right Type dropdown...');
+      await rightTypeDropdown.click();
       
       // Wait for dropdown overlay to appear
       await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'visible', timeout: 5000 });
@@ -148,13 +130,10 @@ export class ROIPage {
     if (roiData.termOfRight) {
       this.logger.info(`Selecting Term of Right: ${roiData.termOfRight}`);
       
-      // Get all mat-select elements again (to be safe after previous interaction)
-      const matSelects = await this.page.locator('mat-select').all();
-      this.logger.info(`Found ${matSelects.length} mat-select elements for Term of Right`);
-      
-      // Click Term of Right dropdown (index 2)
-      this.logger.info('Clicking Term of Right dropdown (mat-select[2])...');
-      await matSelects[2].click();
+      // Click Term of Right dropdown using accessible name
+      const termDropdown = this.page.getByRole('combobox', { name: 'Term of right' });
+      this.logger.info('Clicking Term of Right dropdown...');
+      await termDropdown.click();
       
       // Wait for dropdown overlay to appear
       await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'visible', timeout: 5000 });

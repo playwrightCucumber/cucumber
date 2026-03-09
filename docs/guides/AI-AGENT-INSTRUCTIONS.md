@@ -478,6 +478,56 @@ Feature: Search (Authenticated)
 - **DON'T**: Mix public/authenticated in same file
 - **DON'T**: Hardcode test data in feature files or steps
 - **DON'T**: Hardcode URLs - always use helper functions
+
+### 12. Wait Strategy — DILARANG Static Wait ⭐
+
+**JANGAN PERNAH** pakai `page.waitForTimeout()`. Chronicle polling terus-menerus, jadi `networkidle` juga tidak reliable.
+
+#### Pilih Wait Berdasarkan Konteks:
+
+```
+// ❌ SALAH
+await page.waitForTimeout(3000);
+await page.waitForLoadState('networkidle');
+
+// ✅ BENAR — Setelah navigasi
+await page.waitForURL('**/manage/add/roi', { timeout: 20000 });
+await page.waitForSelector(RoiSelectors.roiFormTitle, { state: 'visible', timeout: 15000 });
+
+// ✅ BENAR — Tunggu API (setup SEBELUM trigger action)
+const apiPromise = waitForEndpoint(page, 'plots/?page=1');
+await button.click();
+await apiPromise;
+
+// ✅ BENAR — Tunggu API selesai (tidak tahu endpoint)
+await NetworkHelper.waitForApiRequestsComplete(page, 5000);
+
+// ✅ BENAR — Tunggu dropdown/dialog
+await page.locator('.cdk-overlay-pane').waitFor({ state: 'visible', timeout: 5000 });
+
+// ✅ BENAR — Tunggu animasi
+await NetworkHelper.waitForAnimation(page);
+
+// ✅ BENAR — Tunggu DOM stabil
+await NetworkHelper.waitForStabilization(page, { minWait: 300, maxWait: 2000 });
+```
+
+#### Aturan Anti-Duplikat:
+1. **Jangan duplikat wait antar step** — jika `clickAddRoi()` sudah `waitForSelector(formTitle)`, maka `fillRoiForm()` tidak perlu wait `formTitle` lagi
+2. **Satu element wait sudah cukup** — jika `mat-select:has-text("A")` visible, berarti API done + DOM rendered. Tidak perlu tambah `waitForApiRequestsComplete` + `waitForStabilization`
+3. **`waitForEndpoint` HARUS di-setup SEBELUM action** — jika dipasang setelah click/navigate, response bisa sudah lewat → timeout penuh (30 detik terbuang)
+4. **`{ optional: true }` pada `waitForApiEndpoint` tetap tunggu full timeout** jika API tidak terpanggil — hindari kecuali benar-benar perlu
+
+#### Helper yang Tersedia:
+| Helper | File | Kapan Pakai |
+|--------|------|-------------|
+| `waitForEndpoint(page, endpoint)` | `NetworkUtils.ts` | Tahu endpoint, setup SEBELUM action |
+| `NetworkHelper.waitForApiRequestsComplete(page, timeout)` | `NetworkHelper.ts` | Tidak tahu endpoint, tunggu semua API selesai |
+| `NetworkHelper.waitForApiEndpoint(page, pattern, timeout, opts)` | `NetworkHelper.ts` | Tahu endpoint, setup SETELAH action (hati-hati race) |
+| `NetworkHelper.waitForAnimation(page)` | `NetworkHelper.ts` | Setelah click dropdown/tab/dialog |
+| `NetworkHelper.waitForStabilization(page, opts)` | `NetworkHelper.ts` | DOM berubah-ubah, tunggu stabil |
+| `NetworkHelper.waitForFormReady(page, selector)` | `NetworkHelper.ts` | Form Angular yang input-nya readonly dulu |
+| `NetworkHelper.waitForDOMReady(page, timeout)` | `NetworkHelper.ts` | Tunggu DOM content loaded |
 - **DON'T**: Guess selectors - verify with `playwright-cli` or MCP Playwright first
 - **DON'T**: Create authenticated scenarios without proper Background setup
 

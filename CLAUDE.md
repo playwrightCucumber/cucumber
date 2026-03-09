@@ -37,6 +37,29 @@ See `package.json` scripts for all test commands (`test:staging`, `test:p0`, etc
 - Video files are auto-renamed by the `After()` hook — do not rename manually
 - `<TEST_*>` placeholders resolve at runtime from `.env` / `test-data.ts`; `Scenario Outline` + `Examples` for per-run variations
 
+## Wait Strategy — NEVER Use Static Waits
+
+**DILARANG** pakai `page.waitForTimeout()`. Gunakan `NetworkHelper` atau element wait.
+
+### Pilih Wait Berdasarkan Konteks:
+
+| Konteks | Gunakan | Contoh |
+|---------|---------|--------|
+| Setelah navigasi/click yang pindah halaman | `waitForURL` + `waitForSelector` | `await page.waitForURL('**/add/roi'); await page.waitForSelector(selector);` |
+| Tunggu API selesai (tahu endpoint) | `waitForEndpoint` (setup SEBELUM trigger) | `const p = waitForEndpoint(page, 'plots/'); await button.click(); await p;` |
+| Tunggu API selesai (tidak tahu endpoint) | `NetworkHelper.waitForApiRequestsComplete()` | `await NetworkHelper.waitForApiRequestsComplete(page, 5000);` |
+| Tunggu element muncul | `element.waitFor()` | `await locator.waitFor({ state: 'visible', timeout: 10000 });` |
+| Setelah click dropdown/dialog | `waitFor` on overlay | `await page.locator('.cdk-overlay-pane').waitFor({ state: 'visible' });` |
+| Tunggu animasi/transisi | `NetworkHelper.waitForAnimation()` | `await NetworkHelper.waitForAnimation(page);` |
+| DOM stabil setelah render | `NetworkHelper.waitForStabilization()` | `await NetworkHelper.waitForStabilization(page, { minWait: 300, maxWait: 2000 });` |
+| Form siap diisi | `NetworkHelper.waitForFormReady()` | `await NetworkHelper.waitForFormReady(page, 'form');` |
+
+### Aturan Penting:
+1. **Jangan duplikat wait** — jika step sebelumnya sudah `waitForSelector(X)`, step berikutnya tidak perlu wait `X` lagi
+2. **`waitForEndpoint` HARUS dipasang SEBELUM action** — jika dipasang setelah, response bisa terlewat → timeout penuh
+3. **Satu element wait cukup** — jika `mat-select:has-text("A")` sudah visible berarti API selesai + DOM rendered, tidak perlu tambah `waitForApiRequestsComplete` + `waitForStabilization`
+4. **Gunakan `{ optional: true }` hati-hati** — jika API tidak terpanggil, wait tetap tunggu sampai timeout penuh
+
 ## Adding New Tests
 
 1. Selectors in `src/selectors/p0/<feature>/<feature>.selectors.ts`
