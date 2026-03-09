@@ -183,3 +183,38 @@ When('I click on search result plot {string}', { timeout: 20000 }, async functio
 
   logger.info(`Clicked on search result plot: ${actualPlotName}, now at: ${page.url()}`);
 });
+
+When('I click on the first search result', { timeout: 20000 }, async function () {
+  const page = this.page;
+
+  const firstResult = page.locator('cl-search-person-item').first();
+  await firstResult.waitFor({ state: 'visible', timeout: 5000 });
+  await firstResult.click();
+
+  // Wait for navigation to plot detail page
+  await page.waitForLoadState('domcontentloaded');
+  await page.locator('[role="tablist"]').waitFor({ state: 'visible', timeout: 8000 });
+
+  // Click ROI tab and wait for content to load
+  const roiTab = page.getByRole('tab', { name: 'ROI' });
+  await roiTab.waitFor({ state: 'visible', timeout: 5000 });
+  await roiTab.click();
+
+  // Wait and verify ROI tab is selected
+  await page.waitForTimeout(1000);
+  const isSelected = await roiTab.getAttribute('aria-selected');
+  if (isSelected !== 'true') {
+    await roiTab.click();
+    await page.waitForTimeout(1000);
+  }
+
+  // Wait for ROI content to load (look for EDIT ROI button or ROI holder cards)
+  try {
+    await page.waitForSelector('button:has-text("EDIT ROI"), [data-testid*="roi-form"]', { state: 'visible', timeout: 10000 });
+  } catch (e) {
+    // ROI content may take longer, continue anyway
+  }
+
+  await page.waitForTimeout(2000);
+  logger.info(`Clicked first search result, now at: ${page.url()}`);
+});

@@ -91,4 +91,16 @@ export const RoiSelectors = {
   activityNoteEditTextarea: 'textarea', // Textarea in edit mode
   activityNoteEditSaveButton: 'mat-icon[svgicon="check-edit"]', // Save/check button in edit mode
   activityNoteEditCancelButton: 'mat-icon[svgicon="close"]', // Cancel/close button in edit mode
+
+  // ROI Holder/Applicant - Remove
+  roiHolderCard: '[data-testid="roi-form-div-roi-holder"]', // First ROI holder card
+  roiHolderCardByIndex: (index: number) => `[data-testid="roi-form-div-roi-holder${index > 0 ? '-' + index : ''}"]`,
+  roiApplicantCard: '[data-testid="roi-form-div-info-card"]', // ROI applicant card
+  removeAndReplacePanel: 'mat-expansion-panel-header:has-text("REMOVE & REPLACE")', // REMOVE & REPLACE expansion panel
+  removeOnlyButton: 'button:has-text("REMOVE ONLY")', // REMOVE ONLY option
+  removeAndReplaceWithPersonButton: 'button:has-text("Remove and replace with another person")', // Replace option
+
+  // Remove Confirmation Dialog
+  removeDialogCancelButton: '[data-testid="remove-roi-holder-dialog-button-cancel"]',
+  removeDialogConfirmButton: '[data-testid="remove-roi-holder-dialog-button-remove"]',
 };

@@ -8,6 +8,15 @@ import { replacePlaceholdersInObject, replacePlaceholders } from '../../utils/Te
 let plotPage: PlotPage;
 let roiPage: ROIPage;
 
+function ensurePageObjects(page: any) {
+  if (!roiPage || roiPage.page !== page) {
+    roiPage = new ROIPage(page);
+  }
+  if (!plotPage || plotPage.page !== page) {
+    plotPage = new PlotPage(page);
+  }
+}
+
 When('I navigate to all plots page', { timeout: 15000 }, async function () {
   const page = this.page;
   plotPage = new PlotPage(page);
@@ -64,7 +73,7 @@ When('I click ROI tab', async function () {
 });
 
 When('I click Edit ROI button', { timeout: 50000 }, async function () {
-  // EDIT ROI button is at bottom of plot detail page, no need to click ROI tab first
+  ensurePageObjects(this.page);
   await roiPage.clickEditRoi();
 });
 
@@ -109,6 +118,7 @@ When('I search and select ROI holder {string}', { timeout: 15000 }, async functi
 });
 
 When('I save the ROI', { timeout: 35000 }, async function () {
+  ensurePageObjects(this.page);
   const page = this.page;
   
   await roiPage.saveRoi();
@@ -217,4 +227,28 @@ Then('I should see activity note {string}', { timeout: 10000 }, async function (
 
 When('I edit activity note {string} to {string}', { timeout: 15000 }, async function (oldText: string, newText: string) {
   await roiPage.editActivityNote(oldText, newText);
+});
+
+// Find reserved plot by certificate number
+When('I find reserved plot with certificate number {string}', { timeout: 120000 }, async function (certNumber: string) {
+  const actualCertNumber = replacePlaceholders(certNumber);
+  const plotName = await plotPage.findReservedPlotByCertificateNumber(actualCertNumber);
+  this.selectedPlotName = plotName;
+});
+
+// Remove ROI holder by name
+When('I remove ROI holder {string}', { timeout: 30000 }, async function (holderName: string) {
+  ensurePageObjects(this.page);
+  const actualName = replacePlaceholders(holderName);
+  await roiPage.removeRoiHolder(actualName);
+});
+
+// Verify ROI holder has been removed
+Then('I should not see ROI holder {string} in the ROI tab', { timeout: 20000 }, async function (holderName: string) {
+  ensurePageObjects(this.page);
+  const actualName = replacePlaceholders(holderName);
+  const isRemoved = await roiPage.verifyRoiHolderRemoved(actualName);
+  if (!isRemoved) {
+    throw new Error(`❌ ROI holder "${actualName}" is still present in ROI tab after removal`);
+  }
 });

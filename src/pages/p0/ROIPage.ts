@@ -1,6 +1,7 @@
 import { Page } from '@playwright/test';
 import { RoiSelectors, RoiUrls } from '../../selectors/p0/roi/index.js';
 import { Logger } from '../../utils/Logger.js';
+import { NetworkHelper } from '../../utils/NetworkHelper.js';
 
 export class ROIPage {
   readonly page: Page;
@@ -30,7 +31,16 @@ export class ROIPage {
       
       this.logger.info('✓ Navigated to Add ROI form page');
       
-      // Instead of network idle, wait for specific form element to be ready
+      // Wait for plots API endpoint to finish (populates plot dropdown)
+      await NetworkHelper.waitForApiEndpoint(
+        this.page,
+        'plots/?page=1&limit=25&search=&only_plot_id=true&plot_occupied=false',
+        30000,
+        { optional: true }
+      );
+      this.logger.info('✓ Plots API endpoint completed');
+      
+      // Wait for specific form element to be ready
       await this.page.waitForSelector(RoiSelectors.roiFormTitle, { state: 'visible', timeout: 15000 });
       this.logger.info('✓ ROI form title loaded');
       
@@ -45,6 +55,14 @@ export class ROIPage {
           this.page.waitForURL('**/manage/add/roi', { timeout: 20000 }),
           this.page.getByRole('button', { name: /add roi/i }).click()
         ]);
+        
+        // Wait for plots API endpoint to finish (populates plot dropdown)
+        await NetworkHelper.waitForApiEndpoint(
+          this.page,
+          'plots/?page=1&limit=25&search=&only_plot_id=true&plot_occupied=false',
+          30000,
+          { optional: true }
+        );
         
         // Wait for form to be ready
         await this.page.waitForSelector(RoiSelectors.roiFormTitle, { state: 'visible', timeout: 15000 });
@@ -653,15 +671,24 @@ export class ROIPage {
     this.logger.info('Clicking Edit ROI button');
     
     try {
-      // Wait for plot detail page to fully load
+      // Ensure ROI tab is selected first
+      try {
+        const roiTab = this.page.getByRole('tab', { name: /roi/i });
+        await roiTab.waitFor({ state: 'visible', timeout: 5000 });
+        await roiTab.click();
+        this.logger.info('ROI tab clicked');
+      } catch (e) {
+        this.logger.warn('ROI tab click failed, continuing to look for EDIT ROI button');
+      }
+      
       await this.page.waitForTimeout(2000);
       
-      // Look for "EDIT ROI" button (uppercase) at bottom of plot detail
-      // This is different from the general "Edit" button
-      await this.page.waitForSelector('button:has-text("EDIT ROI")', { state: 'visible', timeout: 5000 });
+      // Look for "Edit ROI" button (case-insensitive)
+      const editRoiBtn = this.page.getByRole('button', { name: /edit roi/i });
+      await editRoiBtn.waitFor({ state: 'visible', timeout: 10000 });
       this.logger.info('EDIT ROI button found');
       
-      await this.page.getByRole('button', { name: /EDIT ROI/i }).click();
+      await editRoiBtn.click();
       
       // Wait for navigation to edit page (URL should change to include '/edit/')
       this.logger.info('Waiting for navigation to edit page...');
@@ -857,6 +884,111 @@ export class ROIPage {
     } catch (e) {
       this.logger.error(`Failed to verify certificate: ${e}`);
       return false;
+    }
+  }
+
+  /**
+   * Remove ROI holder by person name
+   * Flow: Find holder card → click "REMOVE & REPLACE" → click "REMOVE ONLY" → confirm "REMOVE"
+   * @param personName - Full name of holder to remove (e.g., "John Doe")
+   */
+  async removeRoiHolder(personName: string): Promise<void> {
+    this.logger.info(`Removing ROI holder: ${personName}`);
+    
+    // Wait for edit page to be fully loaded
+    await this.page.waitForTimeout(2000);
+    
+    // Find the person heading (h2) that contains the name, then navigate up to the card
+    const personHeading = this.page.locator(`h2:has-text("${personName}")`).first();
+    await personHeading.waitFor({ state: 'visible', timeout: 10000 });
+    this.logger.info(`Found person heading for "${personName}"`);
+    
+    // Navigate up to the holder card container using xpath ancestor
+    const targetCard = personHeading.locator('xpath=ancestor::*[contains(@data-testid, "roi-form-div-roi-holder")]');
+    
+    // Click "REMOVE & REPLACE" button within this card
+    const removeReplaceBtn = targetCard.getByRole('button', { name: 'REMOVE & REPLACE' });
+    await removeReplaceBtn.scrollIntoViewIfNeeded();
+    await removeReplaceBtn.click();
+    this.logger.info('Clicked REMOVE & REPLACE button');
+    
+    // Click "REMOVE ONLY" button (appears after expansion)
+    const removeOnlyBtn = targetCard.getByRole('button', { name: 'REMOVE ONLY' });
+    await removeOnlyBtn.waitFor({ state: 'visible', timeout: 5000 });
+    await removeOnlyBtn.click();
+    this.logger.info('Clicked REMOVE ONLY button');
+    
+    // Click "REMOVE" in the confirmation dialog
+    const dialog = this.page.getByRole('dialog');
+    await dialog.waitFor({ state: 'visible', timeout: 5000 });
+    const confirmBtn = dialog.getByRole('button', { name: 'remove' });
+    await confirmBtn.click();
+    this.logger.info('Clicked REMOVE in confirmation dialog');
+    
+    // Wait for removal to process
+    await this.page.waitForTimeout(3000);
+    
+    this.logger.success(`ROI holder "${personName}" removed successfully`);
+  }
+
+  /**
+   * Verify ROI holder is NOT present in ROI tab (after deletion)
+   * @param personName - Full name of holder that should not exist
+   */
+  async verifyRoiHolderRemoved(personName: string): Promise<boolean> {
+    this.logger.info(`Verifying ROI holder "${personName}" has been removed`);
+    
+    // Make sure we're on ROI tab
+    await this.clickRoiTab();
+    
+    // Wait for ROI content to load
+    await this.page.waitForTimeout(3000);
+    
+    // Check if the person name exists on the page
+    const personCount = await this.page.getByText(personName, { exact: false }).count();
+    
+    if (personCount === 0) {
+      this.logger.success(`✓ ROI holder "${personName}" is NOT present - removal verified`);
+      return true;
+    } else {
+      // Check if the person is still listed as ROI HOLDER (they might still be listed as applicant)
+      const pageContent = await this.page.content();
+      const holderIndex = pageContent.indexOf(personName);
+      const nearbyContent = pageContent.substring(Math.max(0, holderIndex - 100), holderIndex + 200);
+      
+      if (nearbyContent.toUpperCase().includes('ROI HOLDER')) {
+        this.logger.info(`❌ ROI holder "${personName}" is STILL present on page`);
+        return false;
+      }
+      
+      // Person exists but not as ROI HOLDER (maybe as applicant)
+      this.logger.success(`✓ "${personName}" exists but NOT as ROI HOLDER - removal verified`);
+      return true;
+    }
+  }
+
+  /**
+   * Get certificate number from ROI tab content on plot detail page
+   */
+  async getCertificateNumberFromRoiTab(): Promise<string> {
+    this.logger.info('Getting certificate number from ROI tab');
+    
+    await this.clickRoiTab();
+    await this.page.waitForTimeout(2000);
+    
+    // Certificate number is displayed as "Certificate number :XXX" in ROI tab
+    const certElement = this.page.locator('text=/Certificate number/').first();
+    try {
+      await certElement.waitFor({ state: 'visible', timeout: 5000 });
+      const parentText = await certElement.locator('..').textContent();
+      // Extract: "Certificate number :CERT-TEST-004" -> "CERT-TEST-004"
+      const match = parentText?.match(/Certificate number\s*:\s*(.+)/);
+      const certNumber = match ? match[1].trim() : '';
+      this.logger.info(`Certificate number found: ${certNumber}`);
+      return certNumber;
+    } catch (e) {
+      this.logger.warn('Certificate number not found in ROI tab');
+      return '';
     }
   }
 }

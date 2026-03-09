@@ -243,10 +243,10 @@ export const ROI_DATA = {
     both: process.env.TEST_ROI_CERT_BOTH || 'CERT-TEST-004'
   },
 
-  // ROI Holder person data
+  // ROI Holder person data (random names by default to avoid conflicts)
   holder: {
-    firstName: process.env.TEST_ROI_HOLDER_FIRSTNAME || 'John',
-    lastName: process.env.TEST_ROI_HOLDER_LASTNAME || 'Doe',
+    firstName: process.env.TEST_ROI_HOLDER_FIRSTNAME || randomFirstName(),
+    lastName: process.env.TEST_ROI_HOLDER_LASTNAME || randomLastName(),
     phone: process.env.TEST_ROI_HOLDER_PHONE || '+1234567890',
     email: process.env.TEST_ROI_HOLDER_EMAIL || 'john.doe@example.com'
   },

@@ -2,6 +2,7 @@ import { Page } from '@playwright/test';
 import { RoiSelectors, RoiUrls, PlotStatus } from '../../selectors/p0/roi/index.js';
 import { Logger } from '../../utils/Logger.js';
 import { getCustomerOrgUrl } from '../../data/test-data.js';
+import { ROIPage } from './ROIPage.js';
 
 export class PlotPage {
   readonly page: Page;
@@ -294,5 +295,95 @@ export class PlotPage {
     }
     
     return isCorrect;
+  }
+
+  /**
+   * Find and select a reserved plot that has a specific certificate number
+   * Iterates through all reserved plots in each section, checks ROI tab for matching cert number.
+   * @param certificateNumber - Certificate number to search for
+   * @returns The plot name that was found and selected
+   */
+  async findReservedPlotByCertificateNumber(certificateNumber: string): Promise<string> {
+    this.logger.info(`Searching for reserved plot with certificate number: ${certificateNumber}`);
+    
+    const roiPage = new ROIPage(this.page);
+    
+    // Wait for plot list to load after filter
+    await this.page.waitForTimeout(2000);
+    
+    // Find all section toggle buttons
+    const sectionButtons = await this.page.locator('button[data-testid^="shared-all-plots-button-toggle-"]').all();
+    this.logger.info(`Found ${sectionButtons.length} section(s) to scan`);
+    
+    for (let s = 0; s < sectionButtons.length; s++) {
+      // Re-query section buttons each time (DOM may change after navigation)
+      const currentSectionButtons = await this.page.locator('button[data-testid^="shared-all-plots-button-toggle-"]').all();
+      if (s >= currentSectionButtons.length) break;
+      
+      const sectionBtn = currentSectionButtons[s];
+      const testId = await sectionBtn.getAttribute('data-testid');
+      const sectionMatch = testId?.match(/shared-all-plots-button-toggle-([a-z])-\d+/);
+      const sectionLetter = sectionMatch ? sectionMatch[1] : 'unknown';
+      
+      this.logger.info(`Expanding section ${sectionLetter.toUpperCase()}`);
+      await sectionBtn.click();
+      await this.page.waitForTimeout(1500);
+      
+      // Find all reserved plots in this section
+      const reservedPlots = await this.page.getByText(/\w+\s+\w+\s+\d+\s+Reserved$/).all();
+      this.logger.info(`Found ${reservedPlots.length} reserved plot(s) in section ${sectionLetter.toUpperCase()}`);
+      
+      for (let p = 0; p < reservedPlots.length; p++) {
+        // Re-query reserved plots (DOM refreshes after back navigation)
+        const currentReservedPlots = await this.page.getByText(/\w+\s+\w+\s+\d+\s+Reserved$/).all();
+        if (p >= currentReservedPlots.length) break;
+        
+        const plot = currentReservedPlots[p];
+        const plotText = await plot.textContent();
+        const plotName = plotText?.replace(/\s*Reserved\s*$/, '').trim() || 'Unknown';
+        
+        this.logger.info(`Checking plot: ${plotName}`);
+        
+        // Click the plot to go to detail page
+        await plot.click();
+        await this.page.waitForURL('**/plots/**', { timeout: 15000 });
+        await this.page.waitForTimeout(2000);
+        
+        // Check certificate number in the ROI tab
+        const certNumber = await roiPage.getCertificateNumberFromRoiTab();
+        
+        if (certNumber === certificateNumber) {
+          this.logger.success(`✓ Found matching plot: ${plotName} with certificate number ${certificateNumber}`);
+          return plotName;
+        }
+        
+        this.logger.info(`Plot ${plotName} has cert "${certNumber}" - not a match, going back`);
+        
+        // Go back to plot list
+        await this.page.goBack();
+        await this.page.waitForTimeout(2000);
+        
+        // After going back, the section may be collapsed - re-expand it
+        const refreshedSectionBtns = await this.page.locator('button[data-testid^="shared-all-plots-button-toggle-"]').all();
+        if (s < refreshedSectionBtns.length) {
+          // Check if section is already expanded
+          const treeItem = refreshedSectionBtns[s].locator('..');
+          const isExpanded = await treeItem.locator('..').getAttribute('aria-expanded').catch(() => null);
+          if (isExpanded !== 'true') {
+            await refreshedSectionBtns[s].click();
+            await this.page.waitForTimeout(1500);
+          }
+        }
+      }
+      
+      // Collapse this section before moving to next
+      const collapseButtons = await this.page.locator('button[data-testid^="shared-all-plots-button-toggle-"]').all();
+      if (s < collapseButtons.length) {
+        await collapseButtons[s].click();
+        await this.page.waitForTimeout(500);
+      }
+    }
+    
+    throw new Error(`No reserved plot found with certificate number "${certificateNumber}"`);
   }
 }

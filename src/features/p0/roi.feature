@@ -106,6 +106,15 @@ Feature: ROI Management
     Then the plot status should be "RESERVED"
     And I should see both ROI holder "<TEST_ROI_HOLDER_FIRSTNAME> <TEST_ROI_HOLDER_LASTNAME>" and applicant "<TEST_ROI_APPLICANT_FIRSTNAME> <TEST_ROI_APPLICANT_LASTNAME>"
 
+  @delete-roi-holder @p0
+  Scenario: Delete ROI holder from recently created ROI
+    When I search for "<TEST_ROI_HOLDER_FIRSTNAME> <TEST_ROI_HOLDER_LASTNAME>" in global search
+    And I click on the first search result
+    And I click Edit ROI button
+    And I remove ROI holder "<TEST_ROI_HOLDER_FIRSTNAME> <TEST_ROI_HOLDER_LASTNAME>"
+    And I save the ROI
+    Then I should not see ROI holder "<TEST_ROI_HOLDER_FIRSTNAME> <TEST_ROI_HOLDER_LASTNAME>" in the ROI tab
+
   @edit-roi @p0
   Scenario: Edit ROI details on reserved plot
     When I navigate to all plots page
