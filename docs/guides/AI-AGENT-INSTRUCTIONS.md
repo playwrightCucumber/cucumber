@@ -255,31 +255,108 @@ When('I perform action with {string}', async function (data: string) {
 
 **Step 7:** Run test: `npm test -- --tags "@feature-name"`
 
-### 4. MCP Playwright for Debugging
+### 4. Browser Debugging: CLI Playwright First, MCP Playwright as Fallback
 
-**Use MCP Playwright when:**
+**Use browser debugging when:**
 - Test fails and need to investigate actual browser behavior
 - Need to find correct selectors
 - Need to verify element interactions
 - Need screenshots/console logs/network data
 
-**Quick Debug Workflow:**
+#### 4.1 CLI Playwright (PRIMARY - Use First) ⭐
+
+**Always try `playwright-cli` first** — it's faster, simpler, and runs directly in the terminal.
+
+**Quick Debug Workflow with CLI:**
+```bash
+# 1. Open browser and navigate
+playwright-cli open https://staging.chronicle.rip
+
+# 2. Take snapshot to see page structure & element refs
+playwright-cli snapshot
+
+# 3. Interact with elements using refs from snapshot
+playwright-cli click e15
+playwright-cli fill e5 "user@example.com"
+playwright-cli type "search query"
+playwright-cli press Enter
+
+# 4. Run JavaScript to inspect page / check state
+playwright-cli eval "document.title"
+playwright-cli eval "el => el.textContent" e5
+
+# 5. Take screenshot for visual verification
+playwright-cli screenshot
+playwright-cli screenshot --filename=debug.png
+
+# 6. Handle dialogs
+playwright-cli dialog-accept
+playwright-cli dialog-dismiss
+
+# 7. Navigate back/forward, reload
+playwright-cli go-back
+playwright-cli reload
+
+# 8. Close when done
+playwright-cli close
+```
+
+**Key CLI Commands:**
+| Command | Description |
+|---------|-------------|
+| `open [url]` | Open browser (optionally navigate) |
+| `goto <url>` | Navigate to URL |
+| `snapshot` | Get page structure with element refs |
+| `click <ref>` | Click element by ref |
+| `fill <ref> "text"` | Fill input field |
+| `type "text"` | Type text (focused element) |
+| `press <key>` | Press keyboard key |
+| `select <ref> "value"` | Select dropdown option |
+| `screenshot` | Capture screenshot |
+| `eval "js"` | Execute JavaScript |
+| `tab-list` | List open tabs |
+| `tab-new [url]` | Open new tab |
+| `close` | Close browser |
+
+#### 4.2 MCP Playwright (FALLBACK - Use When CLI is Insufficient)
+
+**Use MCP Playwright only when CLI Playwright cannot handle the case**, such as:
+- Need to inspect console errors (`console_messages`)
+- Need to monitor network requests (`network_requests`)
+- Need complex multi-step automation that's hard in CLI
+- Need to handle file uploads or drag interactions
+
+**MCP Debug Workflow:**
 1. Navigate: `mcp_playwright_browser_navigate({ url: "..." })`
 2. Snapshot: `mcp_playwright_browser_snapshot()` - get page structure
 3. Test selector: `mcp_playwright_browser_click({ element: "...", ref: "..." })`
 4. Check logs: `mcp_playwright_browser_console_messages({ level: "error" })`
 5. Check network: `mcp_playwright_browser_network_requests()`
-6. Screenshot: `mcp_playwright_browser_screenshot()`
+6. Screenshot: `mcp_playwright_browser_take_screenshot()`
 7. Fix code based on findings
 
 **Key MCP Commands:**
 - `navigate` - go to URL
 - `snapshot` - get page structure (use first to find selectors)
-- `click` / `fill` - interact with elements
+- `click` / `fill_form` - interact with elements
 - `console_messages` - view console errors
 - `network_requests` - view API calls
-- `screenshot` - capture visual state
+- `take_screenshot` - capture visual state
 - `evaluate` - run custom JavaScript
+
+#### 4.3 Decision Flow
+
+```
+Need to debug browser?
+  ↓
+  ├─ Basic interaction? (navigate, click, fill, snapshot, screenshot)
+  │   ↓ YES
+  │   └─→ Use playwright-cli (CLI) ⭐
+  │
+  └─ Need console logs, network monitoring, or complex automation?
+      ↓ YES
+      └─→ Use MCP Playwright (fallback)
+```
 
 ### 5. Naming Conventions
 - Feature files: `camelCase.{public|authenticated}.feature`
@@ -347,7 +424,7 @@ Feature: Search (Authenticated)
 
 ### 10. Key Practices
 - **DO**: Separate public/authenticated files
-- **DO**: Use MCP Playwright to debug and verify selectors
+- **DO**: Use `playwright-cli` (CLI) first to debug and verify selectors, then MCP Playwright as fallback
 - **DO**: Use centralized test data from `test-data.ts`
 - **DO**: Use helper functions for URLs (getCemeteryUrl, getCustomerOrgBaseUrl, etc.)
 - **DO**: Add `@public` or `@authenticated` tag to all features
@@ -356,7 +433,7 @@ Feature: Search (Authenticated)
 - **DON'T**: Mix public/authenticated in same file
 - **DON'T**: Hardcode test data in feature files or steps
 - **DON'T**: Hardcode URLs - always use helper functions
-- **DON'T**: Guess selectors - verify with MCP Playwright first
+- **DON'T**: Guess selectors - verify with `playwright-cli` or MCP Playwright first
 - **DON'T**: Create authenticated scenarios without proper Background setup
 
 ## Common Patterns

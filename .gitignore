@@ -37,6 +37,9 @@ reports/
 console-output.txt
 test-send-button.ts
 
+# Playwright CLI data
+.playwright-cli/
+
 # Playwright screenshots (MCP / debug)
 *.png
 !src/**/*.png
