@@ -23,7 +23,7 @@ export class ROIPage {
       await this.page.waitForSelector(RoiSelectors.addRoiButton, { state: 'visible', timeout: 10000 });
       this.logger.info('Add ROI button found, clicking...');
       
-      // Click and wait for navigation in parallel
+      // Click and wait for navigation
       await Promise.all([
         this.page.waitForURL('**/manage/add/roi', { timeout: 20000 }),
         this.page.click(RoiSelectors.addRoiButton)
@@ -31,16 +31,7 @@ export class ROIPage {
       
       this.logger.info('✓ Navigated to Add ROI form page');
       
-      // Wait for plots API endpoint to finish (populates plot dropdown)
-      await NetworkHelper.waitForApiEndpoint(
-        this.page,
-        'plots/?page=1&limit=25&search=&only_plot_id=true&plot_occupied=false',
-        30000,
-        { optional: true }
-      );
-      this.logger.info('✓ Plots API endpoint completed');
-      
-      // Wait for specific form element to be ready
+      // Wait for form to be ready (form title visible = page loaded + data rendered)
       await this.page.waitForSelector(RoiSelectors.roiFormTitle, { state: 'visible', timeout: 15000 });
       this.logger.info('✓ ROI form title loaded');
       
@@ -56,15 +47,6 @@ export class ROIPage {
           this.page.getByRole('button', { name: /add roi/i }).click()
         ]);
         
-        // Wait for plots API endpoint to finish (populates plot dropdown)
-        await NetworkHelper.waitForApiEndpoint(
-          this.page,
-          'plots/?page=1&limit=25&search=&only_plot_id=true&plot_occupied=false',
-          30000,
-          { optional: true }
-        );
-        
-        // Wait for form to be ready
         await this.page.waitForSelector(RoiSelectors.roiFormTitle, { state: 'visible', timeout: 15000 });
         
         this.logger.success('Add ROI button clicked (fallback)');
@@ -97,25 +79,16 @@ export class ROIPage {
     
     try {
       if (isEditMode) {
-        // Edit mode: Just wait for page load state, then check if we have basic form elements
+        // Edit mode: Wait for DOM + form inputs to be ready
         this.logger.info('Edit mode detected - waiting for page to be ready...');
         
         try {
-          // Wait for DOM to be ready
-          await this.page.waitForLoadState('domcontentloaded', { timeout: 10000 });
+          await NetworkHelper.waitForDOMReady(this.page, 10000);
           this.logger.info('DOM content loaded');
           
-          // Wait a bit more for Angular/dynamic content
-          await this.page.waitForTimeout(3000);
-          
-          // Check if we have input fields (fee, certificate, etc.)
-          const hasInputs = await this.page.locator('input[type="text"], input[type="number"], textarea').count() > 0;
-          if (hasInputs) {
-            this.logger.info('ROI edit form loaded successfully - found input fields');
-          } else {
-            this.logger.warn('No input fields found yet, waiting a bit more...');
-            await this.page.waitForTimeout(2000);
-          }
+          // Wait for form inputs to appear (Angular dynamic rendering)
+          await this.page.locator('input[type="text"], input[type="number"], textarea').first().waitFor({ state: 'visible', timeout: 10000 });
+          this.logger.info('ROI edit form loaded successfully - found input fields');
         } catch (e) {
           this.logger.warn(`Edit page load check failed: ${e}, continuing anyway`);
         }
@@ -133,22 +106,16 @@ export class ROIPage {
     if (roiData.rightType) {
       this.logger.info(`Selecting Right Type: ${roiData.rightType}`);
       
-      // CRITICAL: Wait for page to be fully loaded and stable
-      // Wait for network to be idle to ensure all mat-select elements are rendered
-      try {
-        await this.page.waitForLoadState('networkidle', { timeout: 10000 });
-        this.logger.info('Network idle - page fully loaded');
-      } catch (e) {
-        this.logger.warn('Network idle timeout, continuing anyway');
-      }
+      // Wait for mat-select elements to be rendered with data
+      await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
       
       // Wait for the Plot name to appear in the first mat-select (Event Type)
       // This ensures the form is fully populated
       await this.page.waitForSelector('mat-select:has-text("A")', { state: 'visible', timeout: 15000 });
       this.logger.info('Plot field populated - form is ready');
       
-      // Additional small wait to ensure DOM is stable
-      await this.page.waitForTimeout(1000);
+      // Wait for DOM stability after data load
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
       
       // Now get all mat-select elements - they should be stable now
       const matSelects = await this.page.locator('mat-select').all();
@@ -163,8 +130,8 @@ export class ROIPage {
       this.logger.info('Clicking Right Type dropdown (mat-select[1])...');
       await matSelects[1].click();
       
-      // Wait for dropdown animation and options to appear
-      await this.page.waitForTimeout(2000);
+      // Wait for dropdown overlay to appear
+      await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'visible', timeout: 5000 });
       
       // Use getByRole which works reliably (tested with MCP Playwright)
       const optionLocator = this.page.getByRole('option', { name: roiData.rightType });
@@ -189,8 +156,8 @@ export class ROIPage {
       this.logger.info('Clicking Term of Right dropdown (mat-select[2])...');
       await matSelects[2].click();
       
-      // Wait for dropdown animation and options to fully render
-      await this.page.waitForTimeout(2000);
+      // Wait for dropdown overlay to appear
+      await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'visible', timeout: 5000 });
       
       // Use getByRole which works reliably
       const termOptionLocator = this.page.getByRole('option', { name: roiData.termOfRight });
@@ -294,9 +261,9 @@ export class ROIPage {
       await this.page.waitForSelector(`text=${holderData.firstName} ${holderData.lastName}`, { timeout: 8000 });
       this.logger.info('Person card appeared in UI');
     } catch (e) {
-      // Fallback: wait a bit for backend processing
-      this.logger.warn('Person card not detected, waiting for backend...');
-      await this.page.waitForTimeout(3000);
+      // Fallback: wait for API to finish processing
+      this.logger.warn('Person card not detected, waiting for API...');
+      await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
     }
     
     this.logger.success('ROI holder person added successfully');
@@ -315,19 +282,19 @@ export class ROIPage {
     this.logger.info('Adding ROI applicant person');
     
     // Wait for any previous person card animation to complete
-    await this.page.waitForTimeout(2000);
+    await NetworkHelper.waitForAnimation(this.page);
     
     // Make sure applicant button is visible and in viewport
     const applicantButton = this.page.locator(RoiSelectors.addRoiApplicantButton);
     await applicantButton.scrollIntoViewIfNeeded();
-    await this.page.waitForTimeout(500);
+    await NetworkHelper.waitForAnimation(this.page);
     
     // Force click the button (may be overlayed by holder card animation)
     this.logger.info('Clicking Add ROI Applicant button');
     await applicantButton.click({ force: true });
     
-    // Wait longer for form to start rendering (especially after holder was just added)
-    await this.page.waitForTimeout(3000);
+    // Wait for form to start rendering
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
     
     // Wait for form to be visible
     // After holder is added, form uses role-based selectors instead of data-testid
@@ -392,9 +359,9 @@ export class ROIPage {
       await this.page.waitForSelector(`text=${applicantData.firstName} ${applicantData.lastName}`, { timeout: 8000 });
       this.logger.info('Person card appeared in UI');
     } catch (e) {
-      // Fallback: wait a bit for backend processing
-      this.logger.warn('Person card not detected, waiting for backend...');
-      await this.page.waitForTimeout(3000);
+      // Fallback: wait for API to finish processing
+      this.logger.warn('Person card not detected, waiting for API...');
+      await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
     }
     
     this.logger.success('ROI applicant person added successfully');
@@ -410,14 +377,13 @@ export class ROIPage {
     // Click Add ROI Holder button to open the person input/dialog
     this.logger.info('Clicking Add ROI Holder button');
     await this.page.click(RoiSelectors.addRoiHolderButton);
-    await this.page.waitForTimeout(1000);
+    await NetworkHelper.waitForAnimation(this.page);
     
     // Type person name in the search input (first name field acts as search)
     this.logger.info(`Typing search query: ${personName}`);
     await this.page.fill(RoiSelectors.roiHolderFirstNameInput, personName);
-    await this.page.waitForTimeout(2000); // Wait for search results to appear
     
-    // Wait for search results dropdown/list to appear
+    // Wait for search results dropdown to appear
     this.logger.info('Waiting for search results to appear...');
     
     // Click on the matching person from search results
@@ -430,12 +396,8 @@ export class ROIPage {
       this.logger.info(`Found person "${personName}" in search results, clicking...`);
       await personOption.click();
       
-      // Wait for selection to complete
-      await this.page.waitForTimeout(1000);
-      
-      // Wait for background process to complete (production needs time to attach person to ROI)
-      this.logger.info('Waiting 5s for person to be fully attached...');
-      await this.page.waitForTimeout(5000);
+      // Wait for selection API to complete
+      await NetworkHelper.waitForApiRequestsComplete(this.page, 8000);
       
       this.logger.success(`ROI holder "${personName}" selected successfully from search`);
     } catch (e) {
@@ -472,7 +434,7 @@ export class ROIPage {
     this.logger.info('Waiting for URL redirect to plot detail page...');
     // Wait for save to complete and redirect back to plot detail
     await this.page.waitForURL(`**${RoiUrls.plotDetailPattern}**`, { timeout: 30000 });
-    await this.page.waitForTimeout(2000); // Wait for status update
+    await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
     this.logger.success('ROI saved successfully');
   }
 
@@ -492,8 +454,8 @@ export class ROIPage {
       await notesInput.fill(noteText);
       this.logger.info('Note text entered');
       
-      // Click send button - verified with MCP Playwright testing
-      await this.page.waitForTimeout(500);
+      // Click send button
+      await NetworkHelper.waitForAnimation(this.page);
       
       const sendButton = this.page.locator(RoiSelectors.activityNotesSendButton);
       await sendButton.waitFor({ state: 'visible', timeout: 5000 });
@@ -502,7 +464,7 @@ export class ROIPage {
       
       
       // Wait for note to appear in activity list
-      await this.page.waitForTimeout(2000);
+      await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
       
       this.logger.success(`Activity note added: ${noteText}`);
     } catch (error) {
@@ -521,7 +483,7 @@ export class ROIPage {
     
     try {
       // Wait for Activity section to be visible
-      await this.page.waitForTimeout(1000);
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
       
       // Find the note by text and click its three dots menu
       const noteElement = this.page.getByText(oldText, { exact: false }).first();
@@ -534,8 +496,8 @@ export class ROIPage {
       this.logger.info('Three dots menu clicked');
       
       // Wait for menu to appear and click Edit
-      await this.page.waitForTimeout(500);
       const editMenuItem = this.page.getByRole('menuitem', { name: 'Edit' });
+      await editMenuItem.waitFor({ state: 'visible', timeout: 5000 });
       await editMenuItem.click();
       this.logger.info('Edit menu item clicked');
       
@@ -543,7 +505,7 @@ export class ROIPage {
       // IMPORTANT: The page has an "Add Notes" textarea at top (with data-testid="user-log-activity-textarea-add-notes")
       // When we click Edit on a note, an inline edit textarea appears with save/cancel buttons
       // We need to find that specific textarea, NOT the "Add Notes" one
-      await this.page.waitForTimeout(1000);
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
       
       // Wait for the save button (checkmark) to appear - this indicates edit mode is active
       const saveButton = this.page.locator(RoiSelectors.activityNoteEditSaveButton);
@@ -574,13 +536,13 @@ export class ROIPage {
       await targetTextarea.fill(newText);
       this.logger.info('New text entered in edit mode');
       
-      // Click the save button (checkmark) instead of pressing Enter
-      await this.page.waitForTimeout(500);
+      // Click the save button (checkmark)
+      await NetworkHelper.waitForAnimation(this.page);
       await saveButton.click();
       this.logger.info('Clicked save button (checkmark)');
       
       // Wait for save animation/transition to complete
-      await this.page.waitForTimeout(1000);
+      await NetworkHelper.waitForAnimation(this.page);
       
       // Verify save completed by checking if edit mode closed (checkmark disappeared)
       try {
@@ -590,9 +552,9 @@ export class ROIPage {
         this.logger.warn('Checkmark still visible after 3s - edit mode may still be active');
       }
       
-      // Wait additional time for backend sync (especially for production)
-      await this.page.waitForTimeout(3000);
-      this.logger.info('Waited for backend sync');
+      // Wait for backend sync
+      await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
+      this.logger.info('Backend sync completed');
       
       this.logger.success(`Activity note edited successfully`);
     } catch (error) {
@@ -609,10 +571,9 @@ export class ROIPage {
     this.logger.info(`Verifying activity note: ${expectedNote}`);
     
     try {
-      // Wait longer for activity section and notes to fully load from backend
-      // Production needs more time than staging
-      await this.page.waitForTimeout(5000);
-      this.logger.info('Waited 5s for activity notes to load');
+      // Wait for activity section and notes to fully load from backend
+      await NetworkHelper.waitForApiRequestsComplete(this.page, 8000);
+      this.logger.info('Activity notes API requests completed');
       
       // Look for the note text - use count() to handle multiple matches
       const noteLocator = this.page.getByText(expectedNote, { exact: false });
@@ -655,7 +616,7 @@ export class ROIPage {
       await Promise.race([
         this.page.waitForSelector('[data-testid*="person-card"]', { state: 'visible', timeout: 3000 }),
         this.page.waitForSelector('button:has-text("EDIT ROI")', { state: 'visible', timeout: 3000 }),
-        this.page.waitForTimeout(1000) // Fallback minimal wait
+        NetworkHelper.waitForAnimation(this.page)
       ]);
       this.logger.success('ROI tab opened - content loaded');
     } catch (e) {
@@ -681,7 +642,7 @@ export class ROIPage {
         this.logger.warn('ROI tab click failed, continuing to look for EDIT ROI button');
       }
       
-      await this.page.waitForTimeout(2000);
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
       
       // Look for "Edit ROI" button (case-insensitive)
       const editRoiBtn = this.page.getByRole('button', { name: /edit roi/i });
@@ -815,7 +776,7 @@ export class ROIPage {
     
     try {
       // Wait for form to load
-      await this.page.waitForTimeout(2000);
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
       
       // Try multiple selectors to find fee input
       let feeValue: string | null = null;
@@ -896,7 +857,7 @@ export class ROIPage {
     this.logger.info(`Removing ROI holder: ${personName}`);
     
     // Wait for edit page to be fully loaded
-    await this.page.waitForTimeout(2000);
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
     
     // Find the person heading (h2) that contains the name, then navigate up to the card
     const personHeading = this.page.locator(`h2:has-text("${personName}")`).first();
@@ -926,7 +887,7 @@ export class ROIPage {
     this.logger.info('Clicked REMOVE in confirmation dialog');
     
     // Wait for removal to process
-    await this.page.waitForTimeout(3000);
+    await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
     
     this.logger.success(`ROI holder "${personName}" removed successfully`);
   }
@@ -942,7 +903,7 @@ export class ROIPage {
     await this.clickRoiTab();
     
     // Wait for ROI content to load
-    await this.page.waitForTimeout(3000);
+    await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
     
     // Check if the person name exists on the page
     const personCount = await this.page.getByText(personName, { exact: false }).count();
@@ -976,7 +937,7 @@ export class ROIPage {
     this.logger.info(`Removing ROI applicant: ${personName}`);
 
     // Wait for edit page to be fully loaded
-    await this.page.waitForTimeout(2000);
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
 
     // Find the applicant card directly by its exact data-testid
     const applicantCard = this.page.locator('[data-testid="roi-form-div-info-card"]');
@@ -1003,7 +964,7 @@ export class ROIPage {
     this.logger.info('Clicked REMOVE in confirmation dialog');
 
     // Wait for removal to process
-    await this.page.waitForTimeout(3000);
+    await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
 
     this.logger.success(`ROI applicant "${personName}" removed successfully`);
   }
@@ -1019,7 +980,7 @@ export class ROIPage {
     await this.clickRoiTab();
 
     // Wait for ROI content to load
-    await this.page.waitForTimeout(3000);
+    await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
 
     // Check if the person name exists on the page
     const personCount = await this.page.getByText(personName, { exact: false }).count();
@@ -1051,7 +1012,7 @@ export class ROIPage {
     this.logger.info('Getting certificate number from ROI tab');
     
     await this.clickRoiTab();
-    await this.page.waitForTimeout(2000);
+    await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
     
     // Certificate number is displayed as "Certificate number :XXX" in ROI tab
     const certElement = this.page.locator('text=/Certificate number/').first();

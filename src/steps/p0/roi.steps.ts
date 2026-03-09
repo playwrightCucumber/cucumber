@@ -3,6 +3,7 @@ import { expect } from '@playwright/test';
 import { PlotPage } from '../../pages/p0/PlotPage.js';
 import { ROIPage } from '../../pages/p0/ROIPage.js';
 import { replacePlaceholdersInObject, replacePlaceholders } from '../../utils/TestDataHelper.js';
+import { NetworkHelper } from '../../utils/NetworkHelper.js';
 
 // Initialize page objects
 let plotPage: PlotPage;
@@ -88,7 +89,7 @@ When('I select the first vacant plot', { timeout: 15000 }, async function () {
   this.selectedPlotName = plotName; // Store for later reference
   // Click the plot to navigate to plot detail page
   await plotPage.page.getByText(`${plotName} Vacant`).click();
-  await plotPage.page.waitForTimeout(3000);
+  await NetworkHelper.waitForApiRequestsComplete(plotPage.page, 5000);
 });
 
 When('I select the first reserved plot', { timeout: 15000 }, async function () {
@@ -133,18 +134,18 @@ When('I save the ROI', { timeout: 35000 }, async function () {
   await roiTab.click();
   
   // Verify ROI tab is actually selected after click (with retry)
-  await page.waitForTimeout(500);
+  await NetworkHelper.waitForAnimation(page);
   const isSelected = await roiTab.getAttribute('aria-selected');
   
   if (isSelected !== 'true') {
     // Tab click didn't work, try again
     console.log('ROI tab not selected, clicking again...');
     await roiTab.click();
-    await page.waitForTimeout(500);
+    await NetworkHelper.waitForAnimation(page);
   }
   
-  // Wait 2 seconds for ROI data to load completely
-  await page.waitForTimeout(2000);
+  // Wait for ROI data to load completely
+  await NetworkHelper.waitForApiRequestsComplete(page, 5000);
 });
 
 Then('I should see ROI holder {string} in the ROI tab', { timeout: 20000 }, async function (holderName: string) {
@@ -152,7 +153,7 @@ Then('I should see ROI holder {string} in the ROI tab', { timeout: 20000 }, asyn
   const page = this.page;
   
   // Wait for ROI content to load after tab click
-  await page.waitForTimeout(3000);
+  await NetworkHelper.waitForApiRequestsComplete(page, 5000);
   
   // Verify ROI tab is selected
   const roiTab = page.getByRole('tab', { name: 'ROI' });
