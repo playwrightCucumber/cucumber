@@ -1,0 +1,204 @@
+- generic [ref=e6]:
+  - generic [ref=e8]:
+    - generic [ref=e11]:
+      - generic [ref=e12]: Astana Tegal Gundul
+      - generic [ref=e16]:
+        - generic [ref=e18]:
+          - img [ref=e20]:
+            - img [ref=e21]
+          - textbox "Search" [ref=e440]
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - generic [ref=e32]:
+              - img [ref=e33]:
+                - img [ref=e34]
+              - generic [ref=e37]: People
+            - generic [ref=e38]:
+              - img [ref=e39]:
+                - img [ref=e40]
+              - generic [ref=e45]: Plots
+          - heading "within Astana Tegal Gundul" [level=5] [ref=e441]
+      - generic [ref=e47]:
+        - button "Advanced" [ref=e442] [cursor=pointer]:
+          - generic [ref=e51]: Advanced
+        - generic [ref=e54]:
+          - button "Notifications - 6 unread" [ref=e443] [cursor=pointer]:
+            - img "Notification bell" [ref=e444]
+          - generic [ref=e58]: "6"
+    - button "Astana Tegal Gundul faris+astanaorg@chronicle.rip" [ref=e445] [cursor=pointer]:
+      - generic [ref=e64]:
+        - paragraph [ref=e65]: Astana Tegal Gundul
+        - generic [ref=e66]: faris+astanaorg@chronicle.rip
+  - generic:
+    - generic [ref=e68]:
+      - generic:
+        - generic:
+          - generic:
+            - img
+        - generic:
+          - generic:
+            - generic [ref=e286] [cursor=pointer]: Section LOT A2
+            - generic [ref=e287] [cursor=pointer]: Section LOT A1
+            - generic [ref=e288] [cursor=pointer]: Section LOT B1
+      - generic:
+        - generic:
+          - button [ref=e290] [cursor=pointer]
+          - button [ref=e291] [cursor=pointer]
+        - generic:
+          - link "Current location" [ref=e446] [cursor=pointer]:
+            - /url: "#"
+          - generic [ref=e82]:
+            - button "Zoom in" [ref=e447] [cursor=pointer]: +
+            - button "Zoom out" [ref=e448] [cursor=pointer]: −
+          - generic [ref=e85]:
+            - link "Leaflet" [ref=e449] [cursor=pointer]:
+              - /url: https://leafletjs.com
+              - img [ref=e87]
+              - text: Leaflet
+            - text: "| Map data ©"
+            - link "OpenStreetMap" [ref=e450] [cursor=pointer]:
+              - /url: https://www.openstreetmap.org/
+            - text: contributors,
+            - link "CC-BY-SA" [ref=e451] [cursor=pointer]:
+              - /url: https://creativecommons.org/licenses/by-sa/2.0/
+    - button [ref=e95] [cursor=pointer]:
+      - img [ref=e97]:
+        - img [ref=e98]
+  - generic [ref=e101]:
+    - generic [ref=e106] [cursor=pointer]:
+      - group [ref=e108]:
+        - button "Map" [pressed] [ref=e452]:
+          - generic [ref=e110]:
+            - img [ref=e112]:
+              - img [ref=e113]
+            - generic [ref=e115]: Map
+        - button "Tables" [ref=e453]:
+          - generic [ref=e117]:
+            - img [ref=e119]:
+              - img [ref=e120]
+            - generic [ref=e123]: Tables
+        - button "Calendar" [ref=e454]:
+          - generic [ref=e125]:
+            - img [ref=e127]:
+              - img [ref=e128]
+            - generic [ref=e130]: Calendar
+        - button "Request 67" [ref=e455]:
+          - generic [ref=e132]:
+            - img [ref=e134]:
+              - img [ref=e135]
+            - generic [ref=e138]: Request
+            - generic [ref=e139]: "67"
+        - button "Sales" [ref=e456]:
+          - generic [ref=e141]:
+            - img [ref=e143]:
+              - img [ref=e144]
+            - generic [ref=e147]: Sales
+        - button "Reports" [ref=e457]:
+          - generic [ref=e149]:
+            - img [ref=e151]:
+              - img [ref=e152]
+            - generic [ref=e155]: Reports
+      - group [disabled] [ref=e157]:
+        - button "help" [disabled] [ref=e458]:
+          - link "help" [disabled] [ref=e459]:
+            - /url: https://help.chronicle.rip/
+            - img "help" [ref=e460]
+        - button "home" [disabled] [ref=e461]:
+          - link "home" [disabled] [ref=e462]:
+            - /url: https://chronicle.rip/
+            - img "home" [ref=e463]
+    - generic [ref=e297]:
+      - generic [ref=e298]:
+        - generic [ref=e299]:
+          - generic [ref=e300] [cursor=pointer]:
+            - img [ref=e301]:
+              - img [ref=e302]
+            - generic [ref=e304]: Astana Tegal Gundul
+          - generic [ref=e305]:
+            - heading "All Plots" [level=3] [ref=e464]
+            - button "FILTER" [ref=e465] [cursor=pointer]:
+              - generic [ref=e309]:
+                - img [ref=e310]:
+                  - img [ref=e311]
+                - text: FILTER
+        - list [ref=e469] [cursor=pointer]:
+          - listitem [ref=e470]:
+            - generic [ref=e471]:
+              - generic [ref=e472]: Status
+              - generic [ref=e473]: Vacant
+            - button [ref=e474]:
+              - img [ref=e476]: close
+      - tree [ref=e315]:
+        - treeitem "toggle A A Section A E 5 Vacant A E 6 Vacant A E 7 Vacant A E 8 Vacant A E 9 Vacant A E 10 Vacant A E 11 Vacant A E 12 Vacant A E 13 Vacant A E 14 Vacant A E 15 Vacant A E 16 Vacant A E 17 Vacant A F 1 Vacant A F 2 Vacant A F 3 Vacant A F 4 Vacant A F 5 Vacant A F 6 Vacant A F 7 Vacant" [expanded] [level=1] [ref=e489]:
+          - button "toggle A" [active] [ref=e478] [cursor=pointer]:
+            - img [ref=e480]: expand_more
+          - generic [ref=e481] [cursor=pointer]:
+            - generic [ref=e482]: A
+            - text: Section
+          - list [ref=e491]:
+            - listitem [ref=e492] [cursor=pointer]:
+              - generic [ref=e493]: A E 5
+              - generic [ref=e494]: Vacant
+            - listitem [ref=e495] [cursor=pointer]:
+              - generic [ref=e496]: A E 6
+              - generic [ref=e497]: Vacant
+            - listitem [ref=e498] [cursor=pointer]:
+              - generic [ref=e499]: A E 7
+              - generic [ref=e500]: Vacant
+            - listitem [ref=e501] [cursor=pointer]:
+              - generic [ref=e502]: A E 8
+              - generic [ref=e503]: Vacant
+            - listitem [ref=e504] [cursor=pointer]:
+              - generic [ref=e505]: A E 9
+              - generic [ref=e506]: Vacant
+            - listitem [ref=e507] [cursor=pointer]:
+              - generic [ref=e508]: A E 10
+              - generic [ref=e509]: Vacant
+            - listitem [ref=e510] [cursor=pointer]:
+              - generic [ref=e511]: A E 11
+              - generic [ref=e512]: Vacant
+            - listitem [ref=e513] [cursor=pointer]:
+              - generic [ref=e514]: A E 12
+              - generic [ref=e515]: Vacant
+            - listitem [ref=e516] [cursor=pointer]:
+              - generic [ref=e517]: A E 13
+              - generic [ref=e518]: Vacant
+            - listitem [ref=e519] [cursor=pointer]:
+              - generic [ref=e520]: A E 14
+              - generic [ref=e521]: Vacant
+            - listitem [ref=e522] [cursor=pointer]:
+              - generic [ref=e523]: A E 15
+              - generic [ref=e524]: Vacant
+            - listitem [ref=e525] [cursor=pointer]:
+              - generic [ref=e526]: A E 16
+              - generic [ref=e527]: Vacant
+            - listitem [ref=e528] [cursor=pointer]:
+              - generic [ref=e529]: A E 17
+              - generic [ref=e530]: Vacant
+            - listitem [ref=e531] [cursor=pointer]:
+              - generic [ref=e532]: A F 1
+              - generic [ref=e533]: Vacant
+            - listitem [ref=e534] [cursor=pointer]:
+              - generic [ref=e535]: A F 2
+              - generic [ref=e536]: Vacant
+            - listitem [ref=e537] [cursor=pointer]:
+              - generic [ref=e538]: A F 3
+              - generic [ref=e539]: Vacant
+            - listitem [ref=e540] [cursor=pointer]:
+              - generic [ref=e541]: A F 4
+              - generic [ref=e542]: Vacant
+            - listitem [ref=e543] [cursor=pointer]:
+              - generic [ref=e544]: A F 5
+              - generic [ref=e545]: Vacant
+            - listitem [ref=e546] [cursor=pointer]:
+              - generic [ref=e547]: A F 6
+              - generic [ref=e548]: Vacant
+            - listitem [ref=e549] [cursor=pointer]:
+              - generic [ref=e550]: A F 7
+              - generic [ref=e551]: Vacant
+        - treeitem "toggle B B Section" [level=1] [ref=e483]:
+          - button "toggle B" [ref=e484] [cursor=pointer]:
+            - img [ref=e486]: chevron_right
+          - generic [ref=e487] [cursor=pointer]:
+            - generic [ref=e488]: B
+            - text: Section

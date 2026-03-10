@@ -57,7 +57,6 @@ export class FeedbackPage {
     if (!isVisible) {
       this.logger.info(`Panel ${index} not expanded, clicking header to expand`);
       await panel.locator('mat-expansion-panel-header').click();
-      await this.page.waitForTimeout(500);
       await body.waitFor({ state: 'visible', timeout: 5000 });
     }
   }
@@ -72,7 +71,6 @@ export class FeedbackPage {
     const continueBtn = body.locator('button:has-text("continue")');
     await continueBtn.scrollIntoViewIfNeeded();
     await continueBtn.click();
-    await this.page.waitForTimeout(500);
   }
 
   // ============================================
@@ -82,7 +80,7 @@ export class FeedbackPage {
   async clickRequestsButton(): Promise<void> {
     this.logger.info('Clicking REQUESTS button in content area');
     await this.page.locator(FeedbackSelectors.navigation.requestsButton).click();
-    await this.page.waitForTimeout(1500);
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 3000 });
   }
 
   async selectFeedbackFromMenu(): Promise<void> {
@@ -137,7 +135,6 @@ export class FeedbackPage {
     const body = this.getPanelBody(panelIndex);
     const input = body.locator(selector);
     await input.click();
-    await this.page.waitForTimeout(200);
     await input.fill(value);
   }
 
@@ -145,9 +142,9 @@ export class FeedbackPage {
     const body = this.getPanelBody(panelIndex);
     const select = body.locator(selectSelector);
     await select.click();
-    await this.page.waitForTimeout(300);
-    await this.page.locator(`mat-option:has-text("${optionText}")`).click();
-    await this.page.waitForTimeout(200);
+    const option = this.page.locator(`mat-option:has-text("${optionText}")`);
+    await option.waitFor({ state: 'visible', timeout: 5000 });
+    await option.click();
   }
 
   async fillApplicantForm(data: FeedbackApplicantData): Promise<void> {
@@ -216,9 +213,9 @@ export class FeedbackPage {
     const select = body.locator('mat-select').first();
     await select.waitFor({ state: 'visible', timeout: 10000 });
     await select.click();
-    await this.page.waitForTimeout(500);
-    await this.page.locator(FeedbackSelectors.section3_category.option(type)).click();
-    await this.page.waitForTimeout(300);
+    const option = this.page.locator(FeedbackSelectors.section3_category.option(type));
+    await option.waitFor({ state: 'visible', timeout: 5000 });
+    await option.click();
     this.logger.success(`Feedback type "${type}" selected`);
   }
 
@@ -240,7 +237,6 @@ export class FeedbackPage {
     const textarea = body.locator('textarea').first();
     await textarea.waitFor({ state: 'visible', timeout: 10000 });
     await textarea.click();
-    await this.page.waitForTimeout(200);
     await textarea.fill(message);
     this.logger.success('Feedback details filled');
   }
@@ -277,14 +273,14 @@ export class FeedbackPage {
   }
 
   async waitForSubmitEnabled(timeout: number = 10000): Promise<boolean> {
-    const startTime = Date.now();
-    while (Date.now() - startTime < timeout) {
-      if (await this.isSubmitEnabled()) {
-        return true;
-      }
-      await this.page.waitForTimeout(500);
+    try {
+      const submitBtn = this.page.locator(FeedbackSelectors.page.submitButton);
+      await submitBtn.waitFor({ state: 'visible', timeout });
+      await submitBtn.waitFor({ state: 'attached', timeout });
+      return !(await submitBtn.isDisabled());
+    } catch {
+      return false;
     }
-    return false;
   }
 
   async clickSubmitButton(): Promise<void> {

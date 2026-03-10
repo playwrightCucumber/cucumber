@@ -44,3 +44,4 @@ test-send-button.ts
 *.png
 !src/**/*.png
 !dashboard/client/**/*.png
+.github/workflows/copilot-setup-steps.yml

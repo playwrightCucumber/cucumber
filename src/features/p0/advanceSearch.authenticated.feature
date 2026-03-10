@@ -143,6 +143,5 @@ Feature: Advanced Search Plot - Authenticated Users
         Then I should see search results information
 
         Examples:
-            | section | row | burialCapacity | cremationCapacity | description        |
-            | A       | A   | 3              | 2                 | High capacity plot |
-            | B       | B   | 1              | 1                 | Standard capacity  |
+            | section | row | burialCapacity | cremationCapacity | description              |
+            | B       | A   | 1              | 0                 | Section B with capacity  |

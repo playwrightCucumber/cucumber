@@ -2,6 +2,7 @@ import { Page, expect } from '@playwright/test';
 import { AdvanceSearchSelectors } from '../../selectors/p0/advance-search/index.js';
 import { IntermentSelectors } from '../../selectors/p0/interment/index.js';
 import { Logger } from '../../utils/Logger.js';
+import { NetworkHelper } from '../../utils/NetworkHelper.js';
 
 /**
  * AdvanceSearchPage - Page Object Model for Advanced Search functionality
@@ -30,26 +31,16 @@ export class AdvanceSearchPage {
     await advancedButton.waitFor({ state: 'visible', timeout: 10000 });
     this.logger.info('Advanced button visible, waiting for it to be enabled...');
 
-    // Wait for button to be enabled by using isEnabled check in a loop
-    let isEnabled = false;
-    const maxAttempts = 30; // 30 attempts * 500ms = 15 seconds max
-    for (let i = 0; i < maxAttempts; i++) {
-      isEnabled = await advancedButton.isEnabled();
-      if (isEnabled) {
-        break;
-      }
-      await this.page.waitForTimeout(500);
-    }
-
-    if (!isEnabled) {
-      throw new Error('Advanced search button did not become enabled within timeout');
-    }
+    // Wait for button to be enabled
+    await expect(advancedButton).toBeEnabled({ timeout: 15000 });
 
     this.logger.info('Advanced button is now enabled, clicking...');
 
     // Click the button
     await advancedButton.click();
-    await this.page.waitForTimeout(1000); // Wait for dialog to open
+
+    // Wait for dialog to open
+    await this.page.locator('.advanced-search-form').waitFor({ state: 'visible', timeout: 10000 });
     this.logger.success('Advanced search dialog opened');
   }
 
@@ -62,13 +53,14 @@ export class AdvanceSearchPage {
 
     // Section combobox has testid 'filter-section-row-input-number'
     await this.page.getByTestId('filter-section-row-input-number').click();
-    await this.page.waitForTimeout(500);
 
     // Wait for the option to be visible before clicking
     const sectionOption = this.page.getByRole('option', { name: section, exact: true });
     await sectionOption.waitFor({ state: 'visible', timeout: 5000 });
     await sectionOption.click();
-    await this.page.waitForTimeout(500);
+
+    // Wait for dropdown to close
+    await sectionOption.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
 
     this.logger.success(`Section ${section} selected`);
   }
@@ -82,13 +74,14 @@ export class AdvanceSearchPage {
 
     // Row is a combobox with aria-label "Row"
     await this.page.getByRole('combobox', { name: 'Row' }).click();
-    await this.page.waitForTimeout(500);
 
     // Wait for the option to be visible before clicking
     const rowOption = this.page.getByRole('option', { name: row, exact: true });
     await rowOption.waitFor({ state: 'visible', timeout: 5000 });
     await rowOption.click();
-    await this.page.waitForTimeout(500);
+
+    // Wait for dropdown to close
+    await rowOption.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
 
     this.logger.success(`Row ${row} selected`);
   }
@@ -104,9 +97,7 @@ export class AdvanceSearchPage {
     // The testid is 'filter-section-row-input-12' where 12 is the placeholder value
     const numberField = this.page.getByTestId('filter-section-row-input-12');
     await numberField.click();
-    await this.page.waitForTimeout(300);
     await numberField.fill(number);
-    await this.page.waitForTimeout(500);
 
     this.logger.success(`Plot number ${number} entered`);
   }
@@ -132,23 +123,21 @@ export class AdvanceSearchPage {
     if (isAlreadyOnSearchPage) {
       // Already on search page, just wait for results to update
       this.logger.info('Already on search page, waiting for results to update...');
-      await this.page.waitForTimeout(3000);
       
       // Wait for the search results heading to be updated (it should change text)
       await this.page.waitForSelector(AdvanceSearchSelectors.searchResultsHeading, { 
         state: 'visible', 
-        timeout: 5000 
+        timeout: 10000 
       });
     } else {
       // Wait for navigation to search page
       this.logger.info('Waiting for navigation to search results page...');
       await this.page.waitForURL('**/search/advance', { timeout: 10000 });
-      await this.page.waitForTimeout(3000); // Wait for results to load
       
       // Verify we're on the search page by checking for results heading
       await this.page.waitForSelector(AdvanceSearchSelectors.searchResultsHeading, { 
         state: 'visible', 
-        timeout: 5000 
+        timeout: 10000 
       });
     }
 
@@ -188,7 +177,7 @@ export class AdvanceSearchPage {
 
     // Wait for navigation to plot detail page
     await this.page.waitForURL('**/plots/**', { timeout: 10000 });
-    await this.page.waitForTimeout(3000); // Wait for sidebar to load
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
 
     this.logger.success(`Navigated to plot ${plotId} detail page`);
   }
@@ -233,9 +222,7 @@ export class AdvanceSearchPage {
 
     const plotIdField = this.page.getByRole('textbox', { name: 'Plot ID' });
     await plotIdField.click();
-    await this.page.waitForTimeout(300);
     await plotIdField.fill(plotId);
-    await this.page.waitForTimeout(500);
 
     this.logger.success(`Plot ID ${plotId} entered`);
   }
@@ -249,7 +236,6 @@ export class AdvanceSearchPage {
 
     // Click the plot type combobox
     await this.page.getByRole('combobox', { name: 'Plot type' }).click();
-    await this.page.waitForTimeout(500);
 
     // Wait for the option to be visible before clicking (important for slower environments)
     const plotTypeOption = this.page.getByRole('option', { name: plotType, exact: true });
@@ -257,7 +243,9 @@ export class AdvanceSearchPage {
     this.logger.info(`Plot type option "${plotType}" is visible, clicking...`);
 
     await plotTypeOption.click();
-    await this.page.waitForTimeout(500);
+
+    // Wait for dropdown to close
+    await plotTypeOption.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
 
     this.logger.success(`Plot type ${plotType} selected`);
   }
@@ -270,13 +258,14 @@ export class AdvanceSearchPage {
     this.logger.info(`Selecting Status: ${status}`);
 
     await this.page.getByRole('combobox', { name: 'Status' }).click();
-    await this.page.waitForTimeout(500);
 
     // Wait for the option to be visible before clicking
     const statusOption = this.page.getByRole('option', { name: status, exact: true });
     await statusOption.waitFor({ state: 'visible', timeout: 5000 });
     await statusOption.click();
-    await this.page.waitForTimeout(500);
+
+    // Wait for dropdown to close
+    await statusOption.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
 
     this.logger.success(`Status ${status} selected`);
   }
@@ -290,9 +279,7 @@ export class AdvanceSearchPage {
 
     const priceField = this.page.getByRole('textbox', { name: 'Price ($)' });
     await priceField.click();
-    await this.page.waitForTimeout(300);
     await priceField.fill(price);
-    await this.page.waitForTimeout(500);
 
     this.logger.success(`Price ${price} entered`);
   }
@@ -312,11 +299,9 @@ export class AdvanceSearchPage {
     
     // Clear any existing value first
     await burialCapacityField.clear();
-    await this.page.waitForTimeout(300);
     
     // Fill with new value
     await burialCapacityField.fill(capacity);
-    await this.page.waitForTimeout(500);
     
     // Verify value was entered correctly
     const enteredValue = await burialCapacityField.inputValue();
@@ -324,7 +309,6 @@ export class AdvanceSearchPage {
       this.logger.warn(`Value mismatch: expected "${capacity}", got "${enteredValue}". Retrying...`);
       await burialCapacityField.clear();
       await burialCapacityField.fill(capacity);
-      await this.page.waitForTimeout(300);
     }
 
     this.logger.success(`Burial capacity ${capacity} entered`);
@@ -345,11 +329,9 @@ export class AdvanceSearchPage {
     
     // Clear any existing value first
     await entombmentCapacityField.clear();
-    await this.page.waitForTimeout(300);
     
     // Fill with new value
     await entombmentCapacityField.fill(capacity);
-    await this.page.waitForTimeout(500);
     
     // Verify value was entered correctly
     const enteredValue = await entombmentCapacityField.inputValue();
@@ -357,7 +339,6 @@ export class AdvanceSearchPage {
       this.logger.warn(`Value mismatch: expected "${capacity}", got "${enteredValue}". Retrying...`);
       await entombmentCapacityField.clear();
       await entombmentCapacityField.fill(capacity);
-      await this.page.waitForTimeout(300);
     }
 
     this.logger.success(`Entombment capacity ${capacity} entered`);
@@ -378,11 +359,9 @@ export class AdvanceSearchPage {
     
     // Clear any existing value first
     await cremationCapacityField.clear();
-    await this.page.waitForTimeout(300);
     
     // Fill with new value
     await cremationCapacityField.fill(capacity);
-    await this.page.waitForTimeout(500);
     
     // Verify value was entered correctly
     const enteredValue = await cremationCapacityField.inputValue();
@@ -390,7 +369,6 @@ export class AdvanceSearchPage {
       this.logger.warn(`Value mismatch: expected "${capacity}", got "${enteredValue}". Retrying...`);
       await cremationCapacityField.clear();
       await cremationCapacityField.fill(capacity);
-      await this.page.waitForTimeout(300);
     }
 
     this.logger.success(`Cremation capacity ${capacity} entered`);
@@ -409,12 +387,10 @@ export class AdvanceSearchPage {
     const fromField = this.page.getByTestId('plot-form-input');
     await fromField.waitFor({ state: 'visible', timeout: 5000 });
     await fromField.fill(from);
-    await this.page.waitForTimeout(500);
 
     const toField = this.page.getByTestId('plot-form-input-0');
     await toField.waitFor({ state: 'visible', timeout: 5000 });
     await toField.fill(to);
-    await this.page.waitForTimeout(500);
 
     this.logger.success(`Interments Qty ${from} - ${to} entered`);
   }
@@ -427,10 +403,6 @@ export class AdvanceSearchPage {
 
     // Wait for search results to load and be visible
     // The search results div contains the plot list after advance search
-    await this.page.waitForTimeout(3000);
-
-    // Use the specific testid for the search result div
-    // This selector was verified to work with MCP Playwright browser
     const searchResultDiv = this.page.getByTestId('advance-search-result-div-search-list');
 
     // Wait for the element to be visible and clickable
@@ -441,7 +413,7 @@ export class AdvanceSearchPage {
 
     // Wait for navigation to plot detail page
     await this.page.waitForURL('**/plots/**', { timeout: 15000 });
-    await this.page.waitForTimeout(3000); // Wait for sidebar to load
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
 
     this.logger.success('Navigated to plot detail page');
   }
@@ -456,7 +428,7 @@ export class AdvanceSearchPage {
 
     // Wait for navigation to edit plot page
     await this.page.waitForURL('**/manage/edit/plot', { timeout: 10000 });
-    await this.page.waitForTimeout(2000); // Wait for page to load
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
 
     this.logger.success('Navigated to edit plot page');
   }
@@ -502,7 +474,7 @@ export class AdvanceSearchPage {
     this.logger.info('Closing edit plot page');
 
     await this.page.goBack();
-    await this.page.waitForTimeout(2000);
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
 
     this.logger.success('Edit plot page closed, returned to plot detail');
   }

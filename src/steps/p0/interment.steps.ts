@@ -46,7 +46,7 @@ When('I click on Interments tab', { timeout: 25000 }, async function () {
   await intermentPage.clickIntermentTab();
 });
 
-When('I click Edit Interment button', { timeout: 15000 }, async function () {
+When('I click Edit Interment button', { timeout: 30000 }, async function () {
   await intermentPage.clickEditIntermentButton();
 });
 

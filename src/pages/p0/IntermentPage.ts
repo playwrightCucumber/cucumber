@@ -1,6 +1,7 @@
 import { Page, expect } from '@playwright/test';
 import { IntermentSelectors } from '../../selectors/p0/interment/index.js';
 import { Logger } from '../../utils/Logger.js';
+import { NetworkHelper } from '../../utils/NetworkHelper.js';
 
 export interface IntermentData {
   firstName: string;
@@ -40,7 +41,6 @@ export class IntermentPage {
     // Wait for button to be visible and clickable
     const button = this.page.locator(IntermentSelectors.addIntermentButton);
     await button.waitFor({ state: 'visible', timeout: 15000 });
-    await this.page.waitForTimeout(1000); // Small wait for page to stabilize
     
     this.logger.info('Add Interment button found, clicking...');
     await button.click();
@@ -63,7 +63,7 @@ export class IntermentPage {
     }
     
     // Wait for form to be visible
-    await this.page.waitForTimeout(3000); // Wait for form sections to load
+    await this.page.getByLabel('First name').first().waitFor({ state: 'visible', timeout: 15000 });
     this.logger.success('Add Interment form loaded');
   }
 
@@ -74,23 +74,20 @@ export class IntermentPage {
   async fillIntermentForm(data: IntermentData): Promise<void> {
     this.logger.info('Filling interment form');
 
-    // Wait for form fields to be visible (production needs more time)
-    await this.page.waitForTimeout(3000);
+    // Wait for form fields to be visible
+    const firstNameField = this.page.getByLabel('First name').first();
+    await firstNameField.waitFor({ state: 'visible', timeout: 10000 });
     
     // Fill Deceased Person section - required fields
     this.logger.info(`Filling first name: ${data.firstName}`);
-    const firstNameField = this.page.getByLabel('First name').first();
-    await firstNameField.waitFor({ state: 'visible', timeout: 10000 });
     await firstNameField.click(); // Click to focus
     await firstNameField.fill(data.firstName);
-    await this.page.waitForTimeout(500);
 
     this.logger.info(`Filling last name: ${data.lastName}`);
     const lastNameField = this.page.getByLabel('Last name').first();
     await lastNameField.waitFor({ state: 'visible', timeout: 10000 });
     await lastNameField.click();
     await lastNameField.fill(data.lastName);
-    await this.page.waitForTimeout(500);
 
     // Fill optional fields if provided
     if (data.middleName) {
@@ -130,7 +127,6 @@ export class IntermentPage {
 
     // Scroll to Interment Details section
     await this.page.evaluate('window.scrollTo(0, 400)');
-    await this.page.waitForTimeout(500);
 
     // Fill Interment Details section - required field
     this.logger.info(`Selecting interment type: ${data.intermentType}`);
@@ -159,11 +155,14 @@ export class IntermentPage {
     
     // Click dropdown using getByLabel
     await this.page.getByLabel('Interment type').click();
-    await this.page.waitForTimeout(500); // Wait for dropdown to open
     
     // Select option
-    await this.page.getByRole('option', { name: type }).click();
-    await this.page.waitForTimeout(500);
+    const typeOption = this.page.getByRole('option', { name: type });
+    await typeOption.waitFor({ state: 'visible', timeout: 5000 });
+    await typeOption.click();
+    
+    // Wait for dropdown to close
+    await typeOption.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
     
     this.logger.success(`Interment type ${type} selected`);
   }
@@ -179,7 +178,7 @@ export class IntermentPage {
     
     // Wait for redirect back to plot detail page (longer timeout for production)
     await this.page.waitForURL('**/plots/**', { timeout: 30000 });
-    await this.page.waitForTimeout(3000); // Wait for page to fully load
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 5000 });
     
     this.logger.success('Interment saved and redirected to plot detail');
   }
@@ -193,27 +192,20 @@ export class IntermentPage {
     // Wait for tab to be visible first
     const intermentsTab = this.page.getByRole('tab', { name: /INTERMENTS/i });
     await intermentsTab.waitFor({ state: 'visible', timeout: 10000 });
-    await this.page.waitForTimeout(500);
     
     // Click the tab
     await intermentsTab.click();
     this.logger.info('INTERMENTS tab clicked, waiting for content to load...');
     
     // Wait for tab to be selected
-    await this.page.waitForTimeout(2000);
-    
-    // Verify tab is selected
-    const isSelected = await intermentsTab.getAttribute('aria-selected');
-    if (isSelected === 'true') {
-      this.logger.success('INTERMENTS tab selected successfully');
-    } else {
+    await expect(intermentsTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 }).catch(async () => {
       this.logger.info('Retrying tab click...');
       await intermentsTab.click();
-      await this.page.waitForTimeout(2000);
-    }
+      await expect(intermentsTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 }).catch(() => {});
+    });
     
     // Wait for content to stabilize
-    await this.page.waitForTimeout(3000);
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 5000 });
     this.logger.success('INTERMENTS tab clicked');
   }
 
@@ -234,11 +226,8 @@ export class IntermentPage {
       await this.clickIntermentsTab();
     } else {
       this.logger.info('Already on INTERMENTS tab');
-      await this.page.waitForTimeout(2000); // Wait for content to stabilize
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
     }
-    
-    // Wait for page to load (longer for production)
-    await this.page.waitForTimeout(3000);
     
     // Verify deceased name appears as heading
     const deceasedHeading = this.page.locator(IntermentSelectors.deceasedNameHeading(fullName));
@@ -267,7 +256,7 @@ export class IntermentPage {
   async addIntermentApplicant(): Promise<void> {
     this.logger.info('Adding interment applicant');
     await this.page.click(IntermentSelectors.addIntermentApplicantButton);
-    await this.page.waitForTimeout(1000);
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
     this.logger.success('Interment applicant form opened');
   }
 
@@ -278,7 +267,7 @@ export class IntermentPage {
   async addNextOfKin(): Promise<void> {
     this.logger.info('Adding next of kin');
     await this.page.click(IntermentSelectors.addNextOfKinButton);
-    await this.page.waitForTimeout(1000);
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
     this.logger.success('Next of kin form opened');
   }
 
@@ -294,24 +283,17 @@ export class IntermentPage {
     // Wait for tab to be visible first
     const intermentsTab = this.page.getByRole('tab', { name: /INTERMENTS/i });
     await intermentsTab.waitFor({ state: 'visible', timeout: 10000 });
-    await this.page.waitForTimeout(500);
 
     // Click the tab
     await intermentsTab.click();
     this.logger.info('INTERMENTS tab clicked, waiting for content to load...');
 
     // Wait for tab to be selected
-    await this.page.waitForTimeout(2000);
-
-    // Verify tab is selected
-    const isSelected = await intermentsTab.getAttribute('aria-selected');
-    if (isSelected === 'true') {
-      this.logger.success('INTERMENTS tab selected successfully');
-    } else {
+    await expect(intermentsTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 }).catch(async () => {
       this.logger.info('Retrying tab click...');
       await intermentsTab.click();
-      await this.page.waitForTimeout(2000);
-    }
+      await expect(intermentsTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 }).catch(() => {});
+    });
 
     // Wait for content to stabilize - wait for network to be idle
     try {
@@ -320,7 +302,7 @@ export class IntermentPage {
       // Network idle timeout is ok, continue
       this.logger.info('Network idle timeout, continuing...');
     }
-    await this.page.waitForTimeout(2000);
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
     this.logger.success('INTERMENTS tab opened');
   }
 
@@ -336,7 +318,6 @@ export class IntermentPage {
     // Wait for button to be visible and enabled
     const editButton = this.page.getByTestId('interment-item-button-edit-interment');
     await editButton.waitFor({ state: 'visible', timeout: 15000 });
-    await this.page.waitForTimeout(1000); // Wait for animations
     
     this.logger.info('Edit button found, clicking...');
     await editButton.click();
@@ -353,7 +334,7 @@ export class IntermentPage {
       }
     }
     
-    await this.page.waitForTimeout(3000); // Wait for form to fully load
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 5000 });
     this.logger.success('Edit Interment form loaded');
   }
 
@@ -365,7 +346,7 @@ export class IntermentPage {
     this.logger.info('Checking if interment list needs to be expanded');
     
     // Wait for INTERMENTS tab content to be visible
-    await this.page.waitForTimeout(2000);
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
     
     // Check if there's an expand button for interment list
     // This button typically appears when there are multiple interments in a plot
@@ -378,7 +359,7 @@ export class IntermentPage {
       if (isVisible) {
         this.logger.info('Multiple interments detected, expanding list...');
         await expandButton.click();
-        await this.page.waitForTimeout(1000); // Wait for list to expand
+        await NetworkHelper.waitForAnimation(this.page);
         this.logger.success('Interment list expanded');
       } else {
         this.logger.info('Single interment detected, no need to expand');
@@ -415,7 +396,8 @@ export class IntermentPage {
 
       await deceasedPersonButton.click();
       this.logger.success('Clicked "Deceased person" button');
-      await this.page.waitForTimeout(1000);
+      // Wait for form fields to appear
+      await this.page.getByLabel('First name').first().waitFor({ state: 'visible', timeout: 10000 });
     } catch (e) {
       this.logger.error(`Failed to click "Deceased person" button: ${e}`);
       throw e;
@@ -433,7 +415,6 @@ export class IntermentPage {
         await firstNameField.clear();
         await firstNameField.fill(data.firstName);
         this.logger.success(`First name updated to: ${data.firstName}`);
-        await this.page.waitForTimeout(500);
       } catch (e) {
         this.logger.error(`Failed to update first name: ${e}`);
 
@@ -456,7 +437,6 @@ export class IntermentPage {
         await lastNameField.clear();
         await lastNameField.fill(data.lastName);
         this.logger.success(`Last name updated to: ${data.lastName}`);
-        await this.page.waitForTimeout(500);
       } catch (e) {
         this.logger.error(`Failed to update last name: ${e}`);
         throw e;
@@ -471,7 +451,6 @@ export class IntermentPage {
         await middleNameField.click();
         await middleNameField.clear();
         this.logger.success('Middle name cleared');
-        await this.page.waitForTimeout(500);
       } catch (e) {
         this.logger.info(`Middle name field not found or error clearing: ${e}`);
       }
@@ -501,7 +480,8 @@ export class IntermentPage {
 
         await intermentDetailsButton.click();
         this.logger.success('Clicked "Interment details" button');
-        await this.page.waitForTimeout(1000);
+        // Wait for interment type dropdown to be visible
+        await this.page.getByLabel('Interment type').waitFor({ state: 'visible', timeout: 10000 });
 
         this.logger.info(`Updating interment type to: ${data.intermentType}`);
         await this.selectIntermentType(data.intermentType);

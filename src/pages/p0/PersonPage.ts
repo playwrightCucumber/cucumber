@@ -52,11 +52,11 @@ export class PersonPage {
     try {
       await personApiPromise;
       this.logger.info('Person API response received');
-      // Small wait to ensure data is rendered
-      await this.page.waitForTimeout(500);
+      // Wait for data to render
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
     } catch (error) {
-      this.logger.warn('Could not detect person API, waiting with timeout instead');
-      await this.page.waitForTimeout(2000);
+      this.logger.warn('Could not detect person API, waiting for stabilization instead');
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
     }
   }
 
@@ -151,11 +151,9 @@ export class PersonPage {
     
     // Clear field first
     await field.clear();
-    await this.page.waitForTimeout(300);
     
     // Fill field
     await field.fill(value);
-    await this.page.waitForTimeout(300);
   }
 
   /**
@@ -170,9 +168,6 @@ export class PersonPage {
     await dropdown.click();
     
     // Wait for dropdown options to appear
-    await this.page.waitForTimeout(500);
-    
-    // Select option - using exact match with getByRole
     const option = this.page.getByRole('option', { name: gender, exact: true });
     await option.waitFor({ state: 'visible', timeout: 5000 });
     await option.click();
@@ -233,11 +228,11 @@ export class PersonPage {
     try {
       await personApiPromise;
       this.logger.info('Person API response received after save');
-      // Small wait to ensure data is rendered
-      await this.page.waitForTimeout(500);
+      // Wait for data to render
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
     } catch (error) {
-      this.logger.warn('Could not detect person API, waiting with timeout instead');
-      await this.page.waitForTimeout(2000);
+      this.logger.warn('Could not detect person API, waiting for stabilization instead');
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
     }
   }
 
@@ -315,8 +310,8 @@ export class PersonPage {
     await saveButton.click();
     this.logger.info('Save button clicked');
     
-    // Wait a bit to see if API call is made
-    await this.page.waitForTimeout(2000);
+    // Wait for save API response
+    const response = await responsePromise;
     
     // Remove console listener
     this.page.off('console', consoleListener);
@@ -324,9 +319,6 @@ export class PersonPage {
     if (consoleMessages.length > 0) {
       this.logger.warn(`Console errors after save click: ${consoleMessages.join(', ')}`);
     }
-    
-    // Wait for save API response
-    const response = await responsePromise;
     if (response) {
       const status = response.status();
       this.logger.info(`Save API response status: ${status}`);
@@ -352,11 +344,11 @@ export class PersonPage {
     try {
       await personApiPromise;
       this.logger.info('Person list API response received after save');
-      // Small wait to ensure data is rendered
-      await this.page.waitForTimeout(500);
+      // Wait for data to render
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
     } catch (error) {
-      this.logger.warn('Could not detect person API, waiting with timeout instead');
-      await this.page.waitForTimeout(2000);
+      this.logger.warn('Could not detect person API, waiting for stabilization instead');
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
     }
   }
 
@@ -449,7 +441,8 @@ export class PersonPage {
     await filterButton.click();
     
     this.logger.info('Filter dialog opened');
-    await this.page.waitForTimeout(500); // Wait for filter dialog to open
+    // Wait for filter dialog to fully render
+    await this.page.locator('[role="dialog"]').waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
   }
 
   /**
@@ -494,31 +487,22 @@ export class PersonPage {
       await personApiPromise;
       this.logger.info('Person API response received after filter');
     } catch (error) {
-      this.logger.warn('Could not detect person API, waiting with timeout instead');
+      this.logger.warn('Could not detect person API, waiting for stabilization instead');
     }
 
-    // Wait for filter dialog to close - the filter button should become visible again
-    // (or the filter dialog should disappear)
-    await this.page.waitForTimeout(500);
-
-    // Wait for the filter dialog to close by checking if the filter button is visible again
-    // or if the filter dialog is no longer visible
+    // Wait for the filter dialog to close
     try {
-      // Wait for either the filter button to be clickable again or dialog to disappear
       await this.page.waitForFunction(() => {
-        // Check if filter dialog is still open
         const dialog = document.querySelector('[role="dialog"]');
         if (dialog && dialog.getBoundingClientRect().width > 0) {
-          return false; // Dialog still open
+          return false;
         }
-        return true; // Dialog closed
+        return true;
       }, { timeout: 5000 });
       this.logger.info('Filter dialog closed');
     } catch (error) {
       this.logger.info('Could not verify dialog closed, continuing anyway');
     }
-
-    await this.page.waitForTimeout(500);
   }
 
   /**
@@ -549,9 +533,8 @@ export class PersonPage {
       this.logger.info('Successfully navigated to person edit page');
     } catch (error) {
       this.logger.warn('Did not navigate to edit page, might need different approach');
-      // If double click doesn't work, try single click and wait
       await firstDataRow.click();
-      await this.page.waitForTimeout(2000);
+      await this.page.waitForURL('**/manage/edit/person/**', { timeout: 10000 }).catch(() => {});
     }
   }
 
@@ -566,7 +549,7 @@ export class PersonPage {
     await editButton.click();
     
     this.logger.info('Edit button clicked, navigating to edit form');
-    await this.page.waitForTimeout(1000);
+    await this.page.waitForURL('**/manage/edit/person/**', { timeout: 10000 });
   }
 
   /**
@@ -592,29 +575,23 @@ export class PersonPage {
     
     // Click to focus
     await lastNameInput.click();
-    await this.page.waitForTimeout(200);
     
     // Clear field completely using multiple methods
     await lastNameInput.clear();
-    await this.page.waitForTimeout(300);
     
     // Verify field is empty
     let fieldValue = await lastNameInput.inputValue();
     if (fieldValue) {
       this.logger.info('Field not empty after clear, trying select all + delete');
       await lastNameInput.click({ clickCount: 3 }); // Triple click to select all
-      await this.page.waitForTimeout(200);
       await this.page.keyboard.press('Backspace');
-      await this.page.waitForTimeout(300);
     }
     
     // Type the new value
     await lastNameInput.type(newLastName, { delay: 50 });
-    await this.page.waitForTimeout(300);
     
     // Blur to trigger validation
     await this.page.keyboard.press('Tab');
-    await this.page.waitForTimeout(500);
     
     // Verify the value was actually set
     const actualValue = await lastNameInput.inputValue();
@@ -635,8 +612,10 @@ export class PersonPage {
     const deleteButton = this.page.locator(PersonSelectors.deleteButton);
     await deleteButton.waitFor({ state: 'visible', timeout: 10000 });
     await deleteButton.click();
-    await this.page.waitForTimeout(1000);
-    this.logger.info('Delete button clicked, waiting for confirmation dialog');
+
+    // Wait for confirmation dialog
+    await this.page.locator(PersonSelectors.confirmDeleteButton).last().waitFor({ state: 'visible', timeout: 10000 });
+    this.logger.info('Delete button clicked, confirmation dialog visible');
   }
 
   /**
@@ -687,10 +666,10 @@ export class PersonPage {
     try {
       await personApiPromise;
       this.logger.info('Person list API response received after delete');
-      await this.page.waitForTimeout(500);
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
     } catch (error) {
-      this.logger.warn('Could not detect person API, waiting with timeout instead');
-      await this.page.waitForTimeout(2000);
+      this.logger.warn('Could not detect person API, waiting for stabilization instead');
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
     }
   }
 
@@ -706,7 +685,7 @@ export class PersonPage {
 
     // Wait for page to be fully loaded
     await this.page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
-    await this.page.waitForTimeout(1000);
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
 
     // Open filter dialog
     await this.clickFilterButton();
@@ -718,7 +697,7 @@ export class PersonPage {
     await this.applyFilter();
 
     // Wait for table to reload with filtered results
-    await this.page.waitForTimeout(2000);
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 3000 });
 
     // Wait for table to finish loading
     try {
@@ -750,7 +729,7 @@ export class PersonPage {
     if (hasData.rows < 2) {
       // Not enough rows - might be "no results" or still loading
       this.logger.warn(`Table has only ${hasData.rows} rows, waiting longer...`);
-      await this.page.waitForTimeout(3000);
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 1000, maxWait: 5000 });
 
       // Check again
       const retryData = await this.page.evaluate(() => {
@@ -826,7 +805,7 @@ export class PersonPage {
     await this.page.reload({ waitUntil: 'networkidle' });
     this.logger.info('Page reloaded to clear filters');
 
-    await this.page.waitForTimeout(2000);
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
 
     // Wait for table to finish loading
     try {
@@ -835,8 +814,6 @@ export class PersonPage {
     } catch (error) {
       this.logger.info('No loading indicators found or already loaded');
     }
-
-    await this.page.waitForTimeout(1000);
 
     // Get all person names from the table
     const allNames = await this.page.evaluate(() => {
@@ -885,7 +862,7 @@ export class PersonPage {
       this.logger.info('No loading indicators found or already loaded');
     }
 
-    await this.page.waitForTimeout(1000);
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
     this.logger.success('Filter cleared');
   }
 }

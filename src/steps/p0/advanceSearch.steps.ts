@@ -6,6 +6,7 @@ import { AdvanceSearchPage } from '../../pages/p0/AdvanceSearchPage.js';
 import { Logger } from '../../utils/Logger.js';
 import { replacePlaceholders } from '../../utils/TestDataHelper.js';
 import { BASE_CONFIG } from '../../data/test-data.js';
+import { NetworkHelper } from '../../utils/NetworkHelper.js';
 
 // Initialize logger and page object
 const logger = new Logger('AdvanceSearchPlotSteps');
@@ -21,7 +22,8 @@ Given('I am on the Chronicle home page', { timeout: 10000 }, async function () {
   const baseUrl = BASE_CONFIG.baseUrl;
   logger.info(`Navigating to Chronicle home page: ${baseUrl}`);
   await page.goto(baseUrl);
-  await page.waitForTimeout(3000); // Wait for page to load
+  await page.waitForLoadState('domcontentloaded');
+  await NetworkHelper.waitForStabilization(page, { minWait: 500, maxWait: 5000 });
   logger.success('Chronicle home page loaded');
 });
 
@@ -29,9 +31,10 @@ Given('I am on the Chronicle home page', { timeout: 10000 }, async function () {
 When('I click Advanced search button without login', { timeout: 10000 }, async function () {
   const page: Page = this.page;
   logger.info('Clicking Advanced search button');
-  await page.waitForTimeout(1000); // Wait for button to be ready
-  await page.locator(AdvanceSearchSelectors.advancedSearchButton).click();
-  await page.waitForTimeout(1000); // Wait for dialog to open
+  const advancedButton = page.locator(AdvanceSearchSelectors.advancedSearchButton);
+  await advancedButton.waitFor({ state: 'visible', timeout: 10000 });
+  await advancedButton.click();
+  await page.locator('.advanced-search-form').waitFor({ state: 'visible', timeout: 10000 });
   logger.success('Advanced search dialog opened');
 });
 
@@ -42,15 +45,15 @@ When('I select cemetery {string} in advanced search', { timeout: 10000 }, async 
 
   // Click cemetery combobox using getByRole (more robust than CSS selector)
   await page.getByRole('combobox', { name: 'Cemeteries' }).click();
-  await page.waitForTimeout(500);
 
   // Select the cemetery option using exact match to avoid strict mode violations
-  await page.getByRole('option', { name: cemetery, exact: true }).click();
-  await page.waitForTimeout(500);
+  const cemeteryOption = page.getByRole('option', { name: cemetery, exact: true });
+  await cemeteryOption.waitFor({ state: 'visible', timeout: 10000 });
+  await cemeteryOption.click();
 
   // Close the dropdown by pressing Escape (required before clicking Plot tab)
   await page.keyboard.press('Escape');
-  await page.waitForTimeout(300);
+  await cemeteryOption.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
 
   logger.success(`Cemetery ${cemetery} selected`);
 });
@@ -60,11 +63,11 @@ When('I select Plot tab in advanced search', { timeout: 15000 }, async function 
   logger.info('Clicking Plot tab');
 
   // Wait a bit for the dialog to settle after cemetery selection
-  await page.waitForTimeout(1000);
+  const plotTabButton = page.getByRole('button', { name: 'Plot', exact: true });
+  await plotTabButton.waitFor({ state: 'visible', timeout: 10000 });
 
   // Click Plot tab using getByRole with aria-label
-  await page.getByRole('button', { name: 'Plot', exact: true }).click();
-  await page.waitForTimeout(500);
+  await plotTabButton.click();
 
   logger.success('Plot tab selected');
 });
@@ -77,11 +80,14 @@ When('I select section {string} in advanced search without login', { timeout: 10
 
   // Click section combobox using getByRole (the combobox has aria-label="Number")
   await page.getByRole('combobox', { name: 'Number' }).click();
-  await page.waitForTimeout(500);
 
   // Select the section option
-  await page.getByRole('option', { name: sec, exact: true }).click();
-  await page.waitForTimeout(500);
+  const sectionOption = page.getByRole('option', { name: sec, exact: true });
+  await sectionOption.waitFor({ state: 'visible', timeout: 5000 });
+  await sectionOption.click();
+
+  // Wait for dropdown to close
+  await sectionOption.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
 
   logger.success(`Section ${sec} selected`);
 });
@@ -93,11 +99,14 @@ When('I select row {string} in advanced search without login', { timeout: 10000 
 
   // Click row combobox using getByRole
   await page.getByRole('combobox', { name: 'Row' }).click();
-  await page.waitForTimeout(500);
 
   // Select the row option (use exact match for single letters)
-  await page.getByRole('option', { name: r, exact: true }).click();
-  await page.waitForTimeout(500);
+  const rowOption = page.getByRole('option', { name: r, exact: true });
+  await rowOption.waitFor({ state: 'visible', timeout: 5000 });
+  await rowOption.click();
+
+  // Wait for dropdown to close
+  await rowOption.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
 
   logger.success(`Row ${r} selected`);
 });
@@ -109,11 +118,9 @@ When('I enter plot number {string} in advanced search without login', { timeout:
 
   // Click on the number textbox
   await page.locator(AdvanceSearchSelectors.numberTextbox).click();
-  await page.waitForTimeout(300);
 
   // Fill the number
   await page.locator(AdvanceSearchSelectors.numberTextbox).fill(num);
-  await page.waitForTimeout(500);
 
   logger.success(`Plot number ${num} entered`);
 });
@@ -124,15 +131,15 @@ When('I select status {string} in advanced search without login', { timeout: 100
 
   // Click status combobox
   await page.getByRole('combobox', { name: 'Status' }).click();
-  await page.waitForTimeout(500);
 
   // Select the status option
-  await page.getByRole('option', { name: status, exact: true }).click();
-  await page.waitForTimeout(500);
+  const statusOption = page.getByRole('option', { name: status, exact: true });
+  await statusOption.waitFor({ state: 'visible', timeout: 5000 });
+  await statusOption.click();
 
   // Close the dropdown by pressing Escape
   await page.keyboard.press('Escape');
-  await page.waitForTimeout(300);
+  await statusOption.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
 
   logger.success(`Status ${status} selected`);
 });
@@ -145,7 +152,7 @@ When('I click Search button in advanced search without login', { timeout: 15000 
 
   // Wait for navigation to search results page
   await page.waitForURL('**/search/advance', { timeout: 10000 });
-  await page.waitForTimeout(2000); // Wait for results to load
+  await NetworkHelper.waitForStabilization(page, { minWait: 500, maxWait: 3000 });
 
   logger.success('Search completed, navigated to results page');
 });
@@ -256,7 +263,7 @@ When('I click close advance search button', { timeout: 20000 }, async function (
   // Wait for navigation back to home page with increased timeout
   const baseUrl = BASE_CONFIG.baseUrl;
   await page.waitForURL(baseUrl, { timeout: 15000 });
-  await page.waitForTimeout(1500);
+  await NetworkHelper.waitForStabilization(page, { minWait: 500, maxWait: 3000 });
 
   logger.success('Advance search closed, navigated to home page');
 });

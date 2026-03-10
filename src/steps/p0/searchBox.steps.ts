@@ -18,7 +18,8 @@ When('I select cemetery {string} for public search', { timeout: 30000 }, async f
   const actualCemetery = replacePlaceholders(cemeteryName);
 
   // Wait for page to load completely
-  await page.waitForTimeout(3000);
+  await page.waitForLoadState('domcontentloaded');
+  await NetworkHelper.waitForStabilization(page, { minWait: 500, maxWait: 3000 });
 
   // Find and click the search input in header using data-testid
   const searchInput = page.getByTestId('autocomplete-base-routing-input-autocomplete-search-input');
@@ -26,7 +27,7 @@ When('I select cemetery {string} for public search', { timeout: 30000 }, async f
   await searchInput.fill(actualCemetery);
 
   // Wait for search dropdown to appear
-  await page.waitForTimeout(2000);
+  await page.locator('cl-search-cemetery-item').first().waitFor({ state: 'visible', timeout: 10000 });
 
   // Find and click the cemetery search result (avoid US variant)
   const cemeteryResult = page.locator('cl-search-cemetery-item').filter({ hasText: new RegExp(actualCemetery, 'i') }).first();
@@ -77,7 +78,7 @@ When('I search for {string} in global search without login', { timeout: 15000 },
 
   // Wait for page to fully load before searching
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(2000);
+  await NetworkHelper.waitForStabilization(page, { minWait: 500, maxWait: 3000 });
 
   // Find and click search input in header
   const searchInput = page.locator('input[type="text"][placeholder*="Search" i], [data-testid*="search-input" i]').first();
@@ -85,8 +86,8 @@ When('I search for {string} in global search without login', { timeout: 15000 },
   await searchInput.click();
   await searchInput.fill(actualSearchQuery);
 
-  // Wait for search API call to complete
-  await page.waitForTimeout(3000);
+  // Wait for search results or "no results" message
+  await NetworkHelper.waitForStabilization(page, { minWait: 500, maxWait: 5000 });
 
   this.searchQuery = actualSearchQuery;
   logger.info(`Searched for: ${actualSearchQuery}`);
@@ -114,9 +115,6 @@ When('I search for {string} in global search', { timeout: 15000 }, async functio
   const searchInput = page.locator('input[type="text"][placeholder*="Search" i], input[data-testid*="search" i]').first();
   await searchInput.click();
   await searchInput.fill(actualSearchQuery);
-
-  // Wait for search API call to complete and results to appear
-  await page.waitForTimeout(3000);
 
   // Wait for search results panel
   const searchResultPanel = page.locator('cl-search-person-item').first();
@@ -167,19 +165,20 @@ When('I click on search result plot {string}', { timeout: 20000 }, async functio
   await roiTab.waitFor({ state: 'visible', timeout: 5000 });
   await roiTab.click();
 
-  // Verify ROI tab is actually selected after click
-  await page.waitForTimeout(500);
-  const isSelected = await roiTab.getAttribute('aria-selected');
-
-  if (isSelected !== 'true') {
-    // Tab click didn't work, try again
+  // Verify ROI tab is actually selected after click (with retry)
+  await expect(roiTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 }).catch(async () => {
     console.log('ROI tab not selected, clicking again...');
     await roiTab.click();
-    await page.waitForTimeout(500);
-  }
+    await expect(roiTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 });
+  });
 
-  // Wait for ROI data to load completely
-  await page.waitForTimeout(2000);
+  // Wait for ROI tab content to actually load (ROI holder cards or edit button)
+  try {
+    await page.locator('button:has-text("EDIT ROI"), cl-roi-holder-card, [class*="roi"]').first().waitFor({ state: 'visible', timeout: 10000 });
+  } catch {
+    // ROI content structure varies, fall back to stabilization
+    await NetworkHelper.waitForStabilization(page, { minWait: 1000, maxWait: 3000 });
+  }
 
   logger.info(`Clicked on search result plot: ${actualPlotName}, now at: ${page.url()}`);
 });
@@ -200,21 +199,17 @@ When('I click on the first search result', { timeout: 20000 }, async function ()
   await roiTab.waitFor({ state: 'visible', timeout: 5000 });
   await roiTab.click();
 
-  // Wait and verify ROI tab is selected
-  await page.waitForTimeout(1000);
-  const isSelected = await roiTab.getAttribute('aria-selected');
-  if (isSelected !== 'true') {
+  // Wait and verify ROI tab is selected (with retry)
+  await expect(roiTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 }).catch(async () => {
     await roiTab.click();
-    await page.waitForTimeout(1000);
-  }
+    await expect(roiTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 });
+  });
 
-  // Wait for ROI content to load (look for EDIT ROI button or ROI holder cards)
+  // Wait for ROI content to load
   try {
-    await page.waitForSelector('button:has-text("EDIT ROI"), [data-testid*="roi-form"]', { state: 'visible', timeout: 10000 });
-  } catch (e) {
-    // ROI content may take longer, continue anyway
+    await page.locator('button:has-text("EDIT ROI"), cl-roi-holder-card, [class*="roi"]').first().waitFor({ state: 'visible', timeout: 10000 });
+  } catch {
+    await NetworkHelper.waitForStabilization(page, { minWait: 1000, maxWait: 3000 });
   }
-
-  await page.waitForTimeout(2000);
   logger.info(`Clicked first search result, now at: ${page.url()}`);
 });

@@ -3,6 +3,7 @@ import { RequestSalesFormSelectors } from '../../selectors/p0/request-sales-form
 import { REQUEST_SALES_FORM_DATA, getApplicantName } from '../../data/test-data.js';
 import { Logger } from '../../utils/Logger.js';
 import { waitForEndpoint } from '../../utils/NetworkUtils.js';
+import { NetworkHelper } from '../../utils/NetworkHelper.js';
 
 /**
  * Page Object for Request Sales Form functionality
@@ -30,8 +31,8 @@ export class RequestSalesFormPage {
       waitUntil: 'domcontentloaded',
       timeout: 60000,
     });
-    // Wait for page to be interactive with shorter timeout
-    await this.page.waitForTimeout(2000);  // Just wait a bit for initial rendering
+    // Wait for page content to render
+    await this.page.waitForSelector('[role="tree"], h1', { state: 'visible', timeout: 15000 });
     this.logger.info('Successfully loaded sell plots page');
   }
 
@@ -49,7 +50,8 @@ export class RequestSalesFormPage {
       RequestSalesFormSelectors.sectionTree.toggleButton(sectionName)
     );
     await toggleButton.click();
-    await this.page.waitForTimeout(1000); // Wait for expansion animation
+    // Wait for expansion animation to complete
+    await NetworkHelper.waitForAnimation(this.page);
     this.logger.info(`Section ${sectionName} expanded`);
   }
 
@@ -62,7 +64,7 @@ export class RequestSalesFormPage {
     this.logger.info('Dynamically searching for any available "For Sale" plot');
 
     // Wait for the plot list to be visible after section expansion
-    await this.page.waitForTimeout(1500);
+    await this.page.locator('text=/[A-Z]\\s+[A-Z]\\s+\\d+/i').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
 
     // Find all plots with "For Sale" status in the expanded section
     // Pattern matches: "X X N For Sale" where X is letter and N is number
@@ -94,7 +96,9 @@ export class RequestSalesFormPage {
         // Wait for plot details to load
         this.logger.info('Waiting for plot details to load (v1_customform_public_detail)...');
         await waitForEndpoint(this.page, 'v1_customform_public_detail', 200);
-        await this.page.waitForTimeout(1000);
+
+        // Wait for URL to stabilize (app may add query params like from=map&zoom=21)
+        await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 2000 });
 
         // Verify Request to Buy button exists
         const requestButton = this.page.locator('button:has-text("REQUEST TO BUY")').first();
@@ -108,14 +112,17 @@ export class RequestSalesFormPage {
         // Button not visible, go back and try next plot
         this.logger.info(`Plot "${plotName}" does not have Request to Buy button, trying next...`);
         await this.page.goBack({ waitUntil: 'domcontentloaded' });
-        await this.page.waitForTimeout(1000);
+        // Wait for sell plots page and plot list to restore
+        await this.page.waitForURL(/sell-plots/, { timeout: 10000 }).catch(() => {});
+        await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
 
       } catch (error) {
         this.logger.warn(`Error with plot "${plotName}": ${error}`);
         // Try to go back in case we're on a different page
         try {
           await this.page.goBack({ waitUntil: 'domcontentloaded' });
-          await this.page.waitForTimeout(1000);
+          await this.page.waitForURL(/sell-plots/, { timeout: 10000 }).catch(() => {});
+          await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
         } catch {
           // Ignore navigation errors
         }
@@ -132,7 +139,7 @@ export class RequestSalesFormPage {
     this.logger.info('Clicking on first plot in section');
 
     // Wait for the expanded section to show plots
-    await this.page.waitForTimeout(2000); // Wait for expansion animation
+    await this.page.locator('text=/[A-Z]\\s+[A-Z]\\s+\\d+/i').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
 
     // Use multiple fallback strategies to find and click the first plot
     let plotName = '';
@@ -296,13 +303,13 @@ export class RequestSalesFormPage {
         this.logger.info('Network idle timeout reached, continuing anyway');
       }
 
-      await this.page.waitForTimeout(2000); // Increased stability wait
+      // Wait for the Request to Buy button to be visible (page fully loaded)
+      await this.page.locator(RequestSalesFormSelectors.plotDetails.requestToBuyButton).waitFor({ state: 'visible', timeout: 15000 });
     }
 
     this.logger.info('Clicking Request to Buy button');
     await this.page.locator(RequestSalesFormSelectors.plotDetails.requestToBuyButton).click();
-    await this.page.waitForTimeout(500); // Wait for menu animation
-    await this.page.waitForSelector(RequestSalesFormSelectors.requestMenu.preNeedOption, { timeout: 10000 });
+    await this.page.waitForSelector(RequestSalesFormSelectors.requestMenu.preNeedOption + ', ' + RequestSalesFormSelectors.requestMenu.atNeedOption, { state: 'visible', timeout: 10000 });
     this.logger.info('Request menu opened');
   }
 
@@ -378,7 +385,7 @@ export class RequestSalesFormPage {
   async continueDescriptionSection(): Promise<void> {
     this.logger.info('Continuing from description section');
     await this.page.locator(RequestSalesFormSelectors.purchaseForm.description.continueButton).click();
-    await this.page.waitForTimeout(500); // Wait for expansion animation
+    await NetworkHelper.waitForAnimation(this.page);
   }
 
   // ============================================
@@ -394,7 +401,8 @@ export class RequestSalesFormPage {
     const applicant = REQUEST_SALES_FORM_DATA.applicant;
 
     try {
-      await this.page.waitForTimeout(1500);
+      // Wait for form fields to be visible
+      await this.page.locator('mat-form-field:has-text("First Name") input').first().waitFor({ state: 'visible', timeout: 10000 });
 
       // Use label-based approach - find input by nearby label text
       this.logger.info(`Filling First Name: ${applicant.firstName}`);
@@ -419,7 +427,6 @@ export class RequestSalesFormPage {
       await emailField.clear();
       await emailField.fill(applicant.email);
 
-      await this.page.waitForTimeout(500);
       this.logger.info('ROI Applicant form filled successfully (Pre-need)');
     } catch (error) {
       this.logger.error(`Error filling ROI Applicant form: ${error}`);
@@ -436,10 +443,9 @@ export class RequestSalesFormPage {
     const applicant = REQUEST_SALES_FORM_DATA.applicant;
 
     try {
-      await this.page.waitForTimeout(1500);
-
       // Find ROI Applicant section first
       const roiApplicantSection = this.page.locator('mat-expansion-panel:has-text("ROI Applicant")');
+      await roiApplicantSection.locator('input').first().waitFor({ state: 'visible', timeout: 10000 });
 
       this.logger.info(`Filling First Name: ${applicant.firstName}`);
       const firstNameField = roiApplicantSection.locator('input').filter({ has: this.page.locator('xpath=following-sibling::*//text()[contains(., "First Name")]') }).or(
@@ -463,7 +469,6 @@ export class RequestSalesFormPage {
       await emailField.clear();
       await emailField.fill(applicant.email);
 
-      await this.page.waitForTimeout(500);
       this.logger.info('ROI Applicant form filled successfully (At-need)');
     } catch (error) {
       this.logger.error(`Error filling ROI Applicant form (At-need): ${error}`);
@@ -477,7 +482,7 @@ export class RequestSalesFormPage {
   async continueROIApplicantSection(): Promise<void> {
     this.logger.info('Continuing from ROI Applicant section');
     await this.page.locator(RequestSalesFormSelectors.purchaseForm.roiApplicant.continueButton).click();
-    await this.page.waitForTimeout(500); // Wait for expansion animation
+    await NetworkHelper.waitForAnimation(this.page);
   }
 
   // ============================================
@@ -493,10 +498,9 @@ export class RequestSalesFormPage {
     const applicant = REQUEST_SALES_FORM_DATA.applicant;
 
     try {
-      await this.page.waitForTimeout(1500);
-
       // Find ROI Holder section
       const roiHolderSection = this.page.locator('mat-expansion-panel:has-text("ROI Holder")');
+      await roiHolderSection.locator('input').first().waitFor({ state: 'visible', timeout: 10000 });
 
       this.logger.info(`Filling ROI Holder First Name: ${applicant.firstName}`);
       const firstNameField = roiHolderSection.locator('mat-form-field:has-text("First Name") input').or(
@@ -513,7 +517,6 @@ export class RequestSalesFormPage {
       await lastNameField.clear();
       await lastNameField.fill(applicant.lastName);
 
-      await this.page.waitForTimeout(500);
       this.logger.info('ROI Holder form filled successfully (At-need)');
     } catch (error) {
       this.logger.error(`Error filling ROI Holder form (At-need): ${error}`);
@@ -527,7 +530,7 @@ export class RequestSalesFormPage {
   async continueROIHolderSectionAtNeed(): Promise<void> {
     this.logger.info('Continuing from ROI Holder section (At-need)');
     await this.page.locator('button:has-text("continue")').click();
-    await this.page.waitForTimeout(500);
+    await NetworkHelper.waitForAnimation(this.page);
   }
 
   /**
@@ -538,10 +541,9 @@ export class RequestSalesFormPage {
     const deceased = REQUEST_SALES_FORM_DATA.intermentDetails;
 
     try {
-      await this.page.waitForTimeout(1500);
-
       // Find Deceased section
       const deceasedSection = this.page.locator('mat-expansion-panel:has-text("Deceased")');
+      await deceasedSection.locator('input').first().waitFor({ state: 'visible', timeout: 10000 });
 
       this.logger.info(`Filling Deceased First Name: ${deceased.deceasedFirstName}`);
       const firstNameField = deceasedSection.locator('mat-form-field:has-text("First Name") input').or(
@@ -558,7 +560,6 @@ export class RequestSalesFormPage {
       await lastNameField.clear();
       await lastNameField.fill(deceased.deceasedLastName);
 
-      await this.page.waitForTimeout(500);
       this.logger.info('Deceased form filled successfully (At-need)');
     } catch (error) {
       this.logger.error(`Error filling Deceased form (At-need): ${error}`);
@@ -572,7 +573,7 @@ export class RequestSalesFormPage {
   async continueDeceasedSectionAtNeed(): Promise<void> {
     this.logger.info('Continuing from Deceased section (At-need)');
     await this.page.locator('button:has-text("continue")').click();
-    await this.page.waitForTimeout(500);
+    await NetworkHelper.waitForAnimation(this.page);
   }
 
   /**
@@ -582,9 +583,8 @@ export class RequestSalesFormPage {
     this.logger.info('Filling Event Service form (At-need)');
 
     try {
-      await this.page.waitForTimeout(1000);
-
-      // At-need Event Service: IDs at mat-input-40 (Date), mat-input-43 (Event Name)
+      // Wait for event service form inputs to be visible
+      await this.page.locator('#mat-input-40').waitFor({ state: 'visible', timeout: 10000 });
       this.logger.info('Filling Event Date');
       await this.page.locator('#mat-input-40').fill('01/15/2026');
 
@@ -604,7 +604,7 @@ export class RequestSalesFormPage {
   async continueEventServiceSectionAtNeed(): Promise<void> {
     this.logger.info('Continuing from Event Service section (At-need)');
     await this.page.locator('button:has-text("continue")').click();
-    await this.page.waitForTimeout(500);
+    await NetworkHelper.waitForAnimation(this.page);
   }
 
   // ============================================
@@ -620,7 +620,6 @@ export class RequestSalesFormPage {
     const service = REQUEST_SALES_FORM_DATA.eventService;
 
     try {
-      await this.page.waitForTimeout(1500);
 
       // Try to find Service section using exact match (to avoid matching "Event Service")
       // Use exact: true to only match "Service", not "Event Service"
@@ -677,23 +676,20 @@ export class RequestSalesFormPage {
   async continueServiceSection(): Promise<void> {
     this.logger.info('Continuing from Service section (At-need)');
 
-    // Wait a bit for any animations to complete
-    await this.page.waitForTimeout(1000);
-
     // Try to find the continue button within Service section or just click the visible one
     const continueButton = this.page.locator('button:has-text("continue")').first();
 
     try {
       await continueButton.waitFor({ state: 'visible', timeout: 5000 });
       await continueButton.click();
-      await this.page.waitForTimeout(500);
+      await NetworkHelper.waitForAnimation(this.page);
     } catch (error) {
       this.logger.warn(`Service section continue button issue: ${error}`);
       // Fallback: try clicking any visible continue button
       const anyButton = this.page.locator('button:has-text("CONTINUE"), button:has-text("continue")').first();
       if (await anyButton.isVisible()) {
         await anyButton.click();
-        await this.page.waitForTimeout(500);
+        await NetworkHelper.waitForAnimation(this.page);
       }
     }
   }
@@ -710,7 +706,8 @@ export class RequestSalesFormPage {
     const details = REQUEST_SALES_FORM_DATA.intermentDetails;
 
     try {
-      await this.page.waitForTimeout(1000);
+      // Wait for form fields to be visible
+      await this.page.locator(RequestSalesFormSelectors.purchaseForm.intermentDetails.deceasedFirstName).first().waitFor({ state: 'visible', timeout: 10000 });
 
       // Fill required fields
       this.logger.info(`Filling deceased name: ${details.deceasedFirstName} ${details.deceasedLastName}`);
@@ -759,7 +756,7 @@ export class RequestSalesFormPage {
   async continueIntermentDetailsSection(): Promise<void> {
     this.logger.info('Continuing from Interment Details section');
     await this.page.locator(RequestSalesFormSelectors.purchaseForm.intermentDetails.continueButton).click();
-    await this.page.waitForTimeout(500); // Wait for expansion animation
+    await NetworkHelper.waitForAnimation(this.page);
   }
 
   // ============================================
@@ -774,10 +771,7 @@ export class RequestSalesFormPage {
     const roi = REQUEST_SALES_FORM_DATA.roi;
 
     try {
-      // Wait for section to be ready
-      await this.page.waitForTimeout(2000);
-
-      // Try to find and expand ROI section if it's collapsed
+      // Wait for ROI section to be ready
       const roiSection = this.page.locator('mat-expansion-panel').filter({ hasText: /ROI/i }).first();
       const isExpanded = await roiSection.getAttribute('class').then(c => c?.includes('mat-expanded')).catch(() => false);
 
@@ -785,7 +779,7 @@ export class RequestSalesFormPage {
         this.logger.info('ROI section is collapsed, expanding it...');
         const header = roiSection.locator('mat-expansion-panel-header').first();
         await header.click();
-        await this.page.waitForTimeout(1000); // Wait for expansion animation
+        await NetworkHelper.waitForAnimation(this.page);
       }
 
       // Now try to fill the required fields
@@ -816,12 +810,14 @@ export class RequestSalesFormPage {
 
       // Click and select
       await rightTypeInput.click();
-      await this.page.waitForTimeout(500);
+      // Wait for dropdown options to appear
+      await this.page.locator('mat-option, [role="option"]').first().waitFor({ state: 'visible', timeout: 5000 });
       const rightTypeOption = this.page.locator(`mat-option, [role="option"]`).filter({ hasText: new RegExp(roi.rightType, 'i') }).first();
       await rightTypeOption.click();
       this.logger.info(`Selected Right Type: ${roi.rightType}`);
 
-      await this.page.waitForTimeout(500);
+      // Wait for dropdown overlay to close
+      await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
 
       // Select Term of Right
       this.logger.info(`Selecting Term of Right: ${roi.termOfRight}`);
@@ -848,7 +844,8 @@ export class RequestSalesFormPage {
       }
 
       await termInput.click();
-      await this.page.waitForTimeout(500);
+      // Wait for dropdown options to appear
+      await this.page.locator('mat-option, [role="option"]').first().waitFor({ state: 'visible', timeout: 5000 });
       const termOption = this.page.locator(`mat-option, [role="option"]`).filter({ hasText: new RegExp(roi.termOfRight, 'i') }).first();
       await termOption.click();
       this.logger.info(`Selected Term of Right: ${roi.termOfRight}`);
@@ -866,7 +863,7 @@ export class RequestSalesFormPage {
   async continueROISection(): Promise<void> {
     this.logger.info('Continuing from ROI section');
     await this.page.locator(RequestSalesFormSelectors.purchaseForm.roi.continueButton).click();
-    await this.page.waitForTimeout(500); // Wait for expansion animation
+    await NetworkHelper.waitForAnimation(this.page);
   }
 
   // ============================================
@@ -881,10 +878,8 @@ export class RequestSalesFormPage {
 
     // Wait for Terms section to be visible
     await this.page.waitForSelector('.mat-checkbox-inner-container', { timeout: 10000 });
-    await this.page.waitForTimeout(500);
 
     await this.page.locator(RequestSalesFormSelectors.purchaseForm.terms.agreeCheckbox).click();
-    await this.page.waitForTimeout(300);
     this.logger.info('Terms agreed');
   }
 
@@ -894,7 +889,7 @@ export class RequestSalesFormPage {
   async continueTermsSection(): Promise<void> {
     this.logger.info('Continuing from terms section');
     await this.page.locator(RequestSalesFormSelectors.purchaseForm.terms.continueButton).click();
-    await this.page.waitForTimeout(500); // Wait for expansion animation
+    await NetworkHelper.waitForAnimation(this.page);
   }
 
   // ============================================
@@ -916,7 +911,7 @@ export class RequestSalesFormPage {
   async continueSignatureSection(): Promise<void> {
     this.logger.info('Continuing from signature section');
     await this.page.locator(RequestSalesFormSelectors.purchaseForm.signature.continueButton).click();
-    await this.page.waitForTimeout(500);
+    await NetworkHelper.waitForAnimation(this.page);
   }
 
   // ============================================
@@ -933,7 +928,7 @@ export class RequestSalesFormPage {
 
     try {
       // Wait for page to stabilize
-      await this.page.waitForTimeout(2000);
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 3000 });
 
       // Get all text content from headings
       const h3Texts = await this.page.locator('h3').allTextContents();
@@ -974,21 +969,20 @@ export class RequestSalesFormPage {
   async submitRequest(): Promise<void> {
     this.logger.info('Submitting request form');
 
-    // Wait a bit for form to be ready
-    await this.page.waitForTimeout(2000);
+    // Wait for submit button to be ready
+    const submitButton = this.page.getByRole('button', { name: /SUBMIT A REQUEST/i });
+    await submitButton.waitFor({ state: 'visible', timeout: 10000 });
 
     // Log current state
     const currentUrl = this.page.url();
     this.logger.info(`Current URL before submit: ${currentUrl}`);
+
 
     // Check for form validation errors
     const errorMessages = await this.page.locator('.mat-error, [role="alert"], .error-message').allTextContents();
     if (errorMessages.length > 0) {
       this.logger.info(`Form validation errors found: ${JSON.stringify(errorMessages)}`);
     }
-
-    // Find submit button
-    const submitButton = this.page.getByRole('button', { name: /SUBMIT A REQUEST/i });
 
     // Check if button is disabled
     const isDisabled = await submitButton.getAttribute('disabled');
@@ -1062,8 +1056,8 @@ export class RequestSalesFormPage {
         this.logger.info(`Response body: ${JSON.stringify(responseBody).substring(0, 200)}`);
       }
 
-      // Wait a bit for UI to update after successful submission
-      await this.page.waitForTimeout(2000);
+      // Wait for UI to update after successful submission
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 3000 });
     } catch (error) {
       this.logger.error(`Failed to get submission response: ${error}`);
       throw new Error('Form submission failed - no response from server');
@@ -1081,8 +1075,8 @@ export class RequestSalesFormPage {
   async verifyConfirmationDialog(): Promise<boolean> {
     this.logger.info('Waiting for confirmation dialog or success page...');
 
-    // Wait a bit for page to process submission
-    await this.page.waitForTimeout(2000);
+    // Wait for dialog or success page to appear
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 3000 });
 
     // Check if URL changed to a success page
     const currentUrl = this.page.url();

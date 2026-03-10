@@ -78,7 +78,8 @@ export class SalesPage {
     this.logger.info('Clicking Create Sale button');
     await this.page.locator(salesSelectors.createSaleButton).click();
     await this.page.waitForLoadState('domcontentloaded');
-    await this.page.waitForTimeout(1000);
+    // Wait for the sale form to be ready (reference input visible)
+    await this.page.waitForSelector(salesSelectors.referenceInput, { state: 'visible', timeout: 10000 });
   }
 
   /**
@@ -88,7 +89,6 @@ export class SalesPage {
     this.logger.info(`Filling reference: ${reference}`);
     await this.page.waitForSelector(salesSelectors.referenceInput, { state: 'visible', timeout: 10000 });
     await this.page.locator(salesSelectors.referenceInput).fill(reference);
-    await this.page.waitForTimeout(500);
   }
 
   /**
@@ -98,7 +98,6 @@ export class SalesPage {
     this.logger.info(`Filling issue date: ${issueDate}`);
     await this.page.waitForSelector(salesSelectors.issueDateInput, { state: 'visible', timeout: 10000 });
     await this.page.locator(salesSelectors.issueDateInput).fill(issueDate);
-    await this.page.waitForTimeout(500);
   }
 
   /**
@@ -108,7 +107,6 @@ export class SalesPage {
     this.logger.info(`Filling due date: ${dueDate}`);
     await this.page.waitForSelector(salesSelectors.dueDateInput, { state: 'visible', timeout: 10000 });
     await this.page.locator(salesSelectors.dueDateInput).fill(dueDate);
-    await this.page.waitForTimeout(500);
   }
 
   /**
@@ -118,7 +116,6 @@ export class SalesPage {
     this.logger.info(`Filling note: ${note}`);
     await this.page.waitForSelector(salesSelectors.noteTextarea, { state: 'visible', timeout: 10000 });
     await this.page.locator(salesSelectors.noteTextarea).fill(note);
-    await this.page.waitForTimeout(500);
   }
 
   /**
@@ -292,7 +289,6 @@ export class SalesPage {
     this.logger.info(`Owner value before selection: "${valueBefore?.trim()}"`);
     
     await ownerCombobox.click();
-    await this.page.waitForTimeout(1500);
     
     // Wait for options to appear
     await this.page.waitForSelector('mat-option', { state: 'visible', timeout: 5000 });
@@ -311,8 +307,8 @@ export class SalesPage {
       await option.click();
     }
     
-    // Wait longer for Angular to process the selection
-    await this.page.waitForTimeout(2000);
+    // Wait for Angular to process the selection (overlay should close)
+    await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
     
     // Trigger change event explicitly
     await this.page.evaluate((selector) => {
@@ -322,8 +318,6 @@ export class SalesPage {
         selectElement._elementRef.nativeElement.dispatchEvent(event);
       }
     }, salesSelectors.ownerSelect);
-    
-    await this.page.waitForTimeout(500);
     
     // Verify owner is selected
     const valueAfter = await ownerCombobox.textContent();
@@ -343,7 +337,8 @@ export class SalesPage {
     this.logger.info('Clicking Add Purchaser button');
     await this.page.waitForSelector(salesSelectors.addPurchaserButton, { state: 'visible', timeout: 10000 });
     await this.page.locator(salesSelectors.addPurchaserButton).click();
-    await this.page.waitForTimeout(2000); // Wait for purchaser section to appear
+    // Wait for Add Person dialog to appear
+    await this.page.waitForSelector(salesSelectors.addPersonDialog, { state: 'visible', timeout: 10000 });
     this.logger.info('Purchaser section should now be visible');
   }
 
@@ -357,28 +352,25 @@ export class SalesPage {
       // Wait for Add Person dialog to appear
       await this.page.waitForSelector(salesSelectors.addPersonDialog, { state: 'visible', timeout: 10000 });
       this.logger.info('Add Person dialog visible');
-      await this.page.waitForTimeout(1000);
       
       // Fill first name
       await this.page.waitForSelector(salesSelectors.purchaserFirstNameInput, { state: 'visible', timeout: 10000 });
       await this.page.locator(salesSelectors.purchaserFirstNameInput).fill(firstName);
-      await this.page.waitForTimeout(500);
       this.logger.info(`  - First name: ${firstName}`);
       
       // Fill last name
       await this.page.locator(salesSelectors.purchaserLastNameInput).fill(lastName);
-      await this.page.waitForTimeout(500);
       this.logger.info(`  - Last name: ${lastName}`);
       
       // Fill email
       await this.page.locator(salesSelectors.purchaserEmailInput).fill(email);
-      await this.page.waitForTimeout(500);
       this.logger.info(`  - Email: ${email}`);
       
-      // Click Add button
-      await this.page.waitForTimeout(1000); // Wait for validation
+      // Click Add button (wait for it to be enabled after form validation)
+      await this.page.locator(salesSelectors.addPersonButton).waitFor({ state: 'visible', timeout: 5000 });
       await this.page.locator(salesSelectors.addPersonButton).click();
-      await this.page.waitForTimeout(2000); // Wait for dialog to close
+      // Wait for dialog to close
+      await this.page.waitForSelector(salesSelectors.addPersonDialog, { state: 'hidden', timeout: 10000 });
       
       this.logger.info(`Successfully added purchaser: ${firstName} ${lastName}`);
     } catch (error) {
@@ -397,25 +389,18 @@ export class SalesPage {
     const currentCount = await this.page.locator('button:has-text("Add description")').count();
     this.logger.info(`Current "Add description" buttons: ${currentCount}`);
     
-    // Wait for any overlays to close
-    await this.page.waitForTimeout(1500);
+    // Wait for any overlays to close before clicking
+    await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
     
     // Use force click to bypass overlay issues
     await this.page.locator(salesSelectors.addItemButton).click({ force: true });
     
     // Wait for new "Add description" button to appear (count increases by 1)
     const expectedCount = currentCount + 1;
-    for (let attempt = 0; attempt < 20; attempt++) {
-      const newCount = await this.page.locator('button:has-text("Add description")').count();
-      if (newCount >= expectedCount) {
-        this.logger.info(`New item row ready - "Add description" buttons now: ${newCount}`);
-        await this.page.waitForTimeout(1000); // Extra wait for row stabilization
-        return;
-      }
-      await this.page.waitForTimeout(500);
-    }
-    
-    this.logger.warn('New item row may not be fully ready, continuing anyway');
+    await this.page.locator(`button:has-text("Add description") >> nth=${currentCount}`).waitFor({ state: 'visible', timeout: 10000 });
+    this.logger.info(`New item row ready - "Add description" button #${expectedCount} visible`);
+    // Wait for row to stabilize in DOM
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
   }
 
   /**
@@ -425,8 +410,8 @@ export class SalesPage {
   async fillItemDetails(index: number, item: SaleItem): Promise<void> {
     this.logger.info(`Filling item ${index + 1}: ${item.description}`);
     
-    // Wait a bit for the item row to be ready
-    await this.page.waitForTimeout(1500);
+    // Wait for the item row to be ready (mat-select comboboxes visible)
+    await this.page.locator('mat-select').nth(1 + (index * 2)).waitFor({ state: 'visible', timeout: 10000 });
 
     // Strategy: Use nth() to get all comboboxes and inputs globally, not per-row
     // The structure is predictable: owner combobox (index 0), then for each item row:
@@ -445,21 +430,44 @@ export class SalesPage {
       const itemCombobox = this.page.locator('mat-select').nth(itemComboboxIndex);
       await itemCombobox.waitFor({ state: 'visible', timeout: 10000 });
       
-      // Click to open the item dropdown
-      await itemCombobox.click();
-      await this.page.waitForTimeout(1500);
-      
-      // Wait for the search textbox inside the dropdown panel to appear
-      // Use the panel-specific selector to avoid matching other inputs on the page
-      const itemSearchInput = this.page.locator('mat-select-search input, .mat-select-panel input[type="text"], [role="listbox"] input[type="text"]').first();
-      const searchVisible = await itemSearchInput.isVisible().catch(() => false);
-      
+      // Click to open the item dropdown with retry (dropdown may not open on first click)
       let searchInput;
-      if (searchVisible) {
-        searchInput = itemSearchInput;
-      } else {
-        // Fallback to first visible text input
-        searchInput = this.page.locator('input[type="text"]').first();
+      const maxDropdownRetries = 3;
+      for (let attempt = 0; attempt < maxDropdownRetries; attempt++) {
+        await itemCombobox.click();
+        
+        // Wait for the overlay panel to appear after clicking the combobox
+        const overlayVisible = await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false);
+        if (!overlayVisible && attempt < maxDropdownRetries - 1) {
+          this.logger.warn(`Item dropdown did not open on attempt ${attempt + 1}, retrying...`);
+          continue;
+        }
+        
+        // Look for search input inside the overlay panel first
+        const overlaySearchInput = this.page.locator('.cdk-overlay-pane input[type="text"]').first();
+        const matSearchInput = this.page.locator('mat-select-search input').first();
+        
+        if (await matSearchInput.isVisible().catch(() => false)) {
+          searchInput = matSearchInput;
+        } else if (await overlaySearchInput.isVisible().catch(() => false)) {
+          searchInput = overlaySearchInput;
+        } else {
+          // Fallback: any visible text input
+          searchInput = this.page.locator('input[type="text"]:visible').first();
+        }
+        
+        const inputReady = await searchInput.waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false);
+        if (inputReady) break;
+        
+        if (attempt < maxDropdownRetries - 1) {
+          this.logger.warn(`Search input not found on attempt ${attempt + 1}, closing and retrying...`);
+          await this.page.keyboard.press('Escape');
+          await this.page.waitForTimeout(500);
+        }
+      }
+      
+      if (!searchInput) {
+        throw new Error('Could not find search input in item dropdown after retries');
       }
       await searchInput.waitFor({ state: 'visible', timeout: 5000 });
       
@@ -474,9 +482,6 @@ export class SalesPage {
 
       for (let searchAttempt = 0; searchAttempt < maxSearchRetries; searchAttempt++) {
         // Wait for search results to filter
-        await this.page.waitForTimeout(2000);
-
-        // Wait for at least one option to appear
         await this.page.waitForSelector('[role="option"], mat-option', { state: 'visible', timeout: 5000 });
 
         // Log available options for debugging
@@ -495,7 +500,8 @@ export class SalesPage {
 
         if (optionVisible) {
           await itemOption.click();
-          await this.page.waitForTimeout(2000);
+          // Wait for dropdown overlay to close after selection
+          await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
 
           // Verify item is selected by checking combobox text
           const verifyCombobox = this.page.locator('mat-select').nth(itemComboboxIndex);
@@ -514,7 +520,7 @@ export class SalesPage {
           const lastChar = item.description.slice(-1);
           this.logger.info(`  - Item "${item.description}" not found, retrying: Backspace last char "${lastChar}" and retype`);
           await this.page.keyboard.press('Backspace');
-          await this.page.waitForTimeout(1000);
+          await this.page.waitForSelector('[role="option"], mat-option', { state: 'visible', timeout: 5000 }).catch(() => {});
           await this.page.keyboard.type(lastChar, { delay: 100 });
           this.logger.info(`  - Retyped "${lastChar}", waiting for search results to refresh...`);
         }
@@ -524,7 +530,6 @@ export class SalesPage {
         this.logger.error(`Item "${item.description}" not found in dropdown after ${maxSearchRetries} attempts. Available: ${JSON.stringify(itemOptions.map(o => o.trim()))}`);
         // Take screenshot for debugging
         await this.page.keyboard.press('Escape');
-        await this.page.waitForTimeout(500);
         throw new Error(`Item "${item.description}" not found in item dropdown after ${maxSearchRetries} search attempts. Available options: ${JSON.stringify(itemOptions.map(o => o.trim()))}`);
       }
     } catch (error) {
@@ -532,8 +537,8 @@ export class SalesPage {
       throw error;
     }
 
-    // Wait for price to auto-fill (if applicable)
-    await this.page.waitForTimeout(1500);
+    // Wait for price to auto-fill after item selection
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
 
     // 2. Select PLOT from search dropdown
     if (item.related_plot) {
@@ -544,7 +549,6 @@ export class SalesPage {
         const plotCombobox = this.page.locator('mat-select').nth(plotComboboxIndex);
         await plotCombobox.waitFor({ state: 'visible', timeout: 10000 });
         await plotCombobox.click();
-        await this.page.waitForTimeout(2000);
         
         // Wait for the search textbox in plot dropdown
         const plotSearchInput = this.page.locator('input[placeholder*="typing"]').or(
@@ -589,7 +593,8 @@ export class SalesPage {
           // Found available (not occupied) plot
           this.logger.info(`Found available plot at index ${targetIndex}: ${plotOptions[targetIndex]}`);
           await this.page.locator('[role="option"]:visible').nth(targetIndex).click();
-          await this.page.waitForTimeout(2000);
+          // Wait for overlay to close after plot selection
+          await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
           
           const selectedText = await plotCombobox.textContent();
           this.logger.info(`  - Plot selected: ${item.related_plot} (combobox shows: "${selectedText?.trim()}")`);
@@ -603,7 +608,8 @@ export class SalesPage {
           if (occupiedIndex >= 0) {
             this.logger.warn(`Plot "${item.related_plot}" is occupied, but selecting it anyway: ${plotOptions[occupiedIndex]}`);
             await this.page.locator('[role="option"]:visible').nth(occupiedIndex).click();
-            await this.page.waitForTimeout(2000);
+            // Wait for overlay to close after plot selection
+            await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
             
             const selectedText = await plotCombobox.textContent();
             this.logger.info(`  - Plot selected (occupied): ${item.related_plot} (combobox shows: "${selectedText?.trim()}")`);
@@ -611,7 +617,6 @@ export class SalesPage {
             // Can't find any matching plot - just close dropdown and leave as "All"
             this.logger.error(`Cannot find plot "${item.related_plot}" in options. Available: ${JSON.stringify(plotOptions)}`);
             await this.page.keyboard.press('Escape');
-            await this.page.waitForTimeout(1000);
           }
         }
       } catch (error) {
@@ -639,16 +644,13 @@ export class SalesPage {
         // ROW 1: Qty has its own test-id, price/discount use "sales-calculator-input-0"
         const qtyInput = this.page.locator('[data-testid="sales-calculator-input"]').first();
         await qtyInput.fill(item.quantity.toString());
-        await this.page.waitForTimeout(300);
         this.logger.info(`  - Quantity: ${item.quantity}`);
         
         const priceDiscountInputs = this.page.locator('[data-testid="sales-calculator-input-0"]');
         await priceDiscountInputs.nth(0).fill(item.price.toString());
-        await this.page.waitForTimeout(300);
         this.logger.info(`  - Price: ${item.price}`);
         
         await priceDiscountInputs.nth(1).fill(item.discount.toString());
-        await this.page.waitForTimeout(300);
         this.logger.info(`  - Discount: ${item.discount}`);
       } else {
         // ROW 2+: All three inputs use "sales-calculator-input-0"
@@ -665,15 +667,12 @@ export class SalesPage {
         this.logger.info(`Row ${index + 1} input indices: qty=${qtyIndex}, price=${priceIndex}, discount=${discountIndex}`);
         
         await priceDiscountInputs.nth(qtyIndex).fill(item.quantity.toString());
-        await this.page.waitForTimeout(300);
         this.logger.info(`  - Quantity: ${item.quantity}`);
         
         await priceDiscountInputs.nth(priceIndex).fill(item.price.toString());
-        await this.page.waitForTimeout(300);
         this.logger.info(`  - Price: ${item.price}`);
         
         await priceDiscountInputs.nth(discountIndex).fill(item.discount.toString());
-        await this.page.waitForTimeout(300);
         this.logger.info(`  - Discount: ${item.discount}`);
       }
       
@@ -682,7 +681,6 @@ export class SalesPage {
       throw error;
     }
 
-    await this.page.waitForTimeout(800);
     this.logger.info(`Item ${index + 1} filled successfully`);
   }
 
@@ -694,38 +692,8 @@ export class SalesPage {
     
     for (let i = 0; i < items.length; i++) {
       if (i > 0) {
-        // Click Add Item button for additional items
+        // Click Add Item button for additional items (handles waiting for new row)
         await this.clickAddItem();
-        
-        // Wait for new row to appear by checking count of "Add description" buttons
-        const expectedCount = i + 1;
-        this.logger.info(`Waiting for row ${expectedCount} to appear...`);
-        
-        let rowReady = false;
-        for (let attempt = 0; attempt < 30; attempt++) {
-          const currentCount = await this.page.locator('button:has-text("Add description")').count();
-          
-          if (currentCount >= expectedCount) {
-            // Verify that the new row button is visible
-            try {
-              const newButton = this.page.locator('button:has-text("Add description")').nth(i);
-              await newButton.waitFor({ state: 'visible', timeout: 2000 });
-              
-              this.logger.info(`New item row ${expectedCount} ready (found ${currentCount} "Add description" buttons)`);
-              rowReady = true;
-              await this.page.waitForTimeout(2000); // Extra wait for row stabilization
-              break;
-            } catch (e) {
-              this.logger.warn(`Row ${expectedCount} button found but not yet visible, attempt ${attempt + 1}`);
-            }
-          }
-          await this.page.waitForTimeout(500);
-        }
-        
-        if (!rowReady) {
-          this.logger.error(`Failed to wait for new row ${expectedCount} after 15 seconds`);
-          throw new Error(`New item row ${expectedCount} did not appear or is not ready`);
-        }
       }
       await this.fillItemDetails(i, items[i]);
     }
@@ -738,7 +706,7 @@ export class SalesPage {
     this.logger.info('Getting sale summary');
     
     // Wait for summary section to be ready
-    await this.page.waitForTimeout(2000);
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 3000 });
     
     // Use different approach: get all value divs in summary section
     const summarySection = this.page.locator('button:has-text("ADD ITEM")').locator('..').locator('..');
@@ -830,9 +798,6 @@ export class SalesPage {
   async clickCreate(): Promise<void> {
     this.logger.info('Clicking Create button');
     
-    // Wait for page to be ready
-    await this.page.waitForTimeout(1000);
-    
     // Check if CREATE button exists and its state
     const createButton = this.page.locator(salesSelectors.createButton);
     const buttonCount = await createButton.count();
@@ -868,10 +833,7 @@ export class SalesPage {
     this.logger.info('CREATE button clicked - waiting for confirmation dialog');
     
     // Wait for confirmation dialog to appear
-    await this.page.waitForTimeout(1500);
-    
-    // Check if confirmation dialog appeared
-    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').isVisible().catch(() => false);
+    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false);
     
     if (dialogVisible) {
       this.logger.info('Confirmation dialog appeared');
@@ -926,11 +888,8 @@ export class SalesPage {
     await this.page.locator(salesSelectors.saveButton).scrollIntoViewIfNeeded();
     await this.page.locator(salesSelectors.saveButton).click();
     
-    // Wait a moment for potential confirmation dialog
-    await this.page.waitForTimeout(2000);
-    
-    // Check if payment confirmation dialog appeared
-    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').isVisible().catch(() => false);
+    // Wait for potential confirmation dialog
+    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false);
     
     if (dialogVisible) {
       this.logger.info('Payment confirmation dialog appeared');
@@ -954,7 +913,6 @@ export class SalesPage {
         
         // Wait for dialog to close
         await this.page.waitForSelector('mat-dialog-container', { state: 'hidden', timeout: 5000 }).catch(() => {});
-        await this.page.waitForTimeout(1000);
       } else {
         this.logger.warn('"Save Sale" button not found in dialog, trying generic confirm button');
         // Try other common button texts
@@ -967,8 +925,8 @@ export class SalesPage {
     }
     
     // Wait for app to redirect to sales list
+    await this.page.waitForURL(/\/sales$|\/sales\?|\/sales-table/, { timeout: 15000 }).catch(() => {});
     await this.page.waitForLoadState('domcontentloaded');
-    await this.page.waitForTimeout(3000);
   }
 
   /**
@@ -981,9 +939,7 @@ export class SalesPage {
     await this.page.locator(salesSelectors.saveButton).click();
     
     // Wait for potential confirmation dialog
-    await this.page.waitForTimeout(2000);
-    
-    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').isVisible().catch(() => false);
+    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false);
     
     if (dialogVisible) {
       this.logger.info('Payment confirmation dialog appeared');
@@ -1016,7 +972,6 @@ export class SalesPage {
     
     // Wait for table to be visible
     await this.page.waitForSelector('table tbody tr', { state: 'visible', timeout: 10000 }).catch(() => {});
-    await this.page.waitForTimeout(1000);
     this.logger.info('Last payment saved, on sales list page');
   }
 
@@ -1033,11 +988,8 @@ export class SalesPage {
     await this.page.locator(salesSelectors.saveButton).scrollIntoViewIfNeeded();
     await this.page.locator(salesSelectors.saveButton).click();
     
-    // Wait a moment for potential confirmation dialog
-    await this.page.waitForTimeout(2000);
-    
-    // Check if payment confirmation dialog appeared
-    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').isVisible().catch(() => false);
+    // Wait for potential confirmation dialog
+    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false);
     
     if (dialogVisible) {
       this.logger.info('Payment confirmation dialog appeared');
@@ -1060,7 +1012,6 @@ export class SalesPage {
         
         // Wait for dialog to close
         await this.page.waitForSelector('mat-dialog-container', { state: 'hidden', timeout: 5000 }).catch(() => {});
-        await this.page.waitForTimeout(2000);
       } else {
         this.logger.warn('"Save Sale" button not found in dialog, trying generic confirm button');
         const confirmButton = this.page.locator('mat-dialog-container button').last();
@@ -1071,27 +1022,19 @@ export class SalesPage {
       this.logger.info('No confirmation dialog appeared');
     }
     
-    await this.page.waitForLoadState('domcontentloaded');
-    await this.page.waitForTimeout(2000);
+    // Wait for potential redirect to sales list (app auto-redirects after save)
+    // Use short timeout — if no redirect happens, we're still on edit page
+    const redirected = await this.page.waitForURL(/\/sales$|\/sales\?|\/sales-table/, { timeout: 5000 }).then(() => true).catch(() => false);
     
-    // Check if app auto-redirected to sales list — if so, navigate back to edit page
-    const currentUrl = this.page.url();
-    this.logger.info(`URL after save: ${currentUrl}`);
-    
-    const isOnEditPage = currentUrl.includes('/sales/edit/');
-    
-    if (!isOnEditPage) {
-      this.logger.info('App redirected away from edit page after save — navigating back');
+    if (redirected) {
+      this.logger.info('App redirected to sales list — navigating back to edit page');
       
       if (editPageUrl.includes('/sales/edit/')) {
-        // Navigate back to the same edit page URL directly
         this.logger.info(`Navigating back to: ${editPageUrl}`);
         await this.page.goto(editPageUrl, { waitUntil: 'domcontentloaded' });
       } else {
-        // Fallback: go to sales list and open latest sale
         this.logger.info('Edit URL not available, opening latest sale from list');
         await this.page.waitForSelector('table tbody tr', { state: 'visible', timeout: 10000 });
-        await this.page.waitForTimeout(1000);
         await this.openLatestSale();
       }
       
@@ -1099,13 +1042,13 @@ export class SalesPage {
       await this.page.waitForURL(/sales\/edit/, { timeout: 15000 });
       await this.page.waitForLoadState('domcontentloaded');
       await NetworkHelper.waitForApiEndpoint(this.page, '/api/v1/invoices/', 15000, { optional: true });
-      
-      // Wait for ADD PAYMENT button to be visible (page fully rendered)
-      await this.page.waitForSelector(salesSelectors.addPaymentButton, { state: 'visible', timeout: 15000 });
-      this.logger.info('Back on edit page — ready for next payment');
     } else {
-      this.logger.info('Still on edit page — ready for next payment');
+      this.logger.info('Still on edit page after save');
     }
+    
+    // Regardless of redirect, ensure ADD PAYMENT button is visible before returning
+    await this.page.waitForSelector(salesSelectors.addPaymentButton, { state: 'visible', timeout: 15000 });
+    this.logger.info('ADD PAYMENT button visible — ready for next payment');
   }
 
   /**
@@ -1182,8 +1125,8 @@ export class SalesPage {
     // Wait for sales table to be visible
     await this.page.waitForSelector(salesSelectors.salesTable, { state: 'visible', timeout: 10000 });
 
-    // Wait for Angular to render and stabilize
-    await this.page.waitForTimeout(2000);
+    // Wait for table rows to be rendered
+    await this.page.locator('table tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
 
     // Click on the first row's invoice ID cell (2nd column - first has checkbox, 2nd has ID)
     const firstRowIdCell = this.page.locator('table tbody tr').first().locator('td').nth(1);
@@ -1223,18 +1166,10 @@ export class SalesPage {
     const addPaymentBtn = this.page.locator(salesSelectors.addPaymentButton);
     await addPaymentBtn.waitFor({ state: 'visible', timeout: 20000 });
     await addPaymentBtn.scrollIntoViewIfNeeded();
-    await this.page.waitForTimeout(500);
     await addPaymentBtn.click();
     this.logger.info('Clicked ADD PAYMENT button');
     
-    // Wait for payment form to appear
-    await this.page.waitForTimeout(2000);
-
-    // The payment form has fields: Date, Time, Method, Note, Amount
-    // All fields use formcontrolname attributes
-    // Note: date and time fields are NOT auto-filled, must be filled manually
-    
-    // 1. Fill payment date (required)
+    // Wait for payment form to appear (date input visible)
     const paymentDateInput = this.page.locator('[formcontrolname="payment_date"]').first();
     await paymentDateInput.waitFor({ state: 'visible', timeout: 10000 });
     
@@ -1248,7 +1183,6 @@ export class SalesPage {
       await paymentDateInput.fill(dateStr);
       this.logger.info(`Payment date filled with today: ${dateStr}`);
     }
-    await this.page.waitForTimeout(500);
     
     // 2. Fill payment time (required)
     const paymentTimeInput = this.page.locator('[formcontrolname="payment_time"]').first();
@@ -1264,7 +1198,6 @@ export class SalesPage {
       await paymentTimeInput.fill(timeStr);
       this.logger.info(`Payment time filled with now: ${timeStr}`);
     }
-    await this.page.waitForTimeout(500);
     
     // 3. Select payment method using formcontrolname
     this.logger.info(`Selecting payment method: ${payment.method}`);
@@ -1273,7 +1206,6 @@ export class SalesPage {
     await methodSelect.scrollIntoViewIfNeeded();
     await methodSelect.click();
     this.logger.info('Clicked payment method dropdown');
-    await this.page.waitForTimeout(1000);
 
     // Wait for listbox to appear
     await this.page.waitForSelector('div[role="listbox"]', { state: 'visible', timeout: 10000 });
@@ -1295,7 +1227,8 @@ export class SalesPage {
       this.logger.warn(`Payment method "${payment.method}" not found, selecting first option`);
       await this.page.locator('div[role="listbox"] mat-option:nth-child(1)').click();
     }
-    await this.page.waitForTimeout(1000);
+    // Wait for overlay to close after method selection
+    await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
 
     // 4. Fill note (optional) - must use .last() to target payment form field, not main form
     if (payment.note) {
@@ -1310,7 +1243,6 @@ export class SalesPage {
       } else {
         this.logger.warn('Note input not found, skipping note');
       }
-      await this.page.waitForTimeout(500);
     }
 
     // 5. Fill amount using formcontrolname - use .last() to target payment form field
@@ -1320,7 +1252,6 @@ export class SalesPage {
     await amountInput.scrollIntoViewIfNeeded();
     await amountInput.fill(payment.amount);
     this.logger.info(`  - Amount filled: ${payment.amount}`);
-    await this.page.waitForTimeout(1000);
 
     // 6. Payment is now filled but in draft mode
     // Do NOT click any ADD button here - payment will be saved when SAVE button at top is clicked
@@ -1349,7 +1280,8 @@ export class SalesPage {
   async closeMoreMenu(): Promise<void> {
     this.logger.info('Closing MORE menu');
     await this.page.keyboard.press('Escape');
-    await this.page.waitForTimeout(500);
+    // Wait for menu overlay to close
+    await this.page.locator(salesSelectors.moreMenu).waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
     this.logger.info('MORE menu closed');
   }
 
@@ -1405,11 +1337,8 @@ export class SalesPage {
     this.logger.info('"Re-send Payment" button clicked');
 
     // Wait for modal/dialog to appear
-    await this.page.waitForTimeout(2000);
-
-    // Try the specific modal selector first
     const resendModal = this.page.locator('[data-testid="modal-sales-mail-div-modal-sales-mail-component-0"]');
-    const specificModalVisible = await resendModal.isVisible().catch(() => false);
+    const specificModalVisible = await resendModal.waitFor({ state: 'visible', timeout: 10000 }).then(() => true).catch(() => false);
 
     if (specificModalVisible) {
       this.logger.info('Resend payment modal appeared');
@@ -1504,7 +1433,8 @@ export class SalesPage {
     // Wait for redirect to sales table
     await this.page.waitForURL(/sales-table/, { timeout: 15000 });
     await this.page.waitForLoadState('domcontentloaded');
-    await this.page.waitForTimeout(2000);
+    // Wait for table to be visible
+    await this.page.waitForSelector('table', { state: 'visible', timeout: 10000 });
     this.logger.info('Voided successfully, redirected to sales table');
   }
 
@@ -1536,7 +1466,8 @@ export class SalesPage {
       
       // Wait for sales table to be visible
       await this.page.waitForSelector('table tbody tr', { state: 'visible', timeout: 10000 });
-      await this.page.waitForTimeout(2000);
+      // Wait for table to stabilize (Angular rendering)
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 3000 });
 
       // Get the status from first row - status is typically in column with status badge
       // Look for the status badge in the first row
@@ -1636,9 +1567,9 @@ export class SalesPage {
           }
         }
 
-        // Wait before retry
+        // Wait for DOM to update before retry
         if (attempt < maxRetries - 1) {
-          await this.page.waitForTimeout(1000);
+          await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 1500 });
         }
       }
 

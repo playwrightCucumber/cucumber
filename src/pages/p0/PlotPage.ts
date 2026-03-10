@@ -3,6 +3,7 @@ import { RoiSelectors, RoiUrls, PlotStatus } from '../../selectors/p0/roi/index.
 import { Logger } from '../../utils/Logger.js';
 import { getCustomerOrgUrl } from '../../data/test-data.js';
 import { ROIPage } from './ROIPage.js';
+import { NetworkHelper } from '../../utils/NetworkHelper.js';
 
 export class PlotPage {
   readonly page: Page;
@@ -29,7 +30,8 @@ export class PlotPage {
   async openFilter(): Promise<void> {
     this.logger.info('Opening filter dialog');
     await this.page.click(RoiSelectors.filterButton);
-    await this.page.waitForTimeout(1000); // Wait for dialog animation
+    // Wait for filter dialog to be visible (Done button appears inside it)
+    await this.page.locator(RoiSelectors.filterDoneButton).waitFor({ state: 'visible', timeout: 5000 });
     this.logger.success('Filter dialog opened');
   }
 
@@ -51,7 +53,6 @@ export class PlotPage {
     const statusOptions = await this.page.locator('[data-testid^="statuses-div-control-button"]').all();
     if (statusOptions.length > 1) {
       await statusOptions[1].click(); // Index 1 is Reserved
-      await this.page.waitForTimeout(500);
       this.logger.success('Reserved filter selected');
     } else {
       throw new Error('Reserved filter option not found');
@@ -64,7 +65,6 @@ export class PlotPage {
   async selectOccupiedFilter(): Promise<void> {
     this.logger.info('Selecting occupied filter option');
     await this.page.locator('label').filter({ hasText: 'Occupied' }).click();
-    await this.page.waitForTimeout(500);
     this.logger.success('Occupied filter selected');
   }
 
@@ -74,7 +74,8 @@ export class PlotPage {
   async applyFilter(): Promise<void> {
     this.logger.info('Applying filter');
     await this.page.click(RoiSelectors.filterDoneButton);
-    await this.page.waitForTimeout(2000); // Wait for filter to apply
+    // Wait for dialog to close and section toggles to appear (filter applied)
+    await this.page.locator('button[data-testid^="shared-all-plots-button-toggle-"]').first().waitFor({ state: 'visible', timeout: 10000 });
     this.logger.success('Filter applied');
   }
 
@@ -88,7 +89,8 @@ export class PlotPage {
     // Wait for section button to be visible before clicking (plots may be loading after filter)
     await this.page.waitForSelector(selector, { state: 'visible', timeout: 10000 });
     await this.page.click(selector);
-    await this.page.waitForTimeout(1000); // Wait for expansion animation
+    // Wait for section expansion animation to complete and plot items to become visible
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
     this.logger.success(`Section ${section.toUpperCase()} expanded`);
   }
 
@@ -122,7 +124,8 @@ export class PlotPage {
     
     // Click the first section toggle button
     await firstButton.click();
-    await this.page.waitForTimeout(1000); // Wait for expansion animation
+    // Wait for section expansion animation to complete and plot items to become visible
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
 
     this.logger.success(`First section ${sectionLetter.toUpperCase()} expanded`);
     return sectionLetter;
@@ -134,22 +137,12 @@ export class PlotPage {
    */
   async selectPlot(plotName: string): Promise<void> {
     this.logger.info(`Selecting plot: ${plotName}`);
-    // Wait for plots to load
-    await this.page.waitForTimeout(2000);
     
-    // Try multiple selectors to find the plot
-    try {
-      // First try: exact match with status (most reliable)
-      await this.page.getByText(`${plotName} Vacant`, { exact: true }).click({ timeout: 5000 });
-    } catch (e1) {
-      try {
-        // Second try: contains text
-        await this.page.getByText(plotName).first().click({ timeout: 5000 });
-      } catch (e2) {
-        // Third try: use role button with plot name
-        await this.page.locator(`button:has-text("${plotName}")`).first().click({ timeout: 5000 });
-      }
-    }
+    // Plot items are inside overflow-hidden scroll container — use JS click to bypass visibility checks
+    const plotLocator = this.page.getByText(`${plotName} Vacant`, { exact: true })
+      .or(this.page.getByText(plotName).first());
+    await plotLocator.first().waitFor({ state: 'attached', timeout: 10000 });
+    await plotLocator.first().evaluate(el => (el as HTMLElement).click());
     
     await this.page.waitForURL(`**${RoiUrls.plotDetailPattern}**`, { timeout: 10000 });
     this.logger.success(`Plot ${plotName} selected`);
@@ -161,8 +154,8 @@ export class PlotPage {
    */
   async selectFirstVacantPlot(): Promise<string> {
     this.logger.info('Getting first vacant plot name from the list');
-    // Wait for plots to load
-    await this.page.waitForTimeout(3000);
+    // Wait for at least one vacant plot in the expanded section (items may be overflow-hidden in scroll container)
+    await this.page.getByText(/\w+\s+\w+\s+\d+\s+Vacant$/).first().waitFor({ state: 'attached', timeout: 10000 });
     
     // Use getByText to find elements containing "Vacant"
     const vacantPlots = await this.page.getByText(/\w+\s+\w+\s+\d+\s+Vacant$/).all();
@@ -187,8 +180,8 @@ export class PlotPage {
    */
   async selectFirstReservedPlot(): Promise<string> {
     this.logger.info('Getting first reserved plot name from the list');
-    // Wait for plots to load
-    await this.page.waitForTimeout(3000);
+    // Wait for at least one reserved plot in the expanded section (items may be overflow-hidden)
+    await this.page.getByText(/\w+\s+\w+\s+\d+\s+Reserved$/).first().waitFor({ state: 'attached', timeout: 10000 });
 
     // Use getByText to find elements containing "Reserved"
     const reservedPlots = await this.page.getByText(/\w+\s+\w+\s+\d+\s+Reserved$/).all();
@@ -205,11 +198,12 @@ export class PlotPage {
     this.logger.info(`Found first reserved plot: ${plotName}`);
 
     // Click the plot to navigate to plot detail page
-    await firstPlot.click();
+    // Plot items are inside overflow-hidden scroll container — use JS click to bypass visibility checks
+    await firstPlot.evaluate(el => (el as HTMLElement).click());
     // Wait for navigation to plot detail page to complete
     await this.page.waitForURL('**/plots/**', { timeout: 15000 });
-    // Wait for page to stabilize
-    await this.page.waitForTimeout(2000);
+    // Wait for plot detail tablist to be visible (page fully loaded)
+    await this.page.locator('[role="tablist"]').waitFor({ state: 'visible', timeout: 10000 });
 
     this.logger.success(`First reserved plot selected: ${plotName}`);
     return plotName;
@@ -221,8 +215,8 @@ export class PlotPage {
    */
   async selectFirstOccupiedPlot(): Promise<string> {
     this.logger.info('Getting first occupied plot from the list');
-    // Wait for plots to load
-    await this.page.waitForTimeout(3000);
+    // Wait for at least one plot item in the expanded section (items may be overflow-hidden)
+    await this.page.locator('[role="treeitem"] li').first().waitFor({ state: 'attached', timeout: 10000 });
 
     // Find occupied plots - they show deceased name instead of status
     // Pattern: "A A 1 Ahmad Setiawan" (plot name + deceased name)
@@ -239,12 +233,12 @@ export class PlotPage {
     this.logger.info(`Found first occupied plot: ${plotText}`);
 
     // Click the plot to navigate to plot detail page
-    await firstPlot.click();
+    // Plot items are inside overflow-hidden scroll container — use JS click to bypass visibility checks
+    await firstPlot.evaluate(el => (el as HTMLElement).click());
     // Wait for navigation to plot detail page to complete
     await this.page.waitForURL('**/plots/**', { timeout: 15000 });
     // Wait for page to stabilize (tablist to load)
     await this.page.waitForSelector('[role="tablist"]', { state: 'visible', timeout: 10000 });
-    await this.page.waitForTimeout(2000);
 
     this.logger.success(`First occupied plot selected`);
     return plotText?.trim() || 'Unknown';
@@ -262,8 +256,8 @@ export class PlotPage {
     
     this.logger.info(`Constructed URL: ${addRoiUrl}`);
     await this.page.goto(addRoiUrl);
-    // Wait for ROI form to fully load and initialize
-    await this.page.waitForTimeout(7000);
+    // Wait for ROI form title to appear (form fully loaded)
+    await this.page.waitForSelector(RoiSelectors.roiFormTitle, { state: 'visible', timeout: 15000 });
     
     this.logger.success(`Navigated to add ROI page for plot: ${plotName}`);
   }
@@ -308,8 +302,8 @@ export class PlotPage {
     
     const roiPage = new ROIPage(this.page);
     
-    // Wait for plot list to load after filter
-    await this.page.waitForTimeout(2000);
+    // Wait for section toggle buttons to appear (plot list loaded after filter)
+    await this.page.locator('button[data-testid^="shared-all-plots-button-toggle-"]').first().waitFor({ state: 'visible', timeout: 10000 });
     
     // Find all section toggle buttons
     const sectionButtons = await this.page.locator('button[data-testid^="shared-all-plots-button-toggle-"]').all();
@@ -327,7 +321,8 @@ export class PlotPage {
       
       this.logger.info(`Expanding section ${sectionLetter.toUpperCase()}`);
       await sectionBtn.click();
-      await this.page.waitForTimeout(1500);
+      // Wait for section expansion animation to complete
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
       
       // Find all reserved plots in this section
       const reservedPlots = await this.page.getByText(/\w+\s+\w+\s+\d+\s+Reserved$/).all();
@@ -347,7 +342,7 @@ export class PlotPage {
         // Click the plot to go to detail page
         await plot.click();
         await this.page.waitForURL('**/plots/**', { timeout: 15000 });
-        await this.page.waitForTimeout(2000);
+        await this.page.locator('[role="tablist"]').waitFor({ state: 'visible', timeout: 10000 });
         
         // Check certificate number in the ROI tab
         const certNumber = await roiPage.getCertificateNumberFromRoiTab();
@@ -361,7 +356,8 @@ export class PlotPage {
         
         // Go back to plot list
         await this.page.goBack();
-        await this.page.waitForTimeout(2000);
+        // Wait for plots page to reload — section toggles appear when ready
+        await this.page.locator('button[data-testid^="shared-all-plots-button-toggle-"]').first().waitFor({ state: 'visible', timeout: 10000 });
         
         // After going back, the section may be collapsed - re-expand it
         const refreshedSectionBtns = await this.page.locator('button[data-testid^="shared-all-plots-button-toggle-"]').all();
@@ -371,7 +367,8 @@ export class PlotPage {
           const isExpanded = await treeItem.locator('..').getAttribute('aria-expanded').catch(() => null);
           if (isExpanded !== 'true') {
             await refreshedSectionBtns[s].click();
-            await this.page.waitForTimeout(1500);
+            // Wait for section expansion animation to complete
+            await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
           }
         }
       }
@@ -380,7 +377,7 @@ export class PlotPage {
       const collapseButtons = await this.page.locator('button[data-testid^="shared-all-plots-button-toggle-"]').all();
       if (s < collapseButtons.length) {
         await collapseButtons[s].click();
-        await this.page.waitForTimeout(500);
+        await NetworkHelper.waitForAnimation(this.page);
       }
     }
     

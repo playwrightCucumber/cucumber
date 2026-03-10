@@ -24,7 +24,6 @@ export class LoginPage {
     this.logger.info(`Entering email: ${email}`);
     // Click first to enable the input (it's readonly initially)
     await this.page.locator(LoginSelectors.emailInput).click();
-    await this.page.waitForTimeout(200); // Small wait for input to become editable
     await this.page.locator(LoginSelectors.emailInput).fill(email);
   }
 
@@ -32,7 +31,6 @@ export class LoginPage {
     this.logger.info('Entering password');
     // Click first to enable the input (it's readonly initially)
     await this.page.locator(LoginSelectors.passwordInput).click();
-    await this.page.waitForTimeout(200); // Small wait for input to become editable
     await this.page.locator(LoginSelectors.passwordInput).fill(password);
   }
 
