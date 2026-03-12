@@ -287,23 +287,20 @@ export class PersonPage {
     this.page.on('console', consoleListener);
     
     // Set up response listener for save API call
+    // Actual endpoint: PUT/PATCH /api/v1/cemetery/{cemId}/person/{personId}/ or /api/v1/adv_table/persons/{id}/
     let apiCalled = false;
     const responsePromise = this.page.waitForResponse(
       response => {
         const url = response.url();
         const method = response.request().method();
-        const isPersonApi = url.includes('/person/') && (method === 'PUT' || method === 'PATCH');
+        const isPersonApi = (url.includes('/person/') || url.includes('/persons/')) && 
+                            (method === 'PUT' || method === 'PATCH') &&
+                            url.includes('/api/');
         if (isPersonApi) {
           apiCalled = true;
         }
         return isPersonApi;
       },
-      {}
-    ).catch(() => null);
-    
-    // Set up listener for GET /person API BEFORE clicking - this is the key fix!
-    const personApiPromise = this.page.waitForResponse(
-      (resp) => resp.url().includes('/person') && resp.request().method() === 'GET' && resp.status() === 200,
       {}
     ).catch(() => null);
     
@@ -340,16 +337,9 @@ export class PersonPage {
     await this.page.waitForURL('**/advance-table?tab=persons');
     this.logger.info('Person saved successfully, navigated back to persons table');
     
-    // Wait for person API to reload data after save
-    try {
-      await personApiPromise;
-      this.logger.info('Person list API response received after save');
-      // Wait for data to render
-      await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
-    } catch (error) {
-      this.logger.warn('Could not detect person API, waiting for stabilization instead');
-      await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
-    }
+    // Wait for table data to reload after save
+    await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 3000 });
   }
 
   /**
@@ -536,6 +526,10 @@ export class PersonPage {
       await firstDataRow.click();
       await this.page.waitForURL('**/manage/edit/person/**').catch(() => {});
     }
+
+    // Wait for the edit form to be fully loaded (Chronicle polls continuously)
+    await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
   }
 
   /**
@@ -609,12 +603,21 @@ export class PersonPage {
    */
   async clickDelete(): Promise<void> {
     this.logger.info('Clicking delete button');
+
+    // Wait for page to be stable before clicking delete (Chronicle polls continuously)
+    await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
+
     const deleteButton = this.page.locator(PersonSelectors.deleteButton);
     await deleteButton.waitFor({ state: 'visible' });
     await deleteButton.click();
 
-    // Wait for confirmation dialog
-    await this.page.locator(PersonSelectors.confirmDeleteButton).last().waitFor({ state: 'visible' });
+    // Wait for the delete confirmation dialog to appear
+    const dialog = this.page.locator(PersonSelectors.deleteDialog);
+    await dialog.waitFor({ state: 'visible', timeout: 10000 });
+
+    // Wait for the confirm button inside the dialog to be ready
+    const confirmButton = this.page.locator(PersonSelectors.confirmDeleteButton);
+    await confirmButton.waitFor({ state: 'visible' });
     this.logger.info('Delete button clicked, confirmation dialog visible');
   }
 
@@ -624,53 +627,47 @@ export class PersonPage {
   async confirmDelete(): Promise<void> {
     this.logger.info('Confirming delete in dialog');
     
-    // Wait for and click confirm delete button in dialog
-    const confirmButton = this.page.locator(PersonSelectors.confirmDeleteButton).last();
+    // Wait for the confirm delete button inside the dialog
+    const confirmButton = this.page.locator(PersonSelectors.confirmDeleteButton);
     await confirmButton.waitFor({ state: 'visible' });
     
-    // Wait for delete API call
+    // Set up delete API listener BEFORE clicking confirm
+    // Actual endpoint: DELETE /api/v1/cemetery/{cemId}/person/{personId}/
     const deletePromise = this.page.waitForResponse(
-      response => response.url().includes('/customer-organization/person') && 
+      response => response.url().includes('/person/') && 
                   response.request().method() === 'DELETE',
-      {}
-    );
-    
-    // Set up listener for GET /person API BEFORE clicking confirm
-    const personApiPromise = this.page.waitForResponse(
-      (response) => response.url().includes('/person') && response.status() === 200,
       {}
     ).catch(() => null);
     
     await confirmButton.click();
     this.logger.info('Confirm delete button clicked');
     
-    try {
-      const deleteResponse = await deletePromise;
-      const status = deleteResponse.status();
-      this.logger.info(`Delete API response status: ${status}`);
-      
-      if (status === 200 || status === 204) {
-        this.logger.info('Person deleted successfully');
-      } else {
-        this.logger.warn(`Delete API returned non-success status: ${status}`);
+    // Wait for delete API response
+    if (deletePromise) {
+      try {
+        const deleteResponse = await deletePromise;
+        if (deleteResponse) {
+          const status = deleteResponse.status();
+          this.logger.info(`Delete API response status: ${status}`);
+          
+          if (status === 200 || status === 204) {
+            this.logger.info('Person deleted successfully');
+          } else {
+            this.logger.warn(`Delete API returned non-success status: ${status}`);
+          }
+        }
+      } catch (error) {
+        this.logger.warn('Delete API call timeout or error');
       }
-    } catch (error) {
-      this.logger.warn('Delete API call timeout or error');
     }
     
     // Wait for navigation back to persons table
-await this.page.waitForURL('**/advance-table?tab=persons', { waitUntil: 'domcontentloaded' });
+    await this.page.waitForURL('**/advance-table?tab=persons', { timeout: 30000 });
     this.logger.info('Navigated back to persons table after deletion');
     
-    // Wait for person API to reload data after deletion
-    try {
-      await personApiPromise;
-      this.logger.info('Person list API response received after delete');
-      await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
-    } catch (error) {
-      this.logger.warn('Could not detect person API, waiting for stabilization instead');
-      await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
-    }
+    // Wait for the table data to load after deletion
+    await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 3000 });
   }
 
   /**

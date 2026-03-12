@@ -29,8 +29,9 @@ export const PersonSelectors = {
   saveAddButton: 'button[data-testid="toolbar-manage-button-toolbar-button-1"]', // Save button when adding new person
   saveEditButton: 'button[data-testid="toolbar-manage-button-toolbar-button-2"]', // Save button when editing existing person
   cancelButton: 'button[data-testid="toolbar-manage-button-toolbar-button"]',
-  deleteButton: 'button:has-text("Delete")', // Delete button in edit page
-  confirmDeleteButton: 'button:has-text("Delete")', // Confirm delete in dialog
+  deleteButton: 'button:has-text("Delete"):not([role="dialog"] button)', // Delete button in edit page (exclude dialog buttons)
+  confirmDeleteButton: '[data-testid="button-delete-person"], [role="dialog"] button:has-text("DELETE PERSON")', // Confirm delete in dialog
+  deleteDialog: '[role="dialog"]:has-text("Delete Person")', // Delete confirmation dialog
 
   // Filter
   filterButton: 'button:has-text("Filter")', // More generic selector for filter button
