@@ -28,11 +28,11 @@ export class AdvanceSearchPage {
     const advancedButton = this.page.locator(AdvanceSearchSelectors.advancedSearchButton);
 
     // Wait for button to be visible
-    await advancedButton.waitFor({ state: 'visible', timeout: 10000 });
+    await advancedButton.waitFor({ state: 'visible' });
     this.logger.info('Advanced button visible, waiting for it to be enabled...');
 
     // Wait for button to be enabled
-    await expect(advancedButton).toBeEnabled({ timeout: 15000 });
+    await expect(advancedButton).toBeEnabled();
 
     this.logger.info('Advanced button is now enabled, clicking...');
 
@@ -40,7 +40,7 @@ export class AdvanceSearchPage {
     await advancedButton.click();
 
     // Wait for dialog to open
-    await this.page.locator('.advanced-search-form').waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.locator('.advanced-search-form').waitFor({ state: 'visible' });
     this.logger.success('Advanced search dialog opened');
   }
 
@@ -56,11 +56,11 @@ export class AdvanceSearchPage {
 
     // Wait for the option to be visible before clicking
     const sectionOption = this.page.getByRole('option', { name: section, exact: true });
-    await sectionOption.waitFor({ state: 'visible', timeout: 5000 });
+    await sectionOption.waitFor({ state: 'visible' });
     await sectionOption.click();
 
     // Wait for dropdown to close
-    await sectionOption.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+    await sectionOption.waitFor({ state: 'hidden' }).catch(() => {});
 
     this.logger.success(`Section ${section} selected`);
   }
@@ -77,11 +77,11 @@ export class AdvanceSearchPage {
 
     // Wait for the option to be visible before clicking
     const rowOption = this.page.getByRole('option', { name: row, exact: true });
-    await rowOption.waitFor({ state: 'visible', timeout: 5000 });
+    await rowOption.waitFor({ state: 'visible' });
     await rowOption.click();
 
     // Wait for dropdown to close
-    await rowOption.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+    await rowOption.waitFor({ state: 'hidden' }).catch(() => {});
 
     this.logger.success(`Row ${row} selected`);
   }
@@ -114,8 +114,8 @@ export class AdvanceSearchPage {
 
     // Wait for search button to be visible and enabled
     const searchButton = this.page.locator(AdvanceSearchSelectors.searchButton);
-    await searchButton.waitFor({ state: 'visible', timeout: 5000 });
-    await expect(searchButton).toBeEnabled({ timeout: 5000 });
+    await searchButton.waitFor({ state: 'visible' });
+    await expect(searchButton).toBeEnabled();
 
     await searchButton.click();
 
@@ -127,17 +127,15 @@ export class AdvanceSearchPage {
       // Wait for the search results heading to be updated (it should change text)
       await this.page.waitForSelector(AdvanceSearchSelectors.searchResultsHeading, { 
         state: 'visible', 
-        timeout: 10000 
       });
     } else {
       // Wait for navigation to search page
       this.logger.info('Waiting for navigation to search results page...');
-      await this.page.waitForURL('**/search/advance', { timeout: 10000 });
+      await this.page.waitForURL('**/search/advance');
       
       // Verify we're on the search page by checking for results heading
       await this.page.waitForSelector(AdvanceSearchSelectors.searchResultsHeading, { 
         state: 'visible', 
-        timeout: 10000 
       });
     }
 
@@ -152,14 +150,14 @@ export class AdvanceSearchPage {
     this.logger.info(`Verifying search results contain plot: ${plotId}`);
 
     // Wait for search results heading
-    await this.page.waitForSelector(AdvanceSearchSelectors.searchResultsHeading, { timeout: 10000 });
+    await this.page.waitForSelector(AdvanceSearchSelectors.searchResultsHeading);
 
     // Use the specific testid for the search result div
     const searchResultDiv = this.page.getByTestId('advance-search-result-div-search-list');
-    await searchResultDiv.waitFor({ state: 'visible', timeout: 10000 });
+    await searchResultDiv.waitFor({ state: 'visible' });
 
     // Verify the plot ID is visible in the search result
-    await expect(searchResultDiv.getByText(plotId)).toBeVisible({ timeout: 5000 });
+    await expect(searchResultDiv.getByText(plotId)).toBeVisible();
 
     this.logger.success(`Plot ${plotId} found in search results`);
   }
@@ -176,7 +174,7 @@ export class AdvanceSearchPage {
     await searchResultDiv.click();
 
     // Wait for navigation to plot detail page
-    await this.page.waitForURL('**/plots/**', { timeout: 10000 });
+    await this.page.waitForURL('**/plots/**');
     await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
 
     this.logger.success(`Navigated to plot ${plotId} detail page`);
@@ -191,7 +189,7 @@ export class AdvanceSearchPage {
 
     // Check for plot ID in sidebar heading
     const plotHeading = this.page.locator(IntermentSelectors.plotSidebarHeading(plotId));
-    await plotHeading.waitFor({ state: 'visible', timeout: 10000 });
+    await plotHeading.waitFor({ state: 'visible' });
 
     this.logger.success(`Plot sidebar verified with ID: ${plotId}`);
   }
@@ -204,7 +202,7 @@ export class AdvanceSearchPage {
 
     // Check for Edit button which indicates sidebar is loaded
     const editButton = this.page.locator(IntermentSelectors.editButtonInSidebar);
-    await editButton.waitFor({ state: 'visible', timeout: 10000 });
+    await editButton.waitFor({ state: 'visible' });
 
     this.logger.success('Plot details sidebar verified');
   }
@@ -239,13 +237,13 @@ export class AdvanceSearchPage {
 
     // Wait for the option to be visible before clicking (important for slower environments)
     const plotTypeOption = this.page.getByRole('option', { name: plotType, exact: true });
-    await plotTypeOption.waitFor({ state: 'visible', timeout: 5000 });
+    await plotTypeOption.waitFor({ state: 'visible' });
     this.logger.info(`Plot type option "${plotType}" is visible, clicking...`);
 
     await plotTypeOption.click();
 
     // Wait for dropdown to close
-    await plotTypeOption.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+    await plotTypeOption.waitFor({ state: 'hidden' }).catch(() => {});
 
     this.logger.success(`Plot type ${plotType} selected`);
   }
@@ -261,11 +259,11 @@ export class AdvanceSearchPage {
 
     // Wait for the option to be visible before clicking
     const statusOption = this.page.getByRole('option', { name: status, exact: true });
-    await statusOption.waitFor({ state: 'visible', timeout: 5000 });
+    await statusOption.waitFor({ state: 'visible' });
     await statusOption.click();
 
     // Wait for dropdown to close
-    await statusOption.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+    await statusOption.waitFor({ state: 'hidden' }).catch(() => {});
 
     this.logger.success(`Status ${status} selected`);
   }
@@ -294,8 +292,8 @@ export class AdvanceSearchPage {
     const burialCapacityField = this.page.getByRole('textbox', { name: 'Burials' });
     
     // Wait for field to be visible and enabled
-    await burialCapacityField.waitFor({ state: 'visible', timeout: 5000 });
-    await expect(burialCapacityField).toBeEnabled({ timeout: 5000 });
+    await burialCapacityField.waitFor({ state: 'visible' });
+    await expect(burialCapacityField).toBeEnabled();
     
     // Clear any existing value first
     await burialCapacityField.clear();
@@ -324,8 +322,8 @@ export class AdvanceSearchPage {
     const entombmentCapacityField = this.page.getByRole('textbox', { name: 'Entombments' });
     
     // Wait for field to be visible and enabled
-    await entombmentCapacityField.waitFor({ state: 'visible', timeout: 5000 });
-    await expect(entombmentCapacityField).toBeEnabled({ timeout: 5000 });
+    await entombmentCapacityField.waitFor({ state: 'visible' });
+    await expect(entombmentCapacityField).toBeEnabled();
     
     // Clear any existing value first
     await entombmentCapacityField.clear();
@@ -354,8 +352,8 @@ export class AdvanceSearchPage {
     const cremationCapacityField = this.page.getByRole('textbox', { name: 'Cremations' });
     
     // Wait for field to be visible and enabled
-    await cremationCapacityField.waitFor({ state: 'visible', timeout: 5000 });
-    await expect(cremationCapacityField).toBeEnabled({ timeout: 5000 });
+    await cremationCapacityField.waitFor({ state: 'visible' });
+    await expect(cremationCapacityField).toBeEnabled();
     
     // Clear any existing value first
     await cremationCapacityField.clear();
@@ -385,11 +383,11 @@ export class AdvanceSearchPage {
     // Interments Qty fields in the Plot section use testids 'plot-form-input' (From)
     // and 'plot-form-input-0' (To)
     const fromField = this.page.getByTestId('plot-form-input');
-    await fromField.waitFor({ state: 'visible', timeout: 5000 });
+    await fromField.waitFor({ state: 'visible' });
     await fromField.fill(from);
 
     const toField = this.page.getByTestId('plot-form-input-0');
-    await toField.waitFor({ state: 'visible', timeout: 5000 });
+    await toField.waitFor({ state: 'visible' });
     await toField.fill(to);
 
     this.logger.success(`Interments Qty ${from} - ${to} entered`);
@@ -406,13 +404,13 @@ export class AdvanceSearchPage {
     const searchResultDiv = this.page.getByTestId('advance-search-result-div-search-list');
 
     // Wait for the element to be visible and clickable
-    await searchResultDiv.waitFor({ state: 'visible', timeout: 10000 });
+    await searchResultDiv.waitFor({ state: 'visible' });
 
     // Click on the first result
     await searchResultDiv.click();
 
     // Wait for navigation to plot detail page
-    await this.page.waitForURL('**/plots/**', { timeout: 15000 });
+    await this.page.waitForURL('**/plots/**');
     await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
 
     this.logger.success('Navigated to plot detail page');
@@ -427,7 +425,7 @@ export class AdvanceSearchPage {
     await this.page.getByTestId('plot-details-edit-button-edit-plot').click();
 
     // Wait for navigation to edit plot page
-    await this.page.waitForURL('**/manage/edit/plot', { timeout: 10000 });
+    await this.page.waitForURL('**/manage/edit/plot');
     await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
 
     this.logger.success('Navigated to edit plot page');

@@ -1,0 +1,160 @@
+- generic [ref=e4271]:
+  - generic [ref=e4273]:
+    - generic [ref=e4274]:
+      - link [ref=e4275] [cursor=pointer]:
+        - /url: /
+      - link:
+        - /url: /
+    - generic [ref=e4276]:
+      - button "MORE" [ref=e4278] [cursor=pointer]:
+        - generic [ref=e4279]:
+          - img [ref=e4280]: more_vert
+          - text: MORE
+      - button "cancel" [ref=e4281] [cursor=pointer]: cancel
+      - button "save" [ref=e4282] [cursor=pointer]: save
+  - generic [ref=e4286]:
+    - generic [ref=e4287]:
+      - generic [ref=e4288]:
+        - heading "Edit ROI" [level=1] [ref=e4289]
+        - generic [ref=e4291]:
+          - heading "Astana Tegal Gundul - B G 8" [level=4] [ref=e4292]
+          - generic [ref=e4293]:
+            - img [ref=e4294]
+            - paragraph [ref=e4295] [cursor=pointer]: View on map
+      - paragraph [ref=e4300] [cursor=pointer]: Create certificate
+    - generic [ref=e4301]:
+      - generic [ref=e4303]:
+        - generic [ref=e4304]:
+          - generic [ref=e4308] [cursor=pointer]:
+            - combobox "Right type Burial" [ref=e4309]:
+              - generic [ref=e4312]: Burial
+            - generic:
+              - generic: Right type *
+          - generic [ref=e4318] [cursor=pointer]:
+            - combobox "Term of right Perpetual" [ref=e4319]:
+              - generic [ref=e4322]: Perpetual
+            - generic:
+              - generic: Term of right
+        - generic [ref=e4325]:
+          - generic [ref=e4328]:
+            - generic [ref=e4329]: $
+            - generic [ref=e4330]:
+              - spinbutton "Fee" [ref=e4331]: "1500"
+              - generic:
+                - generic: Fee
+          - generic [ref=e4334]:
+            - generic [ref=e4335]:
+              - textbox "Payment date" [ref=e4336]
+              - generic:
+                - generic: Payment date
+            - button "Open calendar" [ref=e4339] [cursor=pointer]:
+              - img [ref=e4340]
+          - generic [ref=e4345] [cursor=pointer]:
+            - switch "Charged" [ref=e4347]
+            - generic [ref=e4350]: Charged
+        - generic [ref=e4351]:
+          - generic [ref=e4354]:
+            - generic [ref=e4355]:
+              - textbox "Application date" [ref=e4356]: 11/03/2026
+              - generic:
+                - generic: Application date
+            - button "Open calendar" [ref=e4359] [cursor=pointer]:
+              - img [ref=e4360]
+          - generic [ref=e4364]:
+            - generic [ref=e4367]:
+              - generic [ref=e4368]:
+                - textbox "Expiry Date" [ref=e4369]
+                - generic:
+                  - generic: Expiry Date
+              - button "Open calendar" [ref=e4372] [cursor=pointer]:
+                - img [ref=e4373]
+            - generic [ref=e4378]:
+              - generic [ref=e4379]:
+                - checkbox "Auto add to event calendar" [disabled] [ref=e4380]
+                - generic:
+                  - img
+              - generic [ref=e4381]: Auto add to event calendar
+        - generic [ref=e4382]:
+          - generic [ref=e4386] [cursor=pointer]:
+            - combobox "Service need" [ref=e4387]
+            - generic:
+              - generic: Service need
+          - generic [ref=e4396]:
+            - textbox "Certificate number" [ref=e4397]: CERT-TABLE-001
+            - generic:
+              - generic: Certificate number
+        - heading "Extra details" [level=6] [ref=e4398]
+        - generic [ref=e4405] [cursor=pointer]:
+          - combobox "Infusions purchased" [ref=e4406]
+          - generic:
+            - generic:
+              - generic: Infusions purchased
+        - generic [ref=e4418]:
+          - spinbutton "label" [ref=e4419]
+          - generic:
+            - generic:
+              - generic: Infusions cost
+        - generic [ref=e4426]:
+          - spinbutton "label" [ref=e4427]
+          - generic:
+            - generic:
+              - generic: Crystal keepsakes cost
+        - generic [ref=e4434]:
+          - spinbutton "label" [ref=e4435]
+          - generic:
+            - generic:
+              - generic: Weekend surcharge cost
+        - generic [ref=e4442]:
+          - textbox "label" [ref=e4443]
+          - generic:
+            - generic:
+              - generic: Digging Fee
+        - generic [ref=e4446]:
+          - heading "Documents" [level=4] [ref=e4447]
+          - generic [ref=e4453] [cursor=pointer]:
+            - button "SELECT FILE" [ref=e4454]:
+              - generic [ref=e4455]:
+                - img [ref=e4456]:
+                  - img [ref=e4457]
+                - text: SELECT FILE
+            - paragraph [ref=e4460]: or drag it here
+            - paragraph [ref=e4461]: "Maximum file size: 8 MB"
+      - generic [ref=e4462]:
+        - generic [ref=e4463]:
+          - button "ROI Holder" [ref=e4466] [cursor=pointer]:
+            - generic [ref=e4467]: ROI Holder
+          - button "ROI Applicant" [ref=e4470] [cursor=pointer]:
+            - generic [ref=e4471]: ROI Applicant
+        - generic [ref=e4474]:
+          - generic [ref=e4476]:
+            - banner [ref=e4477]:
+              - heading "ROI Holder" [level=4] [ref=e4479]
+            - generic [ref=e4480]:
+              - heading "test bisx" [level=2] [ref=e4481]
+              - button "EDIT CONTACT INFO" [ref=e4482] [cursor=pointer]:
+                - generic [ref=e4484]: EDIT CONTACT INFO
+              - button "REMOVE & REPLACE" [ref=e4487] [cursor=pointer]:
+                - generic [ref=e4489]: REMOVE & REPLACE
+          - generic [ref=e4490]:
+            - paragraph [ref=e4491]: "Also:"
+            - option "ROI Applicant" [ref=e4492] [cursor=pointer]: ROI Applicant
+          - button "ADD AS INTERMENT" [ref=e4494] [cursor=pointer]: ADD AS INTERMENT
+        - button "Add Sale" [ref=e4501] [cursor=pointer]:
+          - generic [ref=e4502]: Add Sale
+        - generic [ref=e4504]:
+          - generic [ref=e4505]:
+            - generic [ref=e4506]: Activity
+            - listbox "Filter Selection" [ref=e4507]:
+              - generic [ref=e4508]:
+                - option "Notes" [selected] [ref=e4509]: Notes
+                - option "Changes" [ref=e4510]: Changes
+                - option "All" [ref=e4511]: All
+            - button [ref=e4512] [cursor=pointer]:
+              - img [ref=e4514]:
+                - img [ref=e4515]
+              - generic: "1"
+          - generic [ref=e4520]:
+            - textbox "Add Notes" [ref=e4522]
+            - img [ref=e4524] [cursor=pointer]:
+              - img [ref=e4525]
+          - generic [ref=e4530]: No previous activity recorded in Chronicle.

@@ -16,8 +16,7 @@ export class LoginPage {
     this.logger.info('Navigating to login page');
     const baseUrl = BASE_CONFIG.baseUrl;
     this.logger.info(`Using BASE_URL: ${baseUrl}`);
-    await this.page.goto(`${baseUrl}${LoginUrls.loginPage}`, { timeout: 30000 });
-    await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 });
+    await this.page.goto(`${baseUrl}${LoginUrls.loginPage}`, { waitUntil: 'domcontentloaded' });
   }
 
   async enterEmail(email: string): Promise<void> {
@@ -47,9 +46,8 @@ export class LoginPage {
   async getErrorMessage(): Promise<string | null> {
     try {
       const errorElement = this.page.locator(LoginSelectors.errorMessage).first();
-      if (await errorElement.isVisible({ timeout: 3000 })) {
-        return await errorElement.textContent();
-      }
+      await errorElement.waitFor({ state: 'visible', timeout: 10000 });
+      return await errorElement.textContent();
     } catch (error) {
       this.logger.debug('No error message found');
     }
@@ -59,8 +57,7 @@ export class LoginPage {
   async waitForSuccessfulLogin(): Promise<void> {
     this.logger.info('Waiting for successful login');
     // Wait for redirect to dashboard (production needs more time)
-    await this.page.waitForURL(new RegExp(LoginUrls.dashboardPattern), { timeout: 45000 });
-    await this.page.waitForLoadState('domcontentloaded', { timeout: 20000 });
+    await this.page.waitForURL(new RegExp(LoginUrls.dashboardPattern), { waitUntil: 'domcontentloaded' });
     // Wait for API requests to complete and dashboard to fully load
     await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
     this.logger.success('Successfully logged in and dashboard loaded');
@@ -79,7 +76,7 @@ export class LoginPage {
   async getOrganizationName(): Promise<string | null> {
     try {
       const orgElement = this.page.locator(LoginSelectors.organizationName).first();
-      if (await orgElement.isVisible({ timeout: 5000 })) {
+      if (await orgElement.isVisible()) {
         return await orgElement.textContent();
       }
     } catch (error) {
@@ -91,7 +88,7 @@ export class LoginPage {
   async getUserEmail(): Promise<string | null> {
     try {
       const emailElement = this.page.locator(LoginSelectors.userEmail).first();
-      if (await emailElement.isVisible({ timeout: 5000 })) {
+      if (await emailElement.isVisible()) {
         return await emailElement.textContent();
       }
     } catch (error) {

@@ -8,7 +8,7 @@ import { BASE_CONFIG } from '../../data/test-data.js';
 const logger = new Logger('LoginSteps');
 let loginPage: LoginPage;
 
-Given('I am on the Chronicle login page', { timeout: 30000 }, async function () {
+Given('I am on the Chronicle login page', async function () {
   logger.info('Navigating to Chronicle login page');
   loginPage = new LoginPage(this.page);
   await loginPage.navigate();
@@ -31,21 +31,21 @@ When('I click the login button', async function () {
   await loginPage.clickLoginButton();
 });
 
-Then('I should be logged in successfully', { timeout: 60000 }, async function () {
+Then('I should be logged in successfully', async function () {
   logger.info('Verifying successful login');
   await loginPage.waitForSuccessfulLogin();
   const isLoggedIn = await loginPage.isLoggedIn();
   expect(isLoggedIn).toBeTruthy();
 });
 
-Then('I should see the organization name {string}', { timeout: 10000 }, async function (expectedOrgName: string) {
+Then('I should see the organization name {string}', async function (expectedOrgName: string) {
   const actualOrgName = replacePlaceholders(expectedOrgName);
   logger.info(`Verifying organization name: ${actualOrgName}`);
   const orgName = await loginPage.getOrganizationName();
   expect(orgName?.toLowerCase()).toContain(actualOrgName.toLowerCase());
 });
 
-Then('I should see my email {string}', { timeout: 10000 }, async function (expectedEmail: string) {
+Then('I should see my email {string}', async function (expectedEmail: string) {
   const actualEmail = replacePlaceholders(expectedEmail);
   logger.info(`Verifying user email: ${actualEmail}`);
   const userEmail = await loginPage.getUserEmail();
@@ -64,7 +64,7 @@ Then('the login button should be disabled', async function () {
   expect(isEnabled).toBeFalsy();
 });
 
-When('I navigate to organization home page', { timeout: 30000 }, async function () {
+When('I navigate to organization home page', async function () {
   logger.info('Validating auto-redirect to organization home page after login');
 
   // After login, system automatically redirects from public URL to authenticated URL
@@ -81,12 +81,11 @@ When('I navigate to organization home page', { timeout: 30000 }, async function 
 
   // Wait for redirect with proper timeout handling
   await this.page.waitForURL(`**/*${region}*${baseDomain}/**`, {
-    timeout: 20000,
     waitUntil: 'domcontentloaded'
   });
 
   // Wait for page content to be ready instead of hardcoded timeout
-  await this.page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+  await this.page.waitForLoadState('domcontentloaded');
 
   // Verify we're on authenticated URL (has region in URL)
   const currentUrl = this.page.url();

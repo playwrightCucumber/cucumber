@@ -29,10 +29,9 @@ export class RequestSalesFormPage {
     this.logger.info('Navigating to sell plots page');
     await this.page.goto(REQUEST_SALES_FORM_DATA.cemetery.sellPlotsUrl, {
       waitUntil: 'domcontentloaded',
-      timeout: 60000,
     });
     // Wait for page content to render
-    await this.page.waitForSelector('[role="tree"], h1', { state: 'visible', timeout: 15000 });
+    await this.page.waitForSelector('[role="tree"], h1', { state: 'visible' });
     this.logger.info('Successfully loaded sell plots page');
   }
 
@@ -64,7 +63,7 @@ export class RequestSalesFormPage {
     this.logger.info('Dynamically searching for any available "For Sale" plot');
 
     // Wait for the plot list to be visible after section expansion
-    await this.page.locator('text=/[A-Z]\\s+[A-Z]\\s+\\d+/i').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+    await this.page.locator('text=/[A-Z]\\s+[A-Z]\\s+\\d+/i').first().waitFor({ state: 'visible' }).catch(() => {});
 
     // Find all plots with "For Sale" status in the expanded section
     // Pattern matches: "X X N For Sale" where X is letter and N is number
@@ -91,7 +90,7 @@ export class RequestSalesFormPage {
         await plotElement.click();
 
         // Wait for navigation to plot details page
-        await this.page.waitForURL(/\/plots\//, { timeout: 15000, waitUntil: 'domcontentloaded' });
+        await this.page.waitForURL(/\/plots\//, { waitUntil: 'domcontentloaded' });
 
         // Wait for plot details to load
         this.logger.info('Waiting for plot details to load (v1_customform_public_detail)...');
@@ -102,7 +101,7 @@ export class RequestSalesFormPage {
 
         // Verify Request to Buy button exists
         const requestButton = this.page.locator('button:has-text("REQUEST TO BUY")').first();
-        const isVisible = await requestButton.isVisible({ timeout: 5000 });
+        const isVisible = await requestButton.isVisible();
 
         if (isVisible) {
           this.logger.info(`✓ SUCCESS! Found plot with Request to Buy button: "${plotName}"`);
@@ -113,7 +112,7 @@ export class RequestSalesFormPage {
         this.logger.info(`Plot "${plotName}" does not have Request to Buy button, trying next...`);
         await this.page.goBack({ waitUntil: 'domcontentloaded' });
         // Wait for sell plots page and plot list to restore
-        await this.page.waitForURL(/sell-plots/, { timeout: 10000 }).catch(() => {});
+        await this.page.waitForURL(/sell-plots/).catch(() => {});
         await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
 
       } catch (error) {
@@ -121,7 +120,7 @@ export class RequestSalesFormPage {
         // Try to go back in case we're on a different page
         try {
           await this.page.goBack({ waitUntil: 'domcontentloaded' });
-          await this.page.waitForURL(/sell-plots/, { timeout: 10000 }).catch(() => {});
+          await this.page.waitForURL(/sell-plots/).catch(() => {});
           await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
         } catch {
           // Ignore navigation errors
@@ -139,7 +138,7 @@ export class RequestSalesFormPage {
     this.logger.info('Clicking on first plot in section');
 
     // Wait for the expanded section to show plots
-    await this.page.locator('text=/[A-Z]\\s+[A-Z]\\s+\\d+/i').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+    await this.page.locator('text=/[A-Z]\\s+[A-Z]\\s+\\d+/i').first().waitFor({ state: 'visible' }).catch(() => {});
 
     // Use multiple fallback strategies to find and click the first plot
     let plotName = '';
@@ -147,7 +146,7 @@ export class RequestSalesFormPage {
     try {
       // Strategy 1: Try to find plot with "For Sale" pattern (case insensitive)
       const plotWithStatus = this.page.getByText(/[A-Z]\s+[A-Z]\s+\d+\s+For Sale/i).first();
-      await plotWithStatus.waitFor({ state: 'visible', timeout: 5000 });
+      await plotWithStatus.waitFor({ state: 'visible' });
       const text = await plotWithStatus.textContent();
       plotName = text?.replace(/\s*For Sale.*/i, '').trim() || '';
       this.logger.info(`Found plot using Strategy 1: ${plotName}`);
@@ -157,7 +156,7 @@ export class RequestSalesFormPage {
       try {
         // Strategy 2: Look for any clickable element containing plot name pattern
         const anyPlot = this.page.locator('text=/^[A-Z]\\s+[A-Z]\\s+\\d+/').first();
-        await anyPlot.waitFor({ state: 'visible', timeout: 5000 });
+        await anyPlot.waitFor({ state: 'visible' });
         plotName = await anyPlot.textContent() || '';
         plotName = plotName.trim();
         this.logger.info(`Found plot using Strategy 2: ${plotName}`);
@@ -166,7 +165,7 @@ export class RequestSalesFormPage {
         this.logger.info('Strategy 2 failed, trying Strategy 3');
         // Strategy 3: Use data-testid if available
         const plotByTestId = this.page.locator('[data-testid*="sell-plots"]').first();
-        await plotByTestId.waitFor({ state: 'visible', timeout: 5000 });
+        await plotByTestId.waitFor({ state: 'visible' });
         plotName = await plotByTestId.textContent() || '';
         plotName = plotName.split('\n')[0].trim();
         this.logger.info(`Found plot using Strategy 3: ${plotName}`);
@@ -175,9 +174,9 @@ export class RequestSalesFormPage {
     }
 
     // Wait for navigation to plot details page
-    await this.page.waitForURL(/plots\//, { timeout: 15000 });
+    await this.page.waitForURL(/plots\//);
     try {
-      await this.page.waitForLoadState('networkidle', { timeout: 15000 });
+      await this.page.waitForLoadState('networkidle');
     } catch {
       // Network still active but page is usable
     }
@@ -196,7 +195,7 @@ export class RequestSalesFormPage {
     );
     await plotItem.click();
     try {
-      await this.page.waitForLoadState('networkidle', { timeout: 15000 });
+      await this.page.waitForLoadState('networkidle');
     } catch {
       // Network still active but page is usable
     }
@@ -278,9 +277,8 @@ export class RequestSalesFormPage {
     this.logger.info(`Navigating directly to purchase form: ${formUrl}`);
     await this.page.goto(formUrl, {
       waitUntil: 'domcontentloaded',
-      timeout: 60000,
     });
-    await this.page.waitForLoadState('networkidle', { timeout: 60000 });
+    await this.page.waitForLoadState('networkidle');
     this.logger.info('Purchase form page loaded');
   }
 
@@ -294,22 +292,22 @@ export class RequestSalesFormPage {
       this.logger.info(`Re-navigating to plot ${plotName} to clear history before clicking`);
       const baseUrl = REQUEST_SALES_FORM_DATA.cemetery.sellPlotsUrl.replace('/sell-plots', '');
       const plotUrl = `${baseUrl}/plots/${encodeURIComponent(plotName)}`;
-      await this.page.goto(plotUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      await this.page.goto(plotUrl, { waitUntil: 'domcontentloaded' });
 
       // Try to wait for networkidle, but don't fail if it times out
       try {
-        await this.page.waitForLoadState('networkidle', { timeout: 15000 });
+        await this.page.waitForLoadState('networkidle');
       } catch (e) {
         this.logger.info('Network idle timeout reached, continuing anyway');
       }
 
       // Wait for the Request to Buy button to be visible (page fully loaded)
-      await this.page.locator(RequestSalesFormSelectors.plotDetails.requestToBuyButton).waitFor({ state: 'visible', timeout: 15000 });
+      await this.page.locator(RequestSalesFormSelectors.plotDetails.requestToBuyButton).waitFor({ state: 'visible' });
     }
 
     this.logger.info('Clicking Request to Buy button');
     await this.page.locator(RequestSalesFormSelectors.plotDetails.requestToBuyButton).click();
-    await this.page.waitForSelector(RequestSalesFormSelectors.requestMenu.preNeedOption + ', ' + RequestSalesFormSelectors.requestMenu.atNeedOption, { state: 'visible', timeout: 10000 });
+    await this.page.waitForSelector(RequestSalesFormSelectors.requestMenu.preNeedOption + ', ' + RequestSalesFormSelectors.requestMenu.atNeedOption, { state: 'visible' });
     this.logger.info('Request menu opened');
   }
 
@@ -322,21 +320,21 @@ export class RequestSalesFormPage {
 
     // Wait for navigation to form page with timeout handling for slower environments
     try {
-      await this.page.waitForURL(/\/purchase\/Pre-need/, { timeout: 30000, waitUntil: 'domcontentloaded' });
+      await this.page.waitForURL(/\/purchase\/Pre-need/, { waitUntil: 'domcontentloaded' });
     } catch (e) {
       this.logger.warn('URL navigation timeout, checking if we are on the form page...');
     }
 
     // Try to wait for networkidle, but don't fail if it times out (dev environment issue)
     try {
-      await this.page.waitForLoadState('networkidle', { timeout: 15000 });
+      await this.page.waitForLoadState('networkidle');
     } catch (e) {
       this.logger.info('Network idle timeout reached, continuing anyway');
     }
 
     // Wait for form heading or any form element
     try {
-      await this.page.waitForSelector('h1:has-text("Pre-need"), h1:has-text("Plot Purchase"), mat-expansion-panel', { timeout: 10000 });
+      await this.page.waitForSelector('h1:has-text("Pre-need"), h1:has-text("Plot Purchase"), mat-expansion-panel');
     } catch (e) {
       this.logger.warn('Form heading not found, continuing anyway');
     }
@@ -353,21 +351,21 @@ export class RequestSalesFormPage {
 
     // Wait for navigation to form page with timeout handling for slower environments
     try {
-      await this.page.waitForURL(/\/purchase\/At-need/, { timeout: 30000, waitUntil: 'domcontentloaded' });
+      await this.page.waitForURL(/\/purchase\/At-need/, { waitUntil: 'domcontentloaded' });
     } catch (e) {
       this.logger.warn('URL navigation timeout, checking if we are on the form page...');
     }
 
     // Try to wait for networkidle, but don't fail if it times out (dev environment issue)
     try {
-      await this.page.waitForLoadState('networkidle', { timeout: 15000 });
+      await this.page.waitForLoadState('networkidle');
     } catch (e) {
       this.logger.info('Network idle timeout reached, continuing anyway');
     }
 
     // Wait for form to load - try multiple heading patterns
     try {
-      await this.page.waitForSelector('h1:has-text("At-need"), h1:has-text("Plot Purchase"), mat-expansion-panel', { timeout: 10000 });
+      await this.page.waitForSelector('h1:has-text("At-need"), h1:has-text("Plot Purchase"), mat-expansion-panel');
     } catch (error) {
       this.logger.warn('At-need form heading not found, continuing anyway');
     }
@@ -402,14 +400,14 @@ export class RequestSalesFormPage {
 
     try {
       // Wait for form fields to be visible
-      await this.page.locator('mat-form-field:has-text("First Name") input').first().waitFor({ state: 'visible', timeout: 10000 });
+      await this.page.locator('mat-form-field:has-text("First Name") input').first().waitFor({ state: 'visible' });
 
       // Use label-based approach - find input by nearby label text
       this.logger.info(`Filling First Name: ${applicant.firstName}`);
       const firstNameField = this.page.locator('input').filter({ has: this.page.locator('xpath=following-sibling::*//text()[contains(., "First Name")]') }).or(
         this.page.locator('mat-form-field:has-text("First Name") input')
       ).or(this.page.locator('input[placeholder*="First"]')).first();
-      await firstNameField.waitFor({ timeout: 5000 });
+      await firstNameField.waitFor();
       await firstNameField.clear();
       await firstNameField.fill(applicant.firstName);
 
@@ -445,13 +443,13 @@ export class RequestSalesFormPage {
     try {
       // Find ROI Applicant section first
       const roiApplicantSection = this.page.locator('mat-expansion-panel:has-text("ROI Applicant")');
-      await roiApplicantSection.locator('input').first().waitFor({ state: 'visible', timeout: 10000 });
+      await roiApplicantSection.locator('input').first().waitFor({ state: 'visible' });
 
       this.logger.info(`Filling First Name: ${applicant.firstName}`);
       const firstNameField = roiApplicantSection.locator('input').filter({ has: this.page.locator('xpath=following-sibling::*//text()[contains(., "First Name")]') }).or(
         roiApplicantSection.locator('mat-form-field:has-text("First Name") input')
       ).first();
-      await firstNameField.waitFor({ timeout: 5000 });
+      await firstNameField.waitFor();
       await firstNameField.clear();
       await firstNameField.fill(applicant.firstName);
 
@@ -500,13 +498,13 @@ export class RequestSalesFormPage {
     try {
       // Find ROI Holder section
       const roiHolderSection = this.page.locator('mat-expansion-panel:has-text("ROI Holder")');
-      await roiHolderSection.locator('input').first().waitFor({ state: 'visible', timeout: 10000 });
+      await roiHolderSection.locator('input').first().waitFor({ state: 'visible' });
 
       this.logger.info(`Filling ROI Holder First Name: ${applicant.firstName}`);
       const firstNameField = roiHolderSection.locator('mat-form-field:has-text("First Name") input').or(
         roiHolderSection.locator('input[placeholder*="First"]')
       ).first();
-      await firstNameField.waitFor({ timeout: 5000 });
+      await firstNameField.waitFor();
       await firstNameField.clear();
       await firstNameField.fill(applicant.firstName);
 
@@ -529,7 +527,8 @@ export class RequestSalesFormPage {
    */
   async continueROIHolderSectionAtNeed(): Promise<void> {
     this.logger.info('Continuing from ROI Holder section (At-need)');
-    await this.page.locator('button:has-text("continue")').click();
+    const roiHolderSection = this.page.locator('mat-expansion-panel:has-text("ROI Holder")');
+    await roiHolderSection.locator('button:has-text("continue")').click();
     await NetworkHelper.waitForAnimation(this.page);
   }
 
@@ -543,13 +542,13 @@ export class RequestSalesFormPage {
     try {
       // Find Deceased section
       const deceasedSection = this.page.locator('mat-expansion-panel:has-text("Deceased")');
-      await deceasedSection.locator('input').first().waitFor({ state: 'visible', timeout: 10000 });
+      await deceasedSection.locator('input').first().waitFor({ state: 'visible' });
 
       this.logger.info(`Filling Deceased First Name: ${deceased.deceasedFirstName}`);
       const firstNameField = deceasedSection.locator('mat-form-field:has-text("First Name") input').or(
         deceasedSection.locator('input[placeholder*="First"]')
       ).first();
-      await firstNameField.waitFor({ timeout: 5000 });
+      await firstNameField.waitFor();
       await firstNameField.clear();
       await firstNameField.fill(deceased.deceasedFirstName);
 
@@ -559,6 +558,14 @@ export class RequestSalesFormPage {
       ).first();
       await lastNameField.clear();
       await lastNameField.fill(deceased.deceasedLastName);
+
+      // Fill Religion (required field)
+      this.logger.info(`Filling Deceased Religion: ${deceased.religion}`);
+      const religionCombobox = deceasedSection.locator('mat-form-field:has-text("Religion") mat-select').or(
+        deceasedSection.getByRole('combobox', { name: 'Religion' })
+      ).first();
+      await religionCombobox.click();
+      await this.page.getByRole('option', { name: deceased.religion }).click();
 
       this.logger.info('Deceased form filled successfully (At-need)');
     } catch (error) {
@@ -572,7 +579,8 @@ export class RequestSalesFormPage {
    */
   async continueDeceasedSectionAtNeed(): Promise<void> {
     this.logger.info('Continuing from Deceased section (At-need)');
-    await this.page.locator('button:has-text("continue")').click();
+    const deceasedSection = this.page.locator('mat-expansion-panel:has-text("Deceased")');
+    await deceasedSection.locator('button:has-text("continue")').click();
     await NetworkHelper.waitForAnimation(this.page);
   }
 
@@ -581,15 +589,24 @@ export class RequestSalesFormPage {
    */
   async fillEventServiceFormAtNeed(): Promise<void> {
     this.logger.info('Filling Event Service form (At-need)');
+    const eventService = REQUEST_SALES_FORM_DATA.eventService;
 
     try {
-      // Wait for event service form inputs to be visible
-      await this.page.locator('#mat-input-40').waitFor({ state: 'visible', timeout: 10000 });
-      this.logger.info('Filling Event Date');
-      await this.page.locator('#mat-input-40').fill('01/15/2026');
+      // Find Event Service section by panel title
+      const eventSection = this.page.locator('mat-expansion-panel').filter({
+        has: this.page.locator('mat-panel-title:has-text("Event Service")')
+      });
+      await eventSection.locator('input').first().waitFor({ state: 'visible' });
 
-      this.logger.info('Filling Event Name');
-      await this.page.locator('#mat-input-43').fill('Memorial Service');
+      // Fill Date (required) - textbox with label "Date"
+      this.logger.info(`Filling Event Date: ${eventService.date}`);
+      const dateField = eventSection.locator('mat-form-field:has-text("Date") input').first();
+      await dateField.fill(eventService.date);
+
+      // Fill Event Name (required) - textbox with label "Event Name"
+      this.logger.info(`Filling Event Name: ${eventService.eventName}`);
+      const eventNameField = eventSection.locator('mat-form-field:has-text("Event Name") input').first();
+      await eventNameField.fill(eventService.eventName);
 
       this.logger.info('Event Service form filled successfully (At-need)');
     } catch (error) {
@@ -603,7 +620,10 @@ export class RequestSalesFormPage {
    */
   async continueEventServiceSectionAtNeed(): Promise<void> {
     this.logger.info('Continuing from Event Service section (At-need)');
-    await this.page.locator('button:has-text("continue")').click();
+    const eventSection = this.page.locator('mat-expansion-panel').filter({
+      has: this.page.locator('mat-panel-title:has-text("Event Service")')
+    });
+    await eventSection.locator('button:has-text("continue")').click();
     await NetworkHelper.waitForAnimation(this.page);
   }
 
@@ -641,13 +661,13 @@ export class RequestSalesFormPage {
       }
 
       // Wait for section to be visible
-      await serviceRegion.waitFor({ state: 'visible', timeout: 10000 });
+      await serviceRegion.waitFor({ state: 'visible' });
       this.logger.info('Service section found and visible');
 
       // Fill Date (required) - first input in Service section
       this.logger.info('Filling Event Date');
       const dateInput = serviceRegion.locator('input').nth(0);
-      await dateInput.waitFor({ state: 'visible', timeout: 5000 });
+      await dateInput.waitFor({ state: 'visible' });
       await dateInput.fill(service.date);
       this.logger.info(`Filled Event Date: ${service.date}`);
 
@@ -680,7 +700,7 @@ export class RequestSalesFormPage {
     const continueButton = this.page.locator('button:has-text("continue")').first();
 
     try {
-      await continueButton.waitFor({ state: 'visible', timeout: 5000 });
+      await continueButton.waitFor({ state: 'visible' });
       await continueButton.click();
       await NetworkHelper.waitForAnimation(this.page);
     } catch (error) {
@@ -707,7 +727,7 @@ export class RequestSalesFormPage {
 
     try {
       // Wait for form fields to be visible
-      await this.page.locator(RequestSalesFormSelectors.purchaseForm.intermentDetails.deceasedFirstName).first().waitFor({ state: 'visible', timeout: 10000 });
+      await this.page.locator(RequestSalesFormSelectors.purchaseForm.intermentDetails.deceasedFirstName).first().waitFor({ state: 'visible' });
 
       // Fill required fields
       this.logger.info(`Filling deceased name: ${details.deceasedFirstName} ${details.deceasedLastName}`);
@@ -796,7 +816,7 @@ export class RequestSalesFormPage {
       let rightTypeInput = null;
       for (const selector of rightTypeSelectors) {
         const element = this.page.locator(selector).first();
-        if (await element.isVisible({ timeout: 2000 }).catch(() => false)) {
+        if (await element.isVisible().catch(() => false)) {
           rightTypeInput = element;
           this.logger.info(`Found Right Type using selector: ${selector}`);
           break;
@@ -811,13 +831,13 @@ export class RequestSalesFormPage {
       // Click and select
       await rightTypeInput.click();
       // Wait for dropdown options to appear
-      await this.page.locator('mat-option, [role="option"]').first().waitFor({ state: 'visible', timeout: 5000 });
+      await this.page.locator('mat-option, [role="option"]').first().waitFor({ state: 'visible' });
       const rightTypeOption = this.page.locator(`mat-option, [role="option"]`).filter({ hasText: new RegExp(roi.rightType, 'i') }).first();
       await rightTypeOption.click();
       this.logger.info(`Selected Right Type: ${roi.rightType}`);
 
       // Wait for dropdown overlay to close
-      await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+      await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden' }).catch(() => {});
 
       // Select Term of Right
       this.logger.info(`Selecting Term of Right: ${roi.termOfRight}`);
@@ -831,7 +851,7 @@ export class RequestSalesFormPage {
       let termInput = null;
       for (const selector of termSelectors) {
         const element = this.page.locator(selector).first();
-        if (await element.isVisible({ timeout: 2000 }).catch(() => false)) {
+        if (await element.isVisible().catch(() => false)) {
           termInput = element;
           this.logger.info(`Found Term of Right using selector: ${selector}`);
           break;
@@ -845,7 +865,7 @@ export class RequestSalesFormPage {
 
       await termInput.click();
       // Wait for dropdown options to appear
-      await this.page.locator('mat-option, [role="option"]').first().waitFor({ state: 'visible', timeout: 5000 });
+      await this.page.locator('mat-option, [role="option"]').first().waitFor({ state: 'visible' });
       const termOption = this.page.locator(`mat-option, [role="option"]`).filter({ hasText: new RegExp(roi.termOfRight, 'i') }).first();
       await termOption.click();
       this.logger.info(`Selected Term of Right: ${roi.termOfRight}`);
@@ -877,7 +897,7 @@ export class RequestSalesFormPage {
     this.logger.info('Agreeing to terms and conditions');
 
     // Wait for Terms section to be visible
-    await this.page.waitForSelector('.mat-checkbox-inner-container', { timeout: 10000 });
+    await this.page.waitForSelector('.mat-checkbox-inner-container');
 
     await this.page.locator(RequestSalesFormSelectors.purchaseForm.terms.agreeCheckbox).click();
     this.logger.info('Terms agreed');
@@ -971,7 +991,7 @@ export class RequestSalesFormPage {
 
     // Wait for submit button to be ready
     const submitButton = this.page.getByRole('button', { name: /SUBMIT A REQUEST/i });
-    await submitButton.waitFor({ state: 'visible', timeout: 10000 });
+    await submitButton.waitFor({ state: 'visible' });
 
     // Log current state
     const currentUrl = this.page.url();
@@ -1101,7 +1121,7 @@ export class RequestSalesFormPage {
     for (const selector of selectors) {
       try {
         const dialog = this.page.locator(selector).first();
-        await dialog.waitFor({ state: 'visible', timeout: 15000 });
+        await dialog.waitFor({ state: 'visible' });
         this.logger.info(`Confirmation found with selector: ${selector}`);
         return true;
       } catch (error) {

@@ -1,0 +1,152 @@
+- main [ref=e11]:
+  - generic [ref=e12]:
+    - generic [ref=e14]:
+      - button "Link" [ref=e15] [cursor=pointer]:
+        - img [ref=e16]:
+          - img [ref=e17]
+      - link "Link" [ref=e19] [cursor=pointer]:
+        - /url: /
+        - img "Full Logo" [ref=e20]
+    - generic [ref=e21]:
+      - heading "At-need Plot Purchase" [level=1] [ref=e22]
+      - generic [ref=e23]:
+        - generic [ref=e25]:
+          - generic [ref=e27]:
+            - button "ROI" [disabled] [expanded] [ref=e28]:
+              - generic [ref=e31]: ROI
+            - region "ROI" [ref=e32]:
+              - generic [ref=e224]:
+                - generic [ref=e225]:
+                  - paragraph [ref=e226]: Right Type
+                  - paragraph [ref=e227]: Burial
+                - generic [ref=e228]:
+                  - paragraph [ref=e229]: Term of Right
+                  - paragraph [ref=e230]: Perpetual
+                - generic [ref=e231]:
+                  - paragraph [ref=e232]: Fee
+                  - paragraph [ref=e233]: "100"
+                - generic [ref=e234]:
+                  - paragraph [ref=e235]: Payment Date
+                  - paragraph [ref=e236]: "-"
+                - generic [ref=e237]:
+                  - paragraph [ref=e238]: Charged
+                  - paragraph [ref=e239]: "No"
+                - generic [ref=e240]:
+                  - paragraph [ref=e241]: Application Date
+                  - paragraph [ref=e242]: Mar 11, 2026
+                - generic [ref=e243]:
+                  - paragraph [ref=e244]: Expiry Date
+                  - paragraph [ref=e245]: "-"
+                - generic [ref=e246]:
+                  - paragraph [ref=e247]: Service Need
+                  - paragraph [ref=e248]: At-need
+                - generic [ref=e249]:
+                  - paragraph [ref=e250]: Certificate Number
+                  - paragraph [ref=e251]: "-"
+                - generic [ref=e252]:
+                  - paragraph [ref=e253]: Note
+                  - paragraph [ref=e254]: "-"
+          - generic [ref=e156]:
+            - button "ROI Applicant" [disabled] [expanded] [ref=e157]:
+              - generic [ref=e160]: ROI Applicant
+            - region "ROI Applicant" [ref=e255]:
+              - generic [ref=e256] [cursor=pointer]:
+                - generic [ref=e257]:
+                  - generic [ref=e263]:
+                    - textbox "label" [ref=e264]
+                    - generic:
+                      - generic:
+                        - generic: First Name
+                        - text: "*"
+                  - generic [ref=e270]:
+                    - textbox "label" [ref=e271]
+                    - generic:
+                      - generic:
+                        - generic: Last Name
+                        - text: "*"
+                  - generic [ref=e277]:
+                    - textbox "label" [ref=e278]
+                    - generic:
+                      - generic:
+                        - generic: Middle Name
+                  - generic [ref=e284]:
+                    - textbox "label" [ref=e285]
+                    - generic:
+                      - generic:
+                        - generic: Phone Mobile
+                  - generic [ref=e291]:
+                    - textbox "label" [ref=e292]
+                    - generic:
+                      - generic:
+                        - generic: Phone Home
+                  - generic [ref=e298]:
+                    - textbox "label" [ref=e299]
+                    - generic:
+                      - generic:
+                        - generic: Phone Office
+                  - generic [ref=e305]:
+                    - textbox "label" [ref=e306]
+                    - generic:
+                      - generic:
+                        - generic: Email
+                        - text: "*"
+                  - generic [ref=e312]:
+                    - textbox "label" [ref=e313]
+                    - generic:
+                      - generic:
+                        - generic: Address
+                  - generic [ref=e319]:
+                    - textbox "label" [ref=e320]
+                    - generic:
+                      - generic:
+                        - generic: Suburb
+                  - generic [ref=e326]:
+                    - textbox "label" [ref=e327]
+                    - generic:
+                      - generic:
+                        - generic: State
+                  - generic [ref=e333]:
+                    - textbox "label" [ref=e334]
+                    - generic:
+                      - generic:
+                        - generic: Country
+                  - generic [ref=e340]:
+                    - textbox "label" [ref=e341]
+                    - generic:
+                      - generic:
+                        - generic: Postcode
+                  - generic [ref=e344]:
+                    - generic [ref=e345]:
+                      - checkbox "Postal Address Different" [ref=e346]
+                      - generic:
+                        - img
+                    - generic [ref=e347]: Postal Address Different
+                  - generic [ref=e353]:
+                    - combobox "Gender" [ref=e354]
+                    - generic:
+                      - generic:
+                        - generic: Gender
+                  - generic [ref=e363]:
+                    - generic [ref=e364]:
+                      - checkbox "Also ROI Holder" [ref=e365]
+                      - generic:
+                        - img
+                    - generic [ref=e366]: Also ROI Holder
+                - button "continue" [ref=e367]: continue
+          - button "ROI Holder" [disabled] [ref=e163]:
+            - generic [ref=e166]: ROI Holder
+          - button "Deceased" [disabled] [ref=e169]:
+            - generic [ref=e172]: Deceased
+          - button "Event Service" [disabled] [ref=e175]:
+            - generic [ref=e178]: Event Service
+          - button "Signature" [disabled] [ref=e181]:
+            - generic [ref=e184]: Signature
+        - generic [ref=e185]:
+          - generic [ref=e186]:
+            - img "plot image" [ref=e188]
+            - generic [ref=e189]:
+              - paragraph [ref=e190]: Astana Tegal Gundul
+              - heading "B A 1" [level=3] [ref=e191]
+              - generic [ref=e192]: For Sale
+          - generic [ref=e193]: Your application will be assessed by the cemetery administration team. The team will be in touch to complete the purchase process. By submitting this form you are agreeing to purchase the Right of Interment of this plot if approved.
+          - button "SUBMIT A REQUEST" [disabled] [ref=e195]: Submit a Request

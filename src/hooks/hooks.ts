@@ -1,19 +1,19 @@
 import { Before, After, BeforeAll, AfterAll, setDefaultTimeout } from '@cucumber/cucumber';
 import { BrowserManager } from '../core/BrowserManager.js';
 import { Logger } from '../utils/Logger.js';
+import { NetworkHelper } from '../utils/NetworkHelper.js';
 import { BASE_CONFIG } from '../data/test-data.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
 /**
  * Global Hooks for Cucumber
+ * setDefaultTimeout MUST be at module level — inside BeforeAll it does NOT apply to steps/hooks
  */
+setDefaultTimeout(120000);
 
 BeforeAll(async function () {
   Logger.info('Starting test execution...');
-
-  // Set default step timeout to 120 seconds (production is slow, especially for multi-item sales)
-  setDefaultTimeout(120000);
   Logger.info('Default step timeout set to 120s');
 
   // Create screenshots directory if it doesn't exist
@@ -59,7 +59,7 @@ After({ timeout: 30000 }, async function (scenario) {
 
       // Wait for page to stabilize before taking screenshot
       await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => { });
-      await this.page.waitForTimeout(500); // Extra wait for rendering to complete
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 1000 });
 
       await this.page.screenshot({
         path: screenshotPath,
@@ -80,7 +80,7 @@ After({ timeout: 30000 }, async function (scenario) {
   if (this.page) {
     try {
       // Wait a bit before closing to ensure video captures the final state
-      await this.page.waitForTimeout(1000);
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 2000 });
 
       const videoPath = await this.page.video()?.path();
       await this.page.close();

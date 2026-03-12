@@ -60,16 +60,16 @@ Before({ tags: '@person' }, async function () {
   }
 });
 
-When('I click on the PERSONS tab', { timeout: 45000 }, async function () {
+When('I click on the PERSONS tab', async function () {
   personPage = new PersonPage(this.page);
   await personPage.navigateToPersonTab();
 });
 
-When('I click the add person button', { timeout: 15000 }, async function () {
+When('I click the add person button', async function () {
   await personPage.clickAddPerson();
 });
 
-When('I fill in the person form with:', { timeout: 60000 }, async function (dataTable: any) {
+When('I fill in the person form with:', async function (dataTable: any) {
   const personData = dataTable.rowsHash(); // For vertical tables with key-value pairs
   let actualData = replacePlaceholdersInObject(personData);
 
@@ -81,11 +81,11 @@ When('I fill in the person form with:', { timeout: 60000 }, async function (data
   await personPage.fillPersonForm(actualData as any);
 });
 
-When('I click the save button', { timeout: 60000 }, async function () {
+When('I click the save button', async function () {
   await personPage.clickSave();
 });
 
-Then('I should see the person {string} in the first row of the table', { timeout: 45000 }, async function (personName: string) {
+Then('I should see the person {string} in the first row of the table', async function (personName: string) {
   // Check if original placeholder is being used
   const usesPlaceholder = personName.includes('<TEST_PERSON_');
 
@@ -109,7 +109,7 @@ Then('I should see the person {string} in the first row of the table', { timeout
   await personPage.searchAndVerifyPersonInFirstRow(firstName, lastName);
 });
 
-Then('I should see the person with first name {string} and last name {string} in the first row after filter', { timeout: 45000 }, async function (firstName: string, lastName: string) {
+Then('I should see the person with first name {string} and last name {string} in the first row after filter', async function (firstName: string, lastName: string) {
   const usesPlaceholder = firstName.includes('<TEST_PERSON_') || lastName.includes('<TEST_PERSON_');
 
   let actualFirstName = usesPlaceholder && firstName.includes('<TEST_PERSON_')
@@ -135,7 +135,7 @@ Then('I should see the person with first name {string} and last name {string} in
 
 // Filter steps - "I click the filter button" is defined in advanceTable.steps.ts (shared)
 
-When('I fill in the filter form with first name {string} and last name {string}', { timeout: 15000 }, async function (firstName: string, lastName: string) {
+When('I fill in the filter form with first name {string} and last name {string}', async function (firstName: string, lastName: string) {
   const usesPlaceholder = firstName.includes('<TEST_PERSON_') || lastName.includes('<TEST_PERSON_');
 
   let actualFirstName = usesPlaceholder && firstName.includes('<TEST_PERSON_')
@@ -158,20 +158,20 @@ When('I fill in the filter form with first name {string} and last name {string}'
   await personPage.fillFilterForm(actualFirstName, actualLastName);
 });
 
-When('I apply the filter', { timeout: 15000 }, async function () {
+When('I apply the filter', async function () {
   await personPage.applyFilter();
 });
 
 // Edit steps
-When('I click the first row to open person details', { timeout: 15000 }, async function () {
+When('I click the first row to open person details', async function () {
   await personPage.clickFirstRow();
 });
 
-When('I click the edit button', { timeout: 15000 }, async function () {
+When('I click the edit button', async function () {
   await personPage.clickEditButton();
 });
 
-When('I edit the last name to {string}', { timeout: 15000 }, async function (newLastName: string) {
+When('I edit the last name to {string}', async function (newLastName: string) {
   const usesPlaceholder = newLastName.includes('<TEST_PERSON_');
 
   let actualLastName = usesPlaceholder
@@ -182,15 +182,15 @@ When('I edit the last name to {string}', { timeout: 15000 }, async function (new
 });
 
 // Delete steps
-When('I click the delete button', { timeout: 15000 }, async function () {
+When('I click the delete button', async function () {
   await personPage.clickDelete();
 });
 
-When('I confirm the deletion', { timeout: 60000 }, async function () {
+When('I confirm the deletion', async function () {
   await personPage.confirmDelete();
 });
 
-Then('the person {string} should not be in the list', { timeout: 20000 }, async function (personName: string) {
+Then('the person {string} should not be in the list', async function (personName: string) {
   const usesPlaceholder = personName.includes('<TEST_PERSON_');
 
   let actualName = usesPlaceholder

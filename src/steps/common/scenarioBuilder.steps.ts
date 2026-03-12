@@ -13,9 +13,9 @@ const logger = new Logger('ScenarioBuilder');
 // NAVIGATION
 // ═══════════════════════════════════════════════════════════════
 
-Given('I navigate to {string}', { timeout: 30000 }, async function (url: string) {
+Given('I navigate to {string}', async function (url: string) {
     logger.info(`Navigating to: ${url}`);
-    await this.page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await this.page.goto(url, { waitUntil: 'domcontentloaded' });
 });
 
 Given('I go back', async function () {
@@ -112,7 +112,7 @@ Then('I wait for network to be idle', async function () {
     await this.page.waitForLoadState('networkidle');
 });
 
-Then('I wait for {int} seconds', { timeout: 120000 }, async function (seconds: number) {
+Then('I wait for {int} seconds', async function (seconds: number) {
     logger.info(`Waiting for ${seconds} seconds`);
     await new Promise(resolve => setTimeout(resolve, seconds * 1000));
 });

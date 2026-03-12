@@ -12,7 +12,7 @@ const logger = new Logger('SalesSteps');
 /**
  * Navigate to Sales page from dashboard
  */
-When('I navigate to Sales page', { timeout: 15000 }, async function () {
+When('I navigate to Sales page', async function () {
   const page = this.page;
   salesPage = new SalesPage(page);
   await salesPage.navigateToSales();
@@ -22,7 +22,7 @@ When('I navigate to Sales page', { timeout: 15000 }, async function () {
 /**
  * Validate that sales table is loaded and visible
  */
-When('I validate sales table is loaded', { timeout: 10000 }, async function () {
+When('I validate sales table is loaded', async function () {
   await salesPage.validateSalesTableLoaded();
   logger.info('Sales table validated');
 });
@@ -30,7 +30,7 @@ When('I validate sales table is loaded', { timeout: 10000 }, async function () {
 /**
  * Click Create Sale button to open the create sale form
  */
-When('I click Create Sale button', { timeout: 10000 }, async function () {
+When('I click Create Sale button', async function () {
   await salesPage.clickCreateSale();
   logger.info('Clicked Create Sale button');
 });
@@ -135,7 +135,7 @@ When('I select sale owner {string}', async function (ownerName: string) {
  * Parameters: firstname|lastname|email format
  * Example: "Jon|Doe|jondoe@test.com"
  */
-When('I add purchaser person {string}', { timeout: 30000 }, async function (purchaserData: string) {
+When('I add purchaser person {string}', async function (purchaserData: string) {
   // Parse purchaser data: "firstname|lastname|email" or just use placeholders
   let firstName, lastName, email;
   
@@ -165,7 +165,7 @@ When('I add purchaser person {string}', { timeout: 30000 }, async function (purc
  * | description | related_plot | quantity | price | discount |
  * | item a      | B F 1        | 1        | 100   | 0        |
  */
-When('I add sale items with following details:', { timeout: 180000 }, async function (dataTable: DataTable) {
+When('I add sale items with following details:', async function (dataTable: DataTable) {
   const rows = dataTable.hashes(); // Get array of objects from table
   const items: SaleItem[] = [];
 
@@ -196,7 +196,7 @@ When('I add sale items with following details:', { timeout: 180000 }, async func
  * | vat      | <TEST_SALES_VAT>      |
  * | total    | <TEST_SALES_TOTAL>    |
  */
-Then('I should see sale summary with following values:', { timeout: 15000 }, async function (dataTable: DataTable) {
+Then('I should see sale summary with following values:', async function (dataTable: DataTable) {
   const expectedData = dataTable.rowsHash(); // Get key-value pairs
   
   // Replace placeholders in expected values
@@ -215,7 +215,7 @@ Then('I should see sale summary with following values:', { timeout: 15000 }, asy
 /**
  * Click the Create button to submit the sale
  */
-When('I click Create button', { timeout: 60000 }, async function () {
+When('I click Create button', async function () {
   await salesPage.clickCreate();
   logger.info('Clicked Create button and navigated back to sales list');
 });
@@ -224,7 +224,7 @@ When('I click Create button', { timeout: 60000 }, async function () {
  * Verify that sale was created successfully
  * This checks that we're redirected to sales table page and purchaser name is correct
  */
-Then('the sale should be created successfully', { timeout: 30000 }, async function () {
+Then('the sale should be created successfully', async function () {
   // Note: NetworkHelper.waitForApiEndpoint for invoices is already handled inside clickCreate()
   // No need to wait again here — the API calls (POST create + GET list) are already completed
 
@@ -243,7 +243,7 @@ Then('the sale should be created successfully', { timeout: 30000 }, async functi
 /**
  * Click the Save button (for draft saves)
  */
-When('I click Save button', { timeout: 30000 }, async function () {
+When('I click Save button', async function () {
   await salesPage.clickSave();
   logger.info('Clicked Save button');
 });
@@ -268,7 +268,7 @@ Then('I should see {int} sales record(s)', async function (expectedCount: number
 /**
  * Open the latest created sale (first row in the table)
  */
-When('I open the latest created sale', { timeout: 15000 }, async function () {
+When('I open the latest created sale', async function () {
   await salesPage.openLatestSale();
   logger.info('Opened the latest created sale');
 });
@@ -279,7 +279,7 @@ When('I open the latest created sale', { timeout: 15000 }, async function () {
  * | amount | method | note |
  * | 500   | Cash   | Test payment |
  */
-When('I add payment with following details:', { timeout: 30000 }, async function (dataTable: DataTable) {
+When('I add payment with following details:', async function (dataTable: DataTable) {
   const paymentData = dataTable.hashes()[0]; // Get first row from table
 
   // Replace placeholders in payment data
@@ -306,7 +306,7 @@ When('I add payment with following details:', { timeout: 30000 }, async function
  * | 100    | Bank Transfer | First payment  |
  * | 200    | Bank Transfer | Second payment |
  */
-When('I add multiple payments with following details:', { timeout: 120000 }, async function (dataTable: DataTable) {
+When('I add multiple payments with following details:', async function (dataTable: DataTable) {
   const payments = dataTable.hashes();
 
   logger.info(`Adding ${payments.length} payments sequentially`);
@@ -340,7 +340,7 @@ When('I add multiple payments with following details:', { timeout: 120000 }, asy
  * Verify invoice status matches expected value
  * Valid statuses: UNPAID, PARTIALLY PAID, PAID, OVERPAID, DRAFT
  */
-Then('the invoice status should be {string}', { timeout: 10000 }, async function (expectedStatus: string) {
+Then('the invoice status should be {string}', async function (expectedStatus: string) {
   await salesPage.validateInvoiceStatus(expectedStatus);
   logger.info(`Invoice status validated: ${expectedStatus}`);
 });
@@ -350,7 +350,7 @@ Then('the invoice status should be {string}', { timeout: 10000 }, async function
 /**
  * Click the MORE menu button on the invoice edit page
  */
-When('I click the More menu', { timeout: 10000 }, async function () {
+When('I click the More menu', async function () {
   await salesPage.clickMoreMenu();
   logger.info('MORE menu opened');
 });
@@ -358,7 +358,7 @@ When('I click the More menu', { timeout: 10000 }, async function () {
 /**
  * Close the MORE menu
  */
-When('I close the More menu', { timeout: 5000 }, async function () {
+When('I close the More menu', async function () {
   await salesPage.closeMoreMenu();
   logger.info('MORE menu closed');
 });
@@ -366,7 +366,7 @@ When('I close the More menu', { timeout: 5000 }, async function () {
 /**
  * Verify that "Re-send Payment" button is visible in the More menu
  */
-Then('I should see {string} button in the More menu', { timeout: 10000 }, async function (buttonText: string) {
+Then('I should see {string} button in the More menu', async function (buttonText: string) {
   const visible = await salesPage.isMoreMenuItemVisible(buttonText);
   if (!visible) {
     throw new Error(`"${buttonText}" button not found in MORE menu`);
@@ -377,7 +377,7 @@ Then('I should see {string} button in the More menu', { timeout: 10000 }, async 
 /**
  * Verify that "Re-send Payment" button is NOT visible in the More menu
  */
-Then('I should not see {string} button in the More menu', { timeout: 10000 }, async function (buttonText: string) {
+Then('I should not see {string} button in the More menu', async function (buttonText: string) {
   const visible = await salesPage.isMoreMenuItemVisible(buttonText);
   if (visible) {
     throw new Error(`"${buttonText}" button should NOT be visible in MORE menu`);
@@ -388,7 +388,7 @@ Then('I should not see {string} button in the More menu', { timeout: 10000 }, as
 /**
  * Click a specific menu item in the More menu (e.g. "Re-send Payment")
  */
-When('I click {string} in the More menu', { timeout: 15000 }, async function (buttonText: string) {
+When('I click {string} in the More menu', async function (buttonText: string) {
   if (buttonText === 'Re-send Payment') {
     await salesPage.clickResendPayment();
   } else {
@@ -402,7 +402,7 @@ When('I click {string} in the More menu', { timeout: 15000 }, async function (bu
 /**
  * Verify toast/snackbar notification message
  */
-Then('I should see toast notification {string}', { timeout: 15000 }, async function (expectedMessage: string) {
+Then('I should see toast notification {string}', async function (expectedMessage: string) {
   await salesPage.validateToastNotification(expectedMessage);
   logger.info(`Toast notification validated: ${expectedMessage}`);
 });
@@ -413,7 +413,7 @@ Then('I should see toast notification {string}', { timeout: 15000 }, async funct
  * Click Void in the More menu and confirm the void dialog
  * MORE menu must already be open
  */
-When('I click Void in the More menu and confirm', { timeout: 30000 }, async function () {
+When('I click Void in the More menu and confirm', async function () {
   await salesPage.clickVoidInvoice();
   logger.info('Invoice voided successfully');
 });
@@ -421,7 +421,7 @@ When('I click Void in the More menu and confirm', { timeout: 30000 }, async func
 /**
  * Verify the invoice was voided (we're on sales table after void)
  */
-Then('the invoice should be voided successfully', { timeout: 15000 }, async function () {
+Then('the invoice should be voided successfully', async function () {
   await salesPage.validateSalesTableLoaded();
   logger.info('Invoice voided — redirected to sales table');
 });
@@ -431,7 +431,7 @@ Then('the invoice should be voided successfully', { timeout: 15000 }, async func
  * After voiding, the voided invoice may not be the first row
  * due to sorting. We re-use openLatestSale which clicks first row.
  */
-When('I open the latest voided sale', { timeout: 15000 }, async function () {
+When('I open the latest voided sale', async function () {
   // The voided invoice should still be in the same position in the table
   // since void doesn't change the sort order
   await salesPage.openLatestSale();
@@ -441,7 +441,7 @@ When('I open the latest voided sale', { timeout: 15000 }, async function () {
 /**
  * Verify the Void button is disabled in the More menu (for VOID status invoices)
  */
-Then('the Void button should be disabled in the More menu', { timeout: 10000 }, async function () {
+Then('the Void button should be disabled in the More menu', async function () {
   const isDisabled = await salesPage.isVoidMenuItemDisabled();
   if (!isDisabled) {
     throw new Error('Void button should be disabled for VOID status invoice, but it is enabled');

@@ -1,0 +1,283 @@
+- generic [ref=e391]:
+  - generic [ref=e393]:
+    - generic [ref=e394]:
+      - link [ref=e395] [cursor=pointer]:
+        - /url: /
+      - link:
+        - /url: /
+    - generic [ref=e396]:
+      - button "cancel" [ref=e397] [cursor=pointer]: cancel
+      - button "save" [ref=e398] [cursor=pointer]: save
+      - combobox [ref=e399]
+  - generic [ref=e405]:
+    - banner [ref=e406]:
+      - heading "Add Interment" [level=1] [ref=e407]
+      - generic [ref=e413] [cursor=pointer]:
+        - combobox "Event Type" [ref=e414]:
+          - generic [ref=e417]: A C 5
+        - generic:
+          - generic:
+            - generic: Plot
+            - text: "*"
+    - generic [ref=e420]:
+      - generic [ref=e422]:
+        - generic [ref=e423]:
+          - generic [ref=e424]:
+            - button "Deceased person" [expanded] [ref=e425] [cursor=pointer]:
+              - generic [ref=e427]: Deceased person
+            - region "Deceased person" [ref=e429]:
+              - generic [ref=e430]:
+                - generic [ref=e431]:
+                  - generic [ref=e434]:
+                    - generic [ref=e438]:
+                      - textbox "First name" [ref=e439]
+                      - generic:
+                        - generic: First name *
+                    - generic [ref=e443]:
+                      - textbox "Last name" [ref=e444]
+                      - generic:
+                        - generic: Last name *
+                  - generic [ref=e449]:
+                    - textbox "Middle name" [ref=e450]
+                    - generic:
+                      - generic: Middle name
+                  - generic [ref=e452]:
+                    - generic [ref=e456]:
+                      - textbox "Title" [ref=e457]
+                      - generic:
+                        - generic: Title
+                    - generic [ref=e461] [cursor=pointer]:
+                      - combobox "Gender" [ref=e462]
+                      - generic:
+                        - generic: Gender
+                  - generic [ref=e468]:
+                    - generic [ref=e470]:
+                      - generic [ref=e473]:
+                        - generic [ref=e474]:
+                          - textbox "Date of Birth" [ref=e475]
+                          - generic:
+                            - generic: Date of Birth
+                        - button "Open calendar" [ref=e478] [cursor=pointer]:
+                          - img [ref=e479]:
+                            - img [ref=e480]
+                      - generic [ref=e485]:
+                        - generic [ref=e486] [cursor=pointer]: Today
+                        - generic [ref=e487] [cursor=pointer]:
+                          - text: Full Date
+                          - combobox "Full DateDD/MM/YYYY" [ref=e488]:
+                            - generic [ref=e491]: Full DateDD/MM/YYYY
+                    - generic [ref=e495]:
+                      - generic [ref=e498]:
+                        - generic [ref=e499]:
+                          - textbox "Date of Death" [ref=e500]
+                          - generic:
+                            - generic: Date of Death
+                        - button "Open calendar" [ref=e503] [cursor=pointer]:
+                          - img [ref=e504]:
+                            - img [ref=e505]
+                      - generic [ref=e510]:
+                        - generic [ref=e511] [cursor=pointer]: Today
+                        - generic [ref=e512] [cursor=pointer]:
+                          - text: Full Date
+                          - combobox "Full DateDD/MM/YYYY" [ref=e513]:
+                            - generic [ref=e516]: Full DateDD/MM/YYYY
+                  - generic [ref=e519]:
+                    - generic [ref=e521]:
+                      - generic [ref=e523]:
+                        - textbox "Age" [ref=e524]
+                        - generic:
+                          - generic: Age
+                      - generic [ref=e527]: Auto calculating
+                    - generic [ref=e532] [cursor=pointer]:
+                      - combobox "Religion" [ref=e533]
+                      - generic:
+                        - generic: Religion
+                  - generic [ref=e543]:
+                    - textbox "Cause of death" [ref=e544]
+                    - generic:
+                      - generic: Cause of death
+                  - generic [ref=e549]:
+                    - textbox "Occupation" [ref=e550]
+                    - generic:
+                      - generic: Occupation
+                  - generic [ref=e555] [cursor=pointer]:
+                    - combobox "Special Badge" [ref=e556]
+                    - generic:
+                      - generic: Special Badge
+                - generic [ref=e562]:
+                  - heading "Last known address" [level=6] [ref=e563]
+                  - generic [ref=e568]:
+                    - textbox "Address" [ref=e569]
+                    - generic:
+                      - generic: Address
+                  - generic [ref=e570]:
+                    - generic [ref=e574]:
+                      - textbox "City / Town / Suburb" [ref=e575]
+                      - generic:
+                        - generic: City / Town / Suburb
+                    - generic [ref=e579]:
+                      - textbox "State" [ref=e580]
+                      - generic:
+                        - generic: State
+                  - generic [ref=e581]:
+                    - generic [ref=e585]:
+                      - textbox "Country" [ref=e586]
+                      - generic:
+                        - generic: Country
+                    - generic [ref=e590]:
+                      - textbox "Post code" [ref=e591]
+                      - generic:
+                        - generic: Post code
+                - heading "Extra details" [level=6] [ref=e592]
+                - generic [ref=e597]:
+                  - generic [ref=e599]:
+                    - textbox "label" [ref=e600]
+                    - generic:
+                      - generic:
+                        - generic: Maiden name
+                  - generic [ref=e603]: Will be shown on Occupied plot status only for public
+                - generic [ref=e609]:
+                  - generic [ref=e611] [cursor=pointer]:
+                    - combobox "Military Branch" [ref=e612]
+                    - generic:
+                      - generic:
+                        - generic: Military Branch
+                  - generic [ref=e620]: Will be shown on Occupied plot status only for public
+          - generic [ref=e622]:
+            - button "Interment details" [expanded] [ref=e623] [cursor=pointer]:
+              - generic [ref=e625]: Interment details
+            - region "Interment details" [ref=e627]:
+              - generic [ref=e629]:
+                - generic [ref=e630]:
+                  - generic [ref=e632]:
+                    - generic [ref=e634]:
+                      - spinbutton "Interment number" [disabled] [ref=e635]
+                      - generic:
+                        - generic: Interment number
+                    - generic [ref=e638]: Will be generated after saving
+                  - generic [ref=e640]:
+                    - generic [ref=e644]:
+                      - spinbutton "Interment depth" [ref=e645]
+                      - generic:
+                        - generic: Interment depth
+                    - combobox "Unit" [ref=e648]:
+                      - generic [ref=e650] [cursor=pointer]: Unit
+                - generic [ref=e653]:
+                  - generic [ref=e655]:
+                    - generic [ref=e658]:
+                      - generic [ref=e659]:
+                        - textbox "Interment Date" [ref=e660]
+                        - generic:
+                          - generic: Interment Date
+                      - button "Open calendar" [ref=e663] [cursor=pointer]:
+                        - img [ref=e664]:
+                          - img [ref=e665]
+                    - generic [ref=e670]:
+                      - generic [ref=e671] [cursor=pointer]: Today
+                      - generic [ref=e672] [cursor=pointer]:
+                        - text: Full Date
+                        - combobox "Full DateDD/MM/YYYY" [ref=e673]:
+                          - generic [ref=e676]: Full DateDD/MM/YYYY
+                  - generic [ref=e682] [cursor=pointer]:
+                    - combobox "Interment type" [ref=e683]
+                    - generic:
+                      - generic: Interment type *
+                - generic [ref=e689]:
+                  - generic [ref=e693] [cursor=pointer]:
+                    - combobox "Cremation location" [ref=e694]
+                    - generic:
+                      - generic: Cremation location
+                  - generic [ref=e703] [cursor=pointer]:
+                    - combobox "Container type" [ref=e704]
+                    - generic:
+                      - generic: Container type
+                - generic [ref=e714]:
+                  - textbox "Container dimensions" [ref=e715]
+                  - generic:
+                    - generic: Container dimensions
+                - heading "Extra details" [level=6] [ref=e716]
+                - generic [ref=e723] [cursor=pointer]:
+                  - combobox "Baby section" [ref=e724]
+                  - generic:
+                    - generic:
+                      - generic: Baby section
+          - generic [ref=e730]:
+            - button "Story" [expanded] [ref=e731] [cursor=pointer]:
+              - generic [ref=e733]: Story
+            - region "Story" [ref=e735]:
+              - generic [ref=e737]:
+                - generic [ref=e738]: 0/5000
+                - generic [ref=e740]:
+                  - generic [ref=e742]:
+                    - generic:  
+                    - generic [ref=e743]:
+                      - button "" [ref=e744]:
+                        - generic [ref=e745]: 
+                      - button "" [ref=e746]:
+                        - generic [ref=e747]: 
+                      - button "" [ref=e748]:
+                        - generic [ref=e749]: 
+                      - button "" [ref=e750]:
+                        - generic [ref=e751]: 
+                      - text:  
+                    - generic:    
+                    - generic [ref=e752]:
+                      - button "" [ref=e753]:
+                        - generic [ref=e754]: 
+                      - button "" [ref=e755]:
+                        - generic [ref=e756]: 
+                    - generic:  
+                    - generic:  
+                    - generic [ref=e757]:
+                      - button "" [disabled]:
+                        - generic: 
+                      - text:    
+                    - generic: 
+                    - generic: 
+                  - generic [ref=e760]: Enter text here...
+                - generic [ref=e761]:
+                  - generic [ref=e763]:
+                    - heading [level=4]
+                    - generic [ref=e769] [cursor=pointer]:
+                      - button "SELECT PHOTO" [ref=e770]:
+                        - generic [ref=e771]:
+                          - img [ref=e772]:
+                            - img [ref=e773]
+                          - text: SELECT PHOTO
+                      - paragraph [ref=e776]: or drag it here
+                  - generic [ref=e779] [cursor=pointer]:
+                    - generic [ref=e780]:
+                      - checkbox "Highlight Story" [ref=e781]
+                      - generic:
+                        - img
+                    - generic [ref=e782]: Highlight Story
+        - generic [ref=e783]:
+          - button "Documents" [expanded] [ref=e784] [cursor=pointer]:
+            - generic [ref=e786]: Documents
+          - region "Documents" [ref=e788]:
+            - generic [ref=e792]:
+              - heading [level=4]
+              - generic [ref=e798] [cursor=pointer]:
+                - button "SELECT FILE" [ref=e799]:
+                  - generic [ref=e800]:
+                    - img [ref=e801]:
+                      - img [ref=e802]
+                    - text: SELECT FILE
+                - paragraph [ref=e805]: or drag it here
+                - paragraph [ref=e806]: "Maximum file size: 8 MB"
+      - generic [ref=e807]:
+        - list [ref=e808]:
+          - listitem [ref=e809]:
+            - button "interment applicant" [ref=e811] [cursor=pointer]:
+              - generic [ref=e812]: interment applicant
+          - listitem [ref=e813]:
+            - button "next of kin" [ref=e815] [cursor=pointer]:
+              - generic [ref=e816]: next of kin
+          - listitem [ref=e817]:
+            - button "funeral minister" [ref=e819] [cursor=pointer]:
+              - generic [ref=e820]: funeral minister
+          - listitem [ref=e821]:
+            - button "funeral director" [ref=e823] [cursor=pointer]:
+              - generic [ref=e824]: funeral director
+        - list
+        - textbox "Add Notes" [ref=e830]

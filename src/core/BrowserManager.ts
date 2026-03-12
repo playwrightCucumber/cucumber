@@ -72,6 +72,9 @@ export class BrowserManager {
     // Set consistent viewport for video recording
     await page.setViewportSize({ width: 1920, height: 1080 });
 
+    // Chronicle polls serverterus-menerus — default 30s navigation timeout terlalu ketat
+    page.setDefaultNavigationTimeout(60000);
+
     return page;
   }
 

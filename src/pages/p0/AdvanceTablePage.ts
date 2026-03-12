@@ -222,7 +222,7 @@ export class AdvanceTablePage extends BasePage {
 
     // Wait for loading indicator to disappear
     try {
-      await this.page.waitForSelector(AdvanceTableSelectors.tableLoading, { state: 'detached', timeout: 15000 });
+      await this.page.waitForSelector(AdvanceTableSelectors.tableLoading, { state: 'detached' });
     } catch {
       // No loading indicator or already loaded
     }

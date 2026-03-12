@@ -17,54 +17,71 @@ function getAdvanceSearchPage(page: Page): AdvanceSearchPage {
 }
 
 // Background step
-Given('I am on the Chronicle home page', { timeout: 10000 }, async function () {
+Given('I am on the Chronicle home page', async function () {
   const page: Page = this.page;
   const baseUrl = BASE_CONFIG.baseUrl;
   logger.info(`Navigating to Chronicle home page: ${baseUrl}`);
-  await page.goto(baseUrl);
-  await page.waitForLoadState('domcontentloaded');
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await NetworkHelper.waitForStabilization(page, { minWait: 500, maxWait: 5000 });
   logger.success('Chronicle home page loaded');
 });
 
 // Advanced Search Steps (Without Login)
-When('I click Advanced search button without login', { timeout: 10000 }, async function () {
+When('I click Advanced search button without login', async function () {
   const page: Page = this.page;
   logger.info('Clicking Advanced search button');
   const advancedButton = page.locator(AdvanceSearchSelectors.advancedSearchButton);
-  await advancedButton.waitFor({ state: 'visible', timeout: 10000 });
+  await advancedButton.waitFor({ state: 'visible' });
   await advancedButton.click();
-  await page.locator('.advanced-search-form').waitFor({ state: 'visible', timeout: 10000 });
+  await page.locator('.advanced-search-form').waitFor({ state: 'visible' });
+  // Wait for API requests (cemetery list) to complete after dialog opens
+  await NetworkHelper.waitForApiRequestsComplete(page, 5000);
   logger.success('Advanced search dialog opened');
 });
 
-When('I select cemetery {string} in advanced search', { timeout: 10000 }, async function (cemeteryName: string) {
+When('I select cemetery {string} in advanced search', async function (cemeteryName: string) {
   const page: Page = this.page;
   const cemetery = replacePlaceholders(cemeteryName);
   logger.info(`Selecting cemetery: ${cemetery}`);
 
-  // Click cemetery combobox using getByRole (more robust than CSS selector)
-  await page.getByRole('combobox', { name: 'Cemeteries' }).click();
+  const combobox = page.getByRole('combobox', { name: 'Cemeteries' });
+  const overlayOption = page.locator('.cdk-overlay-pane mat-option');
+
+  // Retry clicking combobox if dropdown opens empty (FE may not have rendered list yet)
+  const maxRetries = 3;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    await combobox.click();
+    try {
+      // Wait for at least one option to render in the dropdown
+      await overlayOption.first().waitFor({ state: 'visible', timeout: 5000 });
+      break;
+    } catch {
+      logger.info(`Cemetery list not rendered yet (attempt ${attempt}/${maxRetries}), closing and retrying...`);
+      await page.keyboard.press('Escape');
+      // Wait for FE to finish rendering before retrying
+      await NetworkHelper.waitForApiRequestsComplete(page, 3000);
+    }
+  }
 
   // Select the cemetery option using exact match to avoid strict mode violations
   const cemeteryOption = page.getByRole('option', { name: cemetery, exact: true });
-  await cemeteryOption.waitFor({ state: 'visible', timeout: 10000 });
+  await cemeteryOption.waitFor({ state: 'visible' });
   await cemeteryOption.click();
 
   // Close the dropdown by pressing Escape (required before clicking Plot tab)
   await page.keyboard.press('Escape');
-  await cemeteryOption.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+  await cemeteryOption.waitFor({ state: 'hidden' }).catch(() => {});
 
   logger.success(`Cemetery ${cemetery} selected`);
 });
 
-When('I select Plot tab in advanced search', { timeout: 15000 }, async function () {
+When('I select Plot tab in advanced search', async function () {
   const page: Page = this.page;
   logger.info('Clicking Plot tab');
 
   // Wait a bit for the dialog to settle after cemetery selection
   const plotTabButton = page.getByRole('button', { name: 'Plot', exact: true });
-  await plotTabButton.waitFor({ state: 'visible', timeout: 10000 });
+  await plotTabButton.waitFor({ state: 'visible' });
 
   // Click Plot tab using getByRole with aria-label
   await plotTabButton.click();
@@ -72,7 +89,7 @@ When('I select Plot tab in advanced search', { timeout: 15000 }, async function 
   logger.success('Plot tab selected');
 });
 
-When('I select section {string} in advanced search without login', { timeout: 10000 }, async function (section: string) {
+When('I select section {string} in advanced search without login', async function (section: string) {
   const page: Page = this.page;
   // Replace placeholder with actual test data
   const sec = replacePlaceholders(section);
@@ -83,16 +100,16 @@ When('I select section {string} in advanced search without login', { timeout: 10
 
   // Select the section option
   const sectionOption = page.getByRole('option', { name: sec, exact: true });
-  await sectionOption.waitFor({ state: 'visible', timeout: 5000 });
+  await sectionOption.waitFor({ state: 'visible' });
   await sectionOption.click();
 
   // Wait for dropdown to close
-  await sectionOption.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+  await sectionOption.waitFor({ state: 'hidden' }).catch(() => {});
 
   logger.success(`Section ${sec} selected`);
 });
 
-When('I select row {string} in advanced search without login', { timeout: 10000 }, async function (row: string) {
+When('I select row {string} in advanced search without login', async function (row: string) {
   const page: Page = this.page;
   const r = replacePlaceholders(row);
   logger.info(`Selecting row: ${r}`);
@@ -102,16 +119,16 @@ When('I select row {string} in advanced search without login', { timeout: 10000 
 
   // Select the row option (use exact match for single letters)
   const rowOption = page.getByRole('option', { name: r, exact: true });
-  await rowOption.waitFor({ state: 'visible', timeout: 5000 });
+  await rowOption.waitFor({ state: 'visible' });
   await rowOption.click();
 
   // Wait for dropdown to close
-  await rowOption.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+  await rowOption.waitFor({ state: 'hidden' }).catch(() => {});
 
   logger.success(`Row ${r} selected`);
 });
 
-When('I enter plot number {string} in advanced search without login', { timeout: 10000 }, async function (number: string) {
+When('I enter plot number {string} in advanced search without login', async function (number: string) {
   const page: Page = this.page;
   const num = replacePlaceholders(number);
   logger.info(`Entering plot number: ${num}`);
@@ -125,7 +142,7 @@ When('I enter plot number {string} in advanced search without login', { timeout:
   logger.success(`Plot number ${num} entered`);
 });
 
-When('I select status {string} in advanced search without login', { timeout: 10000 }, async function (status: string) {
+When('I select status {string} in advanced search without login', async function (status: string) {
   const page: Page = this.page;
   logger.info(`Selecting status: ${status}`);
 
@@ -134,50 +151,50 @@ When('I select status {string} in advanced search without login', { timeout: 100
 
   // Select the status option
   const statusOption = page.getByRole('option', { name: status, exact: true });
-  await statusOption.waitFor({ state: 'visible', timeout: 5000 });
+  await statusOption.waitFor({ state: 'visible' });
   await statusOption.click();
 
   // Close the dropdown by pressing Escape
   await page.keyboard.press('Escape');
-  await statusOption.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+  await statusOption.waitFor({ state: 'hidden' }).catch(() => {});
 
   logger.success(`Status ${status} selected`);
 });
 
-When('I click Search button in advanced search without login', { timeout: 15000 }, async function () {
+When('I click Search button in advanced search without login', async function () {
   const page: Page = this.page;
   logger.info('Clicking Search button in advanced search');
 
   await page.locator(AdvanceSearchSelectors.searchButton).click();
 
   // Wait for navigation to search results page
-  await page.waitForURL('**/search/advance', { timeout: 10000 });
+  await page.waitForURL('**/search/advance');
   await NetworkHelper.waitForStabilization(page, { minWait: 500, maxWait: 3000 });
 
   logger.success('Search completed, navigated to results page');
 });
 
-Then('I should be navigated to advance search results page', { timeout: 15000 }, async function () {
+Then('I should be navigated to advance search results page', async function () {
   const page: Page = this.page;
   logger.info('Verifying navigation to advance search results page');
 
   // Check URL
-  await page.waitForURL('**/search/advance', { timeout: 10000 });
+  await page.waitForURL('**/search/advance');
 
   // Check for search results heading
   const heading = page.locator(AdvanceSearchSelectors.searchResultsHeading);
-  await heading.waitFor({ state: 'visible', timeout: 10000 });
+  await heading.waitFor({ state: 'visible' });
 
   logger.success('Verified on advance search results page');
 });
 
-Then('I should see search results information', { timeout: 10000 }, async function () {
+Then('I should see search results information', async function () {
   const page: Page = this.page;
   logger.info('Verifying search results information');
 
   // Check for search results heading (e.g., "5 plots found...")
   const heading = page.locator(AdvanceSearchSelectors.searchResultsHeading);
-  await expect(heading).toBeVisible({ timeout: 5000 });
+  await expect(heading).toBeVisible();
 
   // Parse the count from the heading text and assert it is > 0
   const headingText = await heading.textContent();
@@ -192,19 +209,19 @@ Then('I should see search results information', { timeout: 10000 }, async functi
 
   // Check for subheading (e.g., "in 1 cemeteries")
   const subheading = page.locator(AdvanceSearchSelectors.searchResultsSubheading);
-  await expect(subheading).toBeVisible({ timeout: 5000 });
+  await expect(subheading).toBeVisible();
 
   logger.success(`Search results information verified: ${headingText}`);
 });
 
-Then('I should see plot number {string} in sidebar results', { timeout: 10000 }, async function (plotNumber: string) {
+Then('I should see plot number {string} in sidebar results', async function (plotNumber: string) {
   const page: Page = this.page;
   const actualPlotNumber = replacePlaceholders(plotNumber);
   logger.info(`Verifying plot number ${actualPlotNumber} in sidebar results`);
 
   // Get the plot detail text from sidebar
   const plotDetailText = page.locator(AdvanceSearchSelectors.plotDetailText);
-  await expect(plotDetailText).toBeVisible({ timeout: 5000 });
+  await expect(plotDetailText).toBeVisible();
 
   // Get the text content
   const text = await plotDetailText.textContent();
@@ -215,14 +232,14 @@ Then('I should see plot number {string} in sidebar results', { timeout: 10000 },
   logger.success(`Plot number ${actualPlotNumber} verified in sidebar: ${text}`);
 });
 
-Then('I should see cemetery name {string} in sidebar results', { timeout: 10000 }, async function (cemeteryName: string) {
+Then('I should see cemetery name {string} in sidebar results', async function (cemeteryName: string) {
   const page: Page = this.page;
   const actualCemeteryName = replacePlaceholders(cemeteryName);
   logger.info(`Verifying cemetery name ${actualCemeteryName} in sidebar results`);
 
   // Get the cemetery name text from sidebar
   const cemeteryNameText = page.locator(AdvanceSearchSelectors.cemeteryNameText);
-  await expect(cemeteryNameText).toBeVisible({ timeout: 5000 });
+  await expect(cemeteryNameText).toBeVisible();
 
   // Get the text content
   const text = await cemeteryNameText.textContent();
@@ -233,13 +250,13 @@ Then('I should see cemetery name {string} in sidebar results', { timeout: 10000 
   logger.success(`Cemetery name ${actualCemeteryName} verified in sidebar`);
 });
 
-Then('I should see status icon {string} in first result', { timeout: 10000 }, async function (expectedStatus: string) {
+Then('I should see status icon {string} in first result', async function (expectedStatus: string) {
   const page: Page = this.page;
   logger.info(`Verifying status icon ${expectedStatus} in first result`);
 
   // Get the icon element from first result
   const icon = page.locator(AdvanceSearchSelectors.firstResultIcon);
-  await expect(icon).toBeVisible({ timeout: 5000 });
+  await expect(icon).toBeVisible();
 
   // Get the class attribute
   const className = await icon.getAttribute('class');
@@ -254,21 +271,21 @@ Then('I should see status icon {string} in first result', { timeout: 10000 }, as
   logger.success(`Status icon ${expectedStatus} verified in first result (class: ${expectedClass})`);
 });
 
-When('I click close advance search button', { timeout: 20000 }, async function () {
+When('I click close advance search button', async function () {
   const page: Page = this.page;
   logger.info('Clicking close advance search button');
 
   await page.locator(AdvanceSearchSelectors.closeAdvanceSearchButton).click();
 
-  // Wait for navigation back to home page with increased timeout
+  // Wait for navigation back to home page
   const baseUrl = BASE_CONFIG.baseUrl;
-  await page.waitForURL(baseUrl, { timeout: 15000 });
+  await page.waitForURL(baseUrl);
   await NetworkHelper.waitForStabilization(page, { minWait: 500, maxWait: 3000 });
 
   logger.success('Advance search closed, navigated to home page');
 });
 
-Then('I should be on the home page', { timeout: 10000 }, async function () {
+Then('I should be on the home page', async function () {
   const page: Page = this.page;
   logger.info('Verifying on home page');
 
@@ -281,21 +298,21 @@ Then('I should be on the home page', { timeout: 10000 }, async function () {
   logger.success('Verified on home page');
 });
 
-Then('I should not see advance search results sidebar', { timeout: 10000 }, async function () {
+Then('I should not see advance search results sidebar', async function () {
   const page: Page = this.page;
   logger.info('Verifying advance search results sidebar is not visible');
 
   // Check that search results heading is NOT visible
   const searchResultsHeading = page.locator(AdvanceSearchSelectors.searchResultsHeading);
-  await expect(searchResultsHeading).not.toBeVisible({ timeout: 5000 });
+  await expect(searchResultsHeading).not.toBeVisible();
 
   // Check that search results subheading is NOT visible
   const searchResultsSubheading = page.locator(AdvanceSearchSelectors.searchResultsSubheading);
-  await expect(searchResultsSubheading).not.toBeVisible({ timeout: 5000 });
+  await expect(searchResultsSubheading).not.toBeVisible();
 
   // Check that plot detail is NOT visible
   const plotDetailText = page.locator(AdvanceSearchSelectors.plotDetailText);
-  await expect(plotDetailText).not.toBeVisible({ timeout: 5000 });
+  await expect(plotDetailText).not.toBeVisible();
 
   logger.success('Advance search results sidebar is not visible');
 });
@@ -304,61 +321,61 @@ Then('I should not see advance search results sidebar', { timeout: 10000 }, asyn
 // LOGGED-IN USER ADVANCED SEARCH STEPS
 // ==========================================
 
-When('I click Advanced search button', { timeout: 20000 }, async function () {
+When('I click Advanced search button', async function () {
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.clickAdvancedSearchButton();
 });
 
-When('I select section {string} in advanced search', { timeout: 10000 }, async function (section: string) {
+When('I select section {string} in advanced search', async function (section: string) {
   const actualSection = replacePlaceholders(section);
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.selectSectionInAdvancedSearch(actualSection);
 });
 
-When('I select row {string} in advanced search', { timeout: 10000 }, async function (row: string) {
+When('I select row {string} in advanced search', async function (row: string) {
   const actualRow = replacePlaceholders(row);
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.selectRowInAdvancedSearch(actualRow);
 });
 
-When('I enter plot number {string} in advanced search', { timeout: 10000 }, async function (number: string) {
+When('I enter plot number {string} in advanced search', async function (number: string) {
   const actualNumber = replacePlaceholders(number);
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.enterPlotNumberInAdvancedSearch(actualNumber);
 });
 
-When('I click Search button in advanced search', { timeout: 15000 }, async function () {
+When('I click Search button in advanced search', async function () {
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.clickSearchButtonInAdvancedSearch();
 });
 
-Then('I should see search results containing {string}', { timeout: 15000 }, async function (plotId: string) {
+Then('I should see search results containing {string}', async function (plotId: string) {
   const actualPlotId = replacePlaceholders(plotId);
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.verifySearchResultsContain(actualPlotId);
 });
 
-When('I click on plot {string} from search results', { timeout: 15000 }, async function (plotId: string) {
+When('I click on plot {string} from search results', async function (plotId: string) {
   const actualPlotId = replacePlaceholders(plotId);
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.clickPlotFromSearchResults(actualPlotId);
 });
 
-Then('I should see plot sidebar with plot ID {string}', { timeout: 15000 }, async function (plotId: string) {
+Then('I should see plot sidebar with plot ID {string}', async function (plotId: string) {
   const actualPlotId = replacePlaceholders(plotId);
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.verifyPlotSidebarWithPlotId(actualPlotId);
 });
 
-Then('I should see plot details sidebar', { timeout: 10000 }, async function () {
+Then('I should see plot details sidebar', async function () {
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.verifyPlotDetailsSidebar();
@@ -368,56 +385,56 @@ Then('I should see plot details sidebar', { timeout: 10000 }, async function () 
 // ADVANCED SEARCH WITH MULTIPLE FILTERS STEPS
 // ==========================================
 
-When('I enter plot ID {string} in advanced search', { timeout: 10000 }, async function (plotId: string) {
+When('I enter plot ID {string} in advanced search', async function (plotId: string) {
   const actualPlotId = replacePlaceholders(plotId);
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.enterPlotIdInAdvancedSearch(actualPlotId);
 });
 
-When('I select plot type {string} in advanced search', { timeout: 10000 }, async function (plotType: string) {
+When('I select plot type {string} in advanced search', async function (plotType: string) {
   const actualPlotType = replacePlaceholders(plotType);
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.selectPlotTypeInAdvancedSearch(actualPlotType);
 });
 
-When('I select status {string} in advanced search', { timeout: 10000 }, async function (status: string) {
+When('I select status {string} in advanced search', async function (status: string) {
   const actualStatus = replacePlaceholders(status);
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.selectStatusInAdvancedSearch(actualStatus);
 });
 
-When('I enter price {string} in advanced search', { timeout: 10000 }, async function (price: string) {
+When('I enter price {string} in advanced search', async function (price: string) {
   const actualPrice = replacePlaceholders(price);
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.enterPriceInAdvancedSearch(actualPrice);
 });
 
-When('I enter burial capacity {string} in advanced search', { timeout: 10000 }, async function (capacity: string) {
+When('I enter burial capacity {string} in advanced search', async function (capacity: string) {
   const actualCapacity = replacePlaceholders(capacity);
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.enterBurialCapacityInAdvancedSearch(actualCapacity);
 });
 
-When('I enter entombment capacity {string} in advanced search', { timeout: 10000 }, async function (capacity: string) {
+When('I enter entombment capacity {string} in advanced search', async function (capacity: string) {
   const actualCapacity = replacePlaceholders(capacity);
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.enterEntombmentCapacityInAdvancedSearch(actualCapacity);
 });
 
-When('I enter cremation capacity {string} in advanced search', { timeout: 10000 }, async function (capacity: string) {
+When('I enter cremation capacity {string} in advanced search', async function (capacity: string) {
   const actualCapacity = replacePlaceholders(capacity);
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.enterCremationCapacityInAdvancedSearch(actualCapacity);
 });
 
-When('I enter interments qty from {string} to {string} in advanced search', { timeout: 10000 }, async function (from: string, to: string) {
+When('I enter interments qty from {string} to {string} in advanced search', async function (from: string, to: string) {
   const actualFrom = replacePlaceholders(from);
   const actualTo = replacePlaceholders(to);
   const page = this.page as Page;
@@ -425,33 +442,33 @@ When('I enter interments qty from {string} to {string} in advanced search', { ti
   await advanceSearchPage.enterIntermentsQtyInAdvancedSearch(actualFrom, actualTo);
 });
 
-When('I click on first plot from search results', { timeout: 15000 }, async function () {
+When('I click on first plot from search results', async function () {
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.clickFirstPlotFromSearchResults();
 });
 
-When('I click Edit plot button', { timeout: 15000 }, async function () {
+When('I click Edit plot button', async function () {
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.clickEditPlotButton();
 });
 
-Then('I should see plot type {string} in edit plot page', { timeout: 10000 }, async function (plotType: string) {
+Then('I should see plot type {string} in edit plot page', async function (plotType: string) {
   const actualPlotType = replacePlaceholders(plotType);
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.verifyPlotTypeInEditPage(actualPlotType);
 });
 
-Then('I should see status {string} in edit plot page', { timeout: 10000 }, async function (status: string) {
+Then('I should see status {string} in edit plot page', async function (status: string) {
   const actualStatus = replacePlaceholders(status);
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.verifyStatusInEditPage(actualStatus);
 });
 
-When('I close edit plot page', { timeout: 10000 }, async function () {
+When('I close edit plot page', async function () {
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.closeEditPlotPage();

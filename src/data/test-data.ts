@@ -373,6 +373,7 @@ export const REQUEST_SALES_FORM_DATA = {
     deceasedMiddleName: process.env.TEST_DECEASED_MIDDLENAME || '',
     dateOfBirth: process.env.TEST_DECEASED_DOB || '01/01/1950',
     dateOfDeath: process.env.TEST_DECEASED_DOD || '01/01/2026',
+    religion: process.env.TEST_DECEASED_RELIGION || 'All Creeds',
     placeOfDeath: process.env.TEST_PLACE_OF_DEATH || 'Hospital',
     intermentDate: process.env.TEST_INTERMENT_DATE || '01/15/2026',
     intermentTime: process.env.TEST_INTERMENT_TIME || '10:00',

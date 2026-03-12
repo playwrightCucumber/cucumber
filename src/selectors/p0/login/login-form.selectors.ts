@@ -24,8 +24,8 @@ export const LoginSelectors = {
   // Remember me checkbox
   rememberMeCheckbox: 'input[type="checkbox"]',
 
-  // Error messages
-  errorMessage: '.mat-error, .error-message',
+  // Error messages (snackbar appears in cdk-overlay-container after failed login)
+  errorMessage: 'snack-bar-container.custom-snackbar-error [data-testid="login-snackbar-error-div-left"]',
 
   // Success indicators (Dashboard after login)
   organizationName: 'div:has-text("astana tegal gundul")',

@@ -53,11 +53,11 @@ export class FeedbackPage {
     const panel = this.getPanel(index);
     const body = this.getPanelBody(index);
 
-    const isVisible = await body.isVisible({ timeout: 3000 }).catch(() => false);
+    const isVisible = await body.isVisible().catch(() => false);
     if (!isVisible) {
       this.logger.info(`Panel ${index} not expanded, clicking header to expand`);
       await panel.locator('mat-expansion-panel-header').click();
-      await body.waitFor({ state: 'visible', timeout: 5000 });
+      await body.waitFor({ state: 'visible' });
     }
   }
 
@@ -86,7 +86,7 @@ export class FeedbackPage {
   async selectFeedbackFromMenu(): Promise<void> {
     this.logger.info('Selecting Feedback from menu');
     await this.page.locator(FeedbackSelectors.navigation.feedbackMenuItem).click();
-    await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 });
+    await this.page.waitForLoadState('domcontentloaded');
     await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
   }
 
@@ -104,7 +104,8 @@ export class FeedbackPage {
   async isFeedbackPageDisplayed(): Promise<boolean> {
     try {
       const title = this.page.locator(FeedbackSelectors.page.title);
-      return await title.isVisible({ timeout: 10000 });
+      await title.waitFor({ state: 'visible', timeout: 15000 });
+      return await title.isVisible();
     } catch {
       return false;
     }
@@ -112,7 +113,7 @@ export class FeedbackPage {
 
   async getFeedbackPageTitle(): Promise<string> {
     const title = this.page.locator(FeedbackSelectors.page.title);
-    await title.waitFor({ state: 'visible', timeout: 10000 });
+    await title.waitFor({ state: 'visible' });
     return await title.textContent() || '';
   }
 
@@ -143,7 +144,7 @@ export class FeedbackPage {
     const select = body.locator(selectSelector);
     await select.click();
     const option = this.page.locator(`mat-option:has-text("${optionText}")`);
-    await option.waitFor({ state: 'visible', timeout: 5000 });
+    await option.waitFor({ state: 'visible' });
     await option.click();
   }
 
@@ -211,10 +212,10 @@ export class FeedbackPage {
     // Use the expanded panel's mat-select (more reliable than label matching)
     const body = this.getPanelBody(2);
     const select = body.locator('mat-select').first();
-    await select.waitFor({ state: 'visible', timeout: 10000 });
+    await select.waitFor({ state: 'visible' });
     await select.click();
     const option = this.page.locator(FeedbackSelectors.section3_category.option(type));
-    await option.waitFor({ state: 'visible', timeout: 5000 });
+    await option.waitFor({ state: 'visible' });
     await option.click();
     this.logger.success(`Feedback type "${type}" selected`);
   }
@@ -235,7 +236,7 @@ export class FeedbackPage {
 
     const body = this.getPanelBody(3);
     const textarea = body.locator('textarea').first();
-    await textarea.waitFor({ state: 'visible', timeout: 10000 });
+    await textarea.waitFor({ state: 'visible' });
     await textarea.click();
     await textarea.fill(message);
     this.logger.success('Feedback details filled');
@@ -265,7 +266,7 @@ export class FeedbackPage {
   async isSubmitEnabled(): Promise<boolean> {
     const submitBtn = this.page.locator(FeedbackSelectors.page.submitButton);
     try {
-      await submitBtn.waitFor({ state: 'visible', timeout: 5000 });
+      await submitBtn.waitFor({ state: 'visible' });
       return !(await submitBtn.isDisabled());
     } catch {
       return false;
@@ -286,7 +287,7 @@ export class FeedbackPage {
   async clickSubmitButton(): Promise<void> {
     this.logger.info('Clicking Submit Request button');
     const submitBtn = this.page.locator(FeedbackSelectors.page.submitButton);
-    await submitBtn.waitFor({ state: 'visible', timeout: 10000 });
+    await submitBtn.waitFor({ state: 'visible' });
     await submitBtn.scrollIntoViewIfNeeded();
     await submitBtn.click();
     this.logger.success('Submit button clicked');

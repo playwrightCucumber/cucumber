@@ -50,7 +50,7 @@ export class SalesPage {
     this.logger.info('Navigating to Sales page');
     await this.page.locator(salesSelectors.salesMenuButton).click();
     await this.page.waitForLoadState('domcontentloaded');
-    await this.page.waitForSelector(salesSelectors.salesTable, { state: 'visible', timeout: 10000 });
+    await this.page.waitForSelector(salesSelectors.salesTable, { state: 'visible' });
   }
 
   /**
@@ -58,7 +58,7 @@ export class SalesPage {
    */
   async validateSalesTableLoaded(): Promise<void> {
     this.logger.info('Validating sales table is loaded');
-    await expect(this.page.locator(salesSelectors.salesTable)).toBeVisible({ timeout: 10000 });
+    await expect(this.page.locator(salesSelectors.salesTable)).toBeVisible();
     this.logger.info('Sales table is visible');
   }
 
@@ -76,10 +76,26 @@ export class SalesPage {
    */
   async clickCreateSale(): Promise<void> {
     this.logger.info('Clicking Create Sale button');
+
+    // Setup API listeners BEFORE click (payment-methods & invoice-settings load on create page)
+    const paymentMethodsPromise = this.page.waitForResponse(
+      (res) => res.url().includes('/payment-methods/') && res.status() === 200,
+      { timeout: 15000 }
+    ).catch(() => this.logger.info('payment-methods API not called (may be cached)'));
+    const invoiceSettingsPromise = this.page.waitForResponse(
+      (res) => res.url().includes('/invoice-settings/') && res.status() === 200,
+      { timeout: 15000 }
+    ).catch(() => this.logger.info('invoice-settings API not called (may be cached)'));
+
     await this.page.locator(salesSelectors.createSaleButton).click();
     await this.page.waitForLoadState('domcontentloaded');
+
+    // Wait for both APIs to complete
+    await Promise.all([paymentMethodsPromise, invoiceSettingsPromise]);
+    this.logger.info('payment-methods & invoice-settings APIs loaded');
+
     // Wait for the sale form to be ready (reference input visible)
-    await this.page.waitForSelector(salesSelectors.referenceInput, { state: 'visible', timeout: 10000 });
+    await this.page.waitForSelector(salesSelectors.referenceInput, { state: 'visible' });
   }
 
   /**
@@ -87,7 +103,7 @@ export class SalesPage {
    */
   async fillReference(reference: string): Promise<void> {
     this.logger.info(`Filling reference: ${reference}`);
-    await this.page.waitForSelector(salesSelectors.referenceInput, { state: 'visible', timeout: 10000 });
+    await this.page.waitForSelector(salesSelectors.referenceInput, { state: 'visible' });
     await this.page.locator(salesSelectors.referenceInput).fill(reference);
   }
 
@@ -96,7 +112,7 @@ export class SalesPage {
    */
   async fillIssueDate(issueDate: string): Promise<void> {
     this.logger.info(`Filling issue date: ${issueDate}`);
-    await this.page.waitForSelector(salesSelectors.issueDateInput, { state: 'visible', timeout: 10000 });
+    await this.page.waitForSelector(salesSelectors.issueDateInput, { state: 'visible' });
     await this.page.locator(salesSelectors.issueDateInput).fill(issueDate);
   }
 
@@ -105,7 +121,7 @@ export class SalesPage {
    */
   async fillDueDate(dueDate: string): Promise<void> {
     this.logger.info(`Filling due date: ${dueDate}`);
-    await this.page.waitForSelector(salesSelectors.dueDateInput, { state: 'visible', timeout: 10000 });
+    await this.page.waitForSelector(salesSelectors.dueDateInput, { state: 'visible' });
     await this.page.locator(salesSelectors.dueDateInput).fill(dueDate);
   }
 
@@ -114,7 +130,7 @@ export class SalesPage {
    */
   async fillNote(note: string): Promise<void> {
     this.logger.info(`Filling note: ${note}`);
-    await this.page.waitForSelector(salesSelectors.noteTextarea, { state: 'visible', timeout: 10000 });
+    await this.page.waitForSelector(salesSelectors.noteTextarea, { state: 'visible' });
     await this.page.locator(salesSelectors.noteTextarea).fill(note);
   }
 
@@ -208,7 +224,7 @@ export class SalesPage {
   async validateIssueDate(): Promise<void> {
     this.logger.info('Validating issue date is pre-filled with current date');
 
-    await this.page.waitForSelector(salesSelectors.issueDateInput, { state: 'visible', timeout: 10000 });
+    await this.page.waitForSelector(salesSelectors.issueDateInput, { state: 'visible' });
 
     const actualIssueDate = await this.page.locator(salesSelectors.issueDateInput).inputValue();
     this.logger.info(`Actual issue date value: "${actualIssueDate}"`);
@@ -238,7 +254,7 @@ export class SalesPage {
       dueDays = await this.getInvoiceSettings();
     }
 
-    await this.page.waitForSelector(salesSelectors.dueDateInput, { state: 'visible', timeout: 10000 });
+    await this.page.waitForSelector(salesSelectors.dueDateInput, { state: 'visible' });
 
     const actualDueDate = await this.page.locator(salesSelectors.dueDateInput).inputValue();
     this.logger.info(`Actual due date value: "${actualDueDate}"`);
@@ -281,7 +297,7 @@ export class SalesPage {
    */
   async selectOwner(ownerName?: string): Promise<void> {
     this.logger.info(`Selecting owner: ${ownerName || 'first available'}`);
-    await this.page.waitForSelector(salesSelectors.ownerSelect, { state: 'visible', timeout: 10000 });
+    await this.page.waitForSelector(salesSelectors.ownerSelect, { state: 'visible' });
     
     // Check current value before selecting
     const ownerCombobox = this.page.locator(salesSelectors.ownerSelect);
@@ -291,7 +307,7 @@ export class SalesPage {
     await ownerCombobox.click();
     
     // Wait for options to appear
-    await this.page.waitForSelector('mat-option', { state: 'visible', timeout: 5000 });
+    await this.page.waitForSelector('mat-option', { state: 'visible' });
     
     // Get all options
     const options = await this.page.locator('mat-option:visible').allTextContents();
@@ -308,7 +324,7 @@ export class SalesPage {
     }
     
     // Wait for Angular to process the selection (overlay should close)
-    await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+    await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden' }).catch(() => {});
     
     // Trigger change event explicitly
     await this.page.evaluate((selector) => {
@@ -335,10 +351,10 @@ export class SalesPage {
    */
   async clickAddPurchaser(): Promise<void> {
     this.logger.info('Clicking Add Purchaser button');
-    await this.page.waitForSelector(salesSelectors.addPurchaserButton, { state: 'visible', timeout: 10000 });
+    await this.page.waitForSelector(salesSelectors.addPurchaserButton, { state: 'visible' });
     await this.page.locator(salesSelectors.addPurchaserButton).click();
     // Wait for Add Person dialog to appear
-    await this.page.waitForSelector(salesSelectors.addPersonDialog, { state: 'visible', timeout: 10000 });
+    await this.page.waitForSelector(salesSelectors.addPersonDialog, { state: 'visible' });
     this.logger.info('Purchaser section should now be visible');
   }
 
@@ -350,11 +366,11 @@ export class SalesPage {
     
     try {
       // Wait for Add Person dialog to appear
-      await this.page.waitForSelector(salesSelectors.addPersonDialog, { state: 'visible', timeout: 10000 });
+      await this.page.waitForSelector(salesSelectors.addPersonDialog, { state: 'visible' });
       this.logger.info('Add Person dialog visible');
       
       // Fill first name
-      await this.page.waitForSelector(salesSelectors.purchaserFirstNameInput, { state: 'visible', timeout: 10000 });
+      await this.page.waitForSelector(salesSelectors.purchaserFirstNameInput, { state: 'visible' });
       await this.page.locator(salesSelectors.purchaserFirstNameInput).fill(firstName);
       this.logger.info(`  - First name: ${firstName}`);
       
@@ -367,10 +383,10 @@ export class SalesPage {
       this.logger.info(`  - Email: ${email}`);
       
       // Click Add button (wait for it to be enabled after form validation)
-      await this.page.locator(salesSelectors.addPersonButton).waitFor({ state: 'visible', timeout: 5000 });
+      await this.page.locator(salesSelectors.addPersonButton).waitFor({ state: 'visible' });
       await this.page.locator(salesSelectors.addPersonButton).click();
       // Wait for dialog to close
-      await this.page.waitForSelector(salesSelectors.addPersonDialog, { state: 'hidden', timeout: 10000 });
+      await this.page.waitForSelector(salesSelectors.addPersonDialog, { state: 'hidden' });
       
       this.logger.info(`Successfully added purchaser: ${firstName} ${lastName}`);
     } catch (error) {
@@ -390,14 +406,14 @@ export class SalesPage {
     this.logger.info(`Current "Add description" buttons: ${currentCount}`);
     
     // Wait for any overlays to close before clicking
-    await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+    await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden' }).catch(() => {});
     
     // Use force click to bypass overlay issues
     await this.page.locator(salesSelectors.addItemButton).click({ force: true });
     
     // Wait for new "Add description" button to appear (count increases by 1)
     const expectedCount = currentCount + 1;
-    await this.page.locator(`button:has-text("Add description") >> nth=${currentCount}`).waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.locator(`button:has-text("Add description") >> nth=${currentCount}`).waitFor({ state: 'visible' });
     this.logger.info(`New item row ready - "Add description" button #${expectedCount} visible`);
     // Wait for row to stabilize in DOM
     await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
@@ -411,7 +427,7 @@ export class SalesPage {
     this.logger.info(`Filling item ${index + 1}: ${item.description}`);
     
     // Wait for the item row to be ready (mat-select comboboxes visible)
-    await this.page.locator('mat-select').nth(1 + (index * 2)).waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.locator('mat-select').nth(1 + (index * 2)).waitFor({ state: 'visible' });
 
     // Strategy: Use nth() to get all comboboxes and inputs globally, not per-row
     // The structure is predictable: owner combobox (index 0), then for each item row:
@@ -428,7 +444,7 @@ export class SalesPage {
       
       // Get the specific item combobox
       const itemCombobox = this.page.locator('mat-select').nth(itemComboboxIndex);
-      await itemCombobox.waitFor({ state: 'visible', timeout: 10000 });
+      await itemCombobox.waitFor({ state: 'visible' });
       
       // Click to open the item dropdown with retry (dropdown may not open on first click)
       let searchInput;
@@ -437,7 +453,7 @@ export class SalesPage {
         await itemCombobox.click();
         
         // Wait for the overlay panel to appear after clicking the combobox
-        const overlayVisible = await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false);
+        const overlayVisible = await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'visible' }).then(() => true).catch(() => false);
         if (!overlayVisible && attempt < maxDropdownRetries - 1) {
           this.logger.warn(`Item dropdown did not open on attempt ${attempt + 1}, retrying...`);
           continue;
@@ -456,20 +472,20 @@ export class SalesPage {
           searchInput = this.page.locator('input[type="text"]:visible').first();
         }
         
-        const inputReady = await searchInput.waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false);
+        const inputReady = await searchInput.waitFor({ state: 'visible' }).then(() => true).catch(() => false);
         if (inputReady) break;
         
         if (attempt < maxDropdownRetries - 1) {
           this.logger.warn(`Search input not found on attempt ${attempt + 1}, closing and retrying...`);
           await this.page.keyboard.press('Escape');
-          await this.page.waitForTimeout(500);
+          await NetworkHelper.waitForAnimation(this.page);
         }
       }
       
       if (!searchInput) {
         throw new Error('Could not find search input in item dropdown after retries');
       }
-      await searchInput.waitFor({ state: 'visible', timeout: 5000 });
+      await searchInput.waitFor({ state: 'visible' });
       
       // Type the item name in the search box
       await searchInput.fill(item.description);
@@ -482,7 +498,7 @@ export class SalesPage {
 
       for (let searchAttempt = 0; searchAttempt < maxSearchRetries; searchAttempt++) {
         // Wait for search results to filter
-        await this.page.waitForSelector('[role="option"], mat-option', { state: 'visible', timeout: 5000 });
+        await this.page.waitForSelector('[role="option"], mat-option', { state: 'visible' });
 
         // Log available options for debugging
         itemOptions = await this.page.locator('[role="option"]:visible, mat-option:visible').allTextContents();
@@ -501,7 +517,7 @@ export class SalesPage {
         if (optionVisible) {
           await itemOption.click();
           // Wait for dropdown overlay to close after selection
-          await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+          await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden' }).catch(() => {});
 
           // Verify item is selected by checking combobox text
           const verifyCombobox = this.page.locator('mat-select').nth(itemComboboxIndex);
@@ -520,7 +536,7 @@ export class SalesPage {
           const lastChar = item.description.slice(-1);
           this.logger.info(`  - Item "${item.description}" not found, retrying: Backspace last char "${lastChar}" and retype`);
           await this.page.keyboard.press('Backspace');
-          await this.page.waitForSelector('[role="option"], mat-option', { state: 'visible', timeout: 5000 }).catch(() => {});
+          await this.page.waitForSelector('[role="option"], mat-option', { state: 'visible' }).catch(() => {});
           await this.page.keyboard.type(lastChar, { delay: 100 });
           this.logger.info(`  - Retyped "${lastChar}", waiting for search results to refresh...`);
         }
@@ -547,19 +563,19 @@ export class SalesPage {
       try {
         // Get the specific plot combobox
         const plotCombobox = this.page.locator('mat-select').nth(plotComboboxIndex);
-        await plotCombobox.waitFor({ state: 'visible', timeout: 10000 });
+        await plotCombobox.waitFor({ state: 'visible' });
         await plotCombobox.click();
         
         // Wait for the search textbox in plot dropdown
         const plotSearchInput = this.page.locator('input[placeholder*="typing"]').or(
           this.page.locator('input[type="text"]')
         ).last();
-        await plotSearchInput.waitFor({ state: 'visible', timeout: 5000 });
+        await plotSearchInput.waitFor({ state: 'visible' });
 
         // Setup wait for API response BEFORE triggering the search
         const apiPromise = this.page.waitForResponse(
           (response) => response.url().includes('/v2/search/plots-records-persons') && response.status() === 200,
-          { timeout: 10000 }
+          {}
         ).catch(() => {
           this.logger.info('Plot search API timeout or data may be cached');
           return null;
@@ -575,7 +591,7 @@ export class SalesPage {
         }
 
         // Wait for plot options to appear
-        await this.page.waitForSelector('[role="option"]', { state: 'visible', timeout: 5000 });
+        await this.page.waitForSelector('[role="option"]', { state: 'visible' });
         
         // Get all visible options
         const plotOptions = await this.page.locator('[role="option"]:visible').allTextContents();
@@ -594,7 +610,7 @@ export class SalesPage {
           this.logger.info(`Found available plot at index ${targetIndex}: ${plotOptions[targetIndex]}`);
           await this.page.locator('[role="option"]:visible').nth(targetIndex).click();
           // Wait for overlay to close after plot selection
-          await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+          await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden' }).catch(() => {});
           
           const selectedText = await plotCombobox.textContent();
           this.logger.info(`  - Plot selected: ${item.related_plot} (combobox shows: "${selectedText?.trim()}")`);
@@ -609,7 +625,7 @@ export class SalesPage {
             this.logger.warn(`Plot "${item.related_plot}" is occupied, but selecting it anyway: ${plotOptions[occupiedIndex]}`);
             await this.page.locator('[role="option"]:visible').nth(occupiedIndex).click();
             // Wait for overlay to close after plot selection
-            await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+            await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden' }).catch(() => {});
             
             const selectedText = await plotCombobox.textContent();
             this.logger.info(`  - Plot selected (occupied): ${item.related_plot} (combobox shows: "${selectedText?.trim()}")`);
@@ -823,7 +839,7 @@ export class SalesPage {
     }
     
     // Wait for button to be visible and enabled
-    await this.page.waitForSelector(salesSelectors.createButton, { state: 'visible', timeout: 10000 });
+    await this.page.waitForSelector(salesSelectors.createButton, { state: 'visible' });
     
     const urlBefore = this.page.url();
     this.logger.info(`URL before CREATE click: ${urlBefore}`);
@@ -833,14 +849,14 @@ export class SalesPage {
     this.logger.info('CREATE button clicked - waiting for confirmation dialog');
     
     // Wait for confirmation dialog to appear
-    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false);
+    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').waitFor({ state: 'visible' }).then(() => true).catch(() => false);
     
     if (dialogVisible) {
       this.logger.info('Confirmation dialog appeared');
       
       // Click CREATE button in the confirmation dialog
       const dialogCreateButton = this.page.locator('mat-dialog-container button:has-text("CREATE"), [role="dialog"] button:has-text("CREATE")').first();
-      await dialogCreateButton.waitFor({ state: 'visible', timeout: 5000 });
+      await dialogCreateButton.waitFor({ state: 'visible' });
       await dialogCreateButton.click();
       this.logger.info('CREATE button in confirmation dialog clicked');
     } else {
@@ -856,11 +872,11 @@ export class SalesPage {
     // This ensures we catch the API call when page loads
     const invoiceListPromise = this.page.waitForResponse(
       (response) => response.url().includes('/api/v1/invoices?page=') && response.status() === 200,
-      { timeout: 20000 }
+      {}
     ).catch(() => null); // Don't throw if timeout
     
     // Wait for navigation to sales list page (can be /sales or /sales-table)
-    await this.page.waitForURL(/\/sales$|\/sales\?|\/sales-table/, { timeout: 15000 });
+    await this.page.waitForURL(/\/sales$|\/sales\?|\/sales-table/);
     this.logger.info('Navigated back to sales list page');
     
     // Wait for the invoice list API we set up earlier
@@ -874,7 +890,7 @@ export class SalesPage {
     }
     
     // Wait for sales table to load completely
-    await this.page.waitForSelector('table', { state: 'visible', timeout: 10000 });
+    await this.page.waitForSelector('table', { state: 'visible' });
     this.logger.info('Sales table loaded');
   }
 
@@ -885,11 +901,15 @@ export class SalesPage {
    */
   async clickSave(): Promise<void> {
     this.logger.info('Clicking Save button');
+    
+    // Setup API endpoint listener BEFORE clicking save (per CLAUDE.md wait strategy)
+    const apiPromise = NetworkHelper.waitForApiEndpoint(this.page, '/api/v1/invoices/', 30000, { optional: true });
+    
     await this.page.locator(salesSelectors.saveButton).scrollIntoViewIfNeeded();
     await this.page.locator(salesSelectors.saveButton).click();
     
-    // Wait for potential confirmation dialog
-    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false);
+    // Wait for potential confirmation dialog (10s timeout)
+    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').waitFor({ state: 'visible', timeout: 10000 }).then(() => true).catch(() => false);
     
     if (dialogVisible) {
       this.logger.info('Payment confirmation dialog appeared');
@@ -908,20 +928,21 @@ export class SalesPage {
         
         // Wait for API call to /api/v1/invoices/ to complete (PATCH - update invoice with payment)
         this.logger.info('Waiting for /api/v1/invoices/ API endpoint (PATCH - save payment)...');
-        await NetworkHelper.waitForApiEndpoint(this.page, '/api/v1/invoices/', 30000);
+        await apiPromise;
         this.logger.info('/api/v1/invoices/ API endpoint (PATCH) completed successfully');
         
         // Wait for dialog to close
-        await this.page.waitForSelector('mat-dialog-container', { state: 'hidden', timeout: 5000 }).catch(() => {});
+        await this.page.waitForSelector('mat-dialog-container', { state: 'hidden' }).catch(() => {});
       } else {
         this.logger.warn('"Save Sale" button not found in dialog, trying generic confirm button');
-        // Try other common button texts
         const confirmButton = this.page.locator('mat-dialog-container button').last();
         await confirmButton.click();
         this.logger.info('Clicked last button in dialog as fallback');
+        await apiPromise;
       }
     } else {
-      this.logger.info('No confirmation dialog appeared');
+      this.logger.info('No confirmation dialog appeared — waiting for API');
+      await apiPromise;
     }
     
     // Wait for app to redirect to sales list
@@ -935,11 +956,15 @@ export class SalesPage {
    */
   async clickSaveLastPayment(): Promise<void> {
     this.logger.info('Clicking Save button (last payment)');
+    
+    // Setup API endpoint listener BEFORE clicking save (per CLAUDE.md wait strategy)
+    const apiPromise = NetworkHelper.waitForApiEndpoint(this.page, '/api/v1/invoices/', 30000, { optional: true });
+    
     await this.page.locator(salesSelectors.saveButton).scrollIntoViewIfNeeded();
     await this.page.locator(salesSelectors.saveButton).click();
     
-    // Wait for potential confirmation dialog
-    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false);
+    // Wait for potential confirmation dialog (10s timeout)
+    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').waitFor({ state: 'visible', timeout: 10000 }).then(() => true).catch(() => false);
     
     if (dialogVisible) {
       this.logger.info('Payment confirmation dialog appeared');
@@ -952,26 +977,30 @@ export class SalesPage {
         this.logger.info('Clicked "Save Sale" button in confirmation dialog');
         
         // Wait for API call to complete
-        await NetworkHelper.waitForApiEndpoint(this.page, '/api/v1/invoices/', 30000);
+        await apiPromise;
         this.logger.info('Invoice API completed');
         
         // Wait for dialog to close
-        await this.page.waitForSelector('mat-dialog-container', { state: 'hidden', timeout: 5000 }).catch(() => {});
+        await this.page.waitForSelector('mat-dialog-container', { state: 'hidden' }).catch(() => {});
       } else {
         const confirmButton = this.page.locator('mat-dialog-container button').last();
         await confirmButton.click();
+        await apiPromise;
       }
+    } else {
+      this.logger.info('No confirmation dialog appeared — waiting for API');
+      await apiPromise;
     }
     
-    // Wait for app to auto-redirect to sales list
-    await this.page.waitForURL(/\/sales$|\/sales\?|\/sales-table/, { timeout: 15000 }).catch(() => {});
+    // Wait for app to auto-redirect to sales list (10s timeout)
+    await this.page.waitForURL(/\/sales$|\/sales\?|\/sales-table/, { timeout: 10000 }).catch(() => {});
     await this.page.waitForLoadState('domcontentloaded');
     
     // Wait for sales list API to load
     await NetworkHelper.waitForApiEndpoint(this.page, '/api/v1/invoices', 15000, { optional: true });
     
     // Wait for table to be visible
-    await this.page.waitForSelector('table tbody tr', { state: 'visible', timeout: 10000 }).catch(() => {});
+    await this.page.waitForSelector('table tbody tr', { state: 'visible' }).catch(() => {});
     this.logger.info('Last payment saved, on sales list page');
   }
 
@@ -985,11 +1014,14 @@ export class SalesPage {
     const editPageUrl = this.page.url();
     this.logger.info(`Clicking Save button (without reload). Current URL: ${editPageUrl}`);
     
+    // Setup API endpoint listener BEFORE clicking save (per CLAUDE.md wait strategy)
+    const apiPromise = NetworkHelper.waitForApiEndpoint(this.page, '/api/v1/invoices/', 30000, { optional: true });
+    
     await this.page.locator(salesSelectors.saveButton).scrollIntoViewIfNeeded();
     await this.page.locator(salesSelectors.saveButton).click();
     
-    // Wait for potential confirmation dialog
-    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false);
+    // Wait for potential confirmation dialog (short timeout — 10s, not default 30s)
+    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').waitFor({ state: 'visible', timeout: 10000 }).then(() => true).catch(() => false);
     
     if (dialogVisible) {
       this.logger.info('Payment confirmation dialog appeared');
@@ -1007,47 +1039,60 @@ export class SalesPage {
         
         // Wait for API call to complete (PATCH - update invoice with payment)
         this.logger.info('Waiting for /api/v1/invoices/ API endpoint (PATCH)...');
-        await NetworkHelper.waitForApiEndpoint(this.page, '/api/v1/invoices/', 30000);
+        await apiPromise;
         this.logger.info('/api/v1/invoices/ API endpoint (PATCH) completed successfully');
         
         // Wait for dialog to close
-        await this.page.waitForSelector('mat-dialog-container', { state: 'hidden', timeout: 5000 }).catch(() => {});
+        await this.page.waitForSelector('mat-dialog-container', { state: 'hidden' }).catch(() => {});
       } else {
         this.logger.warn('"Save Sale" button not found in dialog, trying generic confirm button');
         const confirmButton = this.page.locator('mat-dialog-container button').last();
         await confirmButton.click();
         this.logger.info('Clicked last button in dialog as fallback');
+        await apiPromise;
       }
     } else {
-      this.logger.info('No confirmation dialog appeared');
+      this.logger.info('No confirmation dialog appeared — waiting for API to complete');
+      await apiPromise;
     }
     
     // Wait for potential redirect to sales list (app auto-redirects after save)
-    // Use short timeout — if no redirect happens, we're still on edit page
-    const redirected = await this.page.waitForURL(/\/sales$|\/sales\?|\/sales-table/, { timeout: 5000 }).then(() => true).catch(() => false);
+    // Use short timeout (10s) — if no redirect happens, we're still on edit page
+    const redirected = await this.page.waitForURL(/\/sales$|\/sales\?|\/sales-table/, { timeout: 10000 }).then(() => true).catch(() => false);
     
     if (redirected) {
       this.logger.info('App redirected to sales list — navigating back to edit page');
       
+      // Setup API listeners BEFORE navigating back (payment-methods & invoice-settings load on edit page)
+      const pmPromise = this.page.waitForResponse(
+        (res) => res.url().includes('/payment-methods/') && res.status() === 200,
+        { timeout: 15000 }
+      ).catch(() => this.logger.info('payment-methods API not called on re-navigate'));
+      const isPromise = this.page.waitForResponse(
+        (res) => res.url().includes('/invoice-settings/') && res.status() === 200,
+        { timeout: 15000 }
+      ).catch(() => this.logger.info('invoice-settings API not called on re-navigate'));
+
       if (editPageUrl.includes('/sales/edit/')) {
         this.logger.info(`Navigating back to: ${editPageUrl}`);
         await this.page.goto(editPageUrl, { waitUntil: 'domcontentloaded' });
       } else {
         this.logger.info('Edit URL not available, opening latest sale from list');
-        await this.page.waitForSelector('table tbody tr', { state: 'visible', timeout: 10000 });
+        await this.page.waitForSelector('table tbody tr', { state: 'visible' });
         await this.openLatestSale();
       }
       
       // Wait for edit page to fully load
-      await this.page.waitForURL(/sales\/edit/, { timeout: 15000 });
+      await this.page.waitForURL(/sales\/edit/);
       await this.page.waitForLoadState('domcontentloaded');
-      await NetworkHelper.waitForApiEndpoint(this.page, '/api/v1/invoices/', 15000, { optional: true });
+      await Promise.all([pmPromise, isPromise]);
+      this.logger.info('payment-methods & invoice-settings loaded after re-navigate');
     } else {
       this.logger.info('Still on edit page after save');
     }
     
     // Regardless of redirect, ensure ADD PAYMENT button is visible before returning
-    await this.page.waitForSelector(salesSelectors.addPaymentButton, { state: 'visible', timeout: 15000 });
+    await this.page.waitForSelector(salesSelectors.addPaymentButton, { state: 'visible' });
     this.logger.info('ADD PAYMENT button visible — ready for next payment');
   }
 
@@ -1067,7 +1112,7 @@ export class SalesPage {
     this.logger.info(`Validating purchaser name in table: ${expectedPurchaserName}`);
     
     // Wait for table to be visible
-    await this.page.waitForSelector('table', { state: 'visible', timeout: 10000 });
+    await this.page.waitForSelector('table', { state: 'visible' });
     
     // Get the first row's purchaser cell
     // Assuming the purchaser column is in the table - adjust selector if needed
@@ -1123,30 +1168,44 @@ export class SalesPage {
     this.logger.info('Opening the latest created sale');
 
     // Wait for sales table to be visible
-    await this.page.waitForSelector(salesSelectors.salesTable, { state: 'visible', timeout: 10000 });
+    await this.page.waitForSelector(salesSelectors.salesTable, { state: 'visible' });
 
     // Wait for table rows to be rendered
-    await this.page.locator('table tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.locator('table tbody tr').first().waitFor({ state: 'visible' });
 
     // Click on the first row's invoice ID cell (2nd column - first has checkbox, 2nd has ID)
     const firstRowIdCell = this.page.locator('table tbody tr').first().locator('td').nth(1);
-    await firstRowIdCell.waitFor({ state: 'visible', timeout: 5000 });
+    await firstRowIdCell.waitFor({ state: 'visible' });
+    // Setup API listeners BEFORE click (these load on edit page)
+    const paymentMethodsPromise = this.page.waitForResponse(
+      (res) => res.url().includes('/payment-methods/') && res.status() === 200,
+      { timeout: 15000 }
+    ).catch(() => this.logger.info('payment-methods API not called (may be cached)'));
+    const invoiceSettingsPromise = this.page.waitForResponse(
+      (res) => res.url().includes('/invoice-settings/') && res.status() === 200,
+      { timeout: 15000 }
+    ).catch(() => this.logger.info('invoice-settings API not called (may be cached)'));
+    const invoicesPromise = this.page.waitForResponse(
+      (res) => res.url().includes('/api/v1/invoices/') && res.status() === 200,
+      { timeout: 15000 }
+    ).catch(() => this.logger.info('invoices API not called (may be cached)'));
+
     await firstRowIdCell.click();
     this.logger.info('Clicked on first sale ID cell');
 
     // Wait for navigation to edit page (URL pattern: /customer-organization/sales/edit/...)
-    await this.page.waitForURL(/sales\/edit/, { timeout: 15000 });
+    await this.page.waitForURL(/sales\/edit/);
     this.logger.info('Navigated to sale edit page');
 
     // Wait for page to fully load
     await this.page.waitForLoadState('domcontentloaded');
     
-    // Wait for invoice data API to complete
-    await NetworkHelper.waitForApiEndpoint(this.page, '/api/v1/invoices/', 15000, { optional: true });
-    this.logger.info('Invoice data loaded');
+    // Wait for all APIs to complete (invoices + payment-methods + invoice-settings)
+    await Promise.all([invoicesPromise, paymentMethodsPromise, invoiceSettingsPromise]);
+    this.logger.info('Invoice data, payment-methods & invoice-settings loaded');
     
     // Wait for ADD PAYMENT button to be visible (indicates form is fully rendered)
-    await this.page.waitForSelector(salesSelectors.addPaymentButton, { state: 'visible', timeout: 15000 });
+    await this.page.waitForSelector(salesSelectors.addPaymentButton, { state: 'visible' });
     this.logger.info('Sale edit page fully loaded - ADD PAYMENT button visible');
   }
 
@@ -1164,14 +1223,14 @@ export class SalesPage {
 
     // Wait for ADD PAYMENT button - scroll down to payments section first
     const addPaymentBtn = this.page.locator(salesSelectors.addPaymentButton);
-    await addPaymentBtn.waitFor({ state: 'visible', timeout: 20000 });
+    await addPaymentBtn.waitFor({ state: 'visible' });
     await addPaymentBtn.scrollIntoViewIfNeeded();
     await addPaymentBtn.click();
     this.logger.info('Clicked ADD PAYMENT button');
     
     // Wait for payment form to appear (date input visible)
     const paymentDateInput = this.page.locator('[formcontrolname="payment_date"]').first();
-    await paymentDateInput.waitFor({ state: 'visible', timeout: 10000 });
+    await paymentDateInput.waitFor({ state: 'visible' });
     
     if (payment.date) {
       await paymentDateInput.fill(payment.date);
@@ -1186,7 +1245,7 @@ export class SalesPage {
     
     // 2. Fill payment time (required)
     const paymentTimeInput = this.page.locator('[formcontrolname="payment_time"]').first();
-    await paymentTimeInput.waitFor({ state: 'visible', timeout: 10000 });
+    await paymentTimeInput.waitFor({ state: 'visible' });
     
     if (payment.time) {
       await paymentTimeInput.fill(payment.time);
@@ -1202,13 +1261,26 @@ export class SalesPage {
     // 3. Select payment method using formcontrolname
     this.logger.info(`Selecting payment method: ${payment.method}`);
     const methodSelect = this.page.locator('[formcontrolname="payment_method"]').first();
-    await methodSelect.waitFor({ state: 'visible', timeout: 10000 });
+    await methodSelect.waitFor({ state: 'visible' });
     await methodSelect.scrollIntoViewIfNeeded();
-    await methodSelect.click();
-    this.logger.info('Clicked payment method dropdown');
-
-    // Wait for listbox to appear
-    await this.page.waitForSelector('div[role="listbox"]', { state: 'visible', timeout: 10000 });
+    
+    // Retry clicking dropdown — on freshly reloaded pages, first click may not register
+    let listboxVisible = false;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await methodSelect.click();
+      this.logger.info(`Clicked payment method dropdown (attempt ${attempt + 1})`);
+      
+      listboxVisible = await this.page.locator('div[role="listbox"]').waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false);
+      if (listboxVisible) break;
+      
+      this.logger.warn(`Payment method listbox not visible on attempt ${attempt + 1}, retrying...`);
+      await this.page.keyboard.press('Escape');
+      await NetworkHelper.waitForAnimation(this.page);
+    }
+    
+    if (!listboxVisible) {
+      throw new Error('Payment method dropdown listbox did not appear after 3 attempts');
+    }
     this.logger.info('Payment method listbox appeared');
     
     // Get all available options for logging
@@ -1228,7 +1300,7 @@ export class SalesPage {
       await this.page.locator('div[role="listbox"] mat-option:nth-child(1)').click();
     }
     // Wait for overlay to close after method selection
-    await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+    await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'hidden' }).catch(() => {});
 
     // 4. Fill note (optional) - must use .last() to target payment form field, not main form
     if (payment.note) {
@@ -1248,7 +1320,7 @@ export class SalesPage {
     // 5. Fill amount using formcontrolname - use .last() to target payment form field
     this.logger.info(`Filling amount: ${payment.amount}`);
     const amountInput = this.page.locator('[formcontrolname="amount"]').last();
-    await amountInput.waitFor({ state: 'visible', timeout: 10000 });
+    await amountInput.waitFor({ state: 'visible' });
     await amountInput.scrollIntoViewIfNeeded();
     await amountInput.fill(payment.amount);
     this.logger.info(`  - Amount filled: ${payment.amount}`);
@@ -1267,10 +1339,10 @@ export class SalesPage {
   async clickMoreMenu(): Promise<void> {
     this.logger.info('Clicking MORE menu button');
     const moreBtn = this.page.locator(salesSelectors.moreMenuButton);
-    await moreBtn.waitFor({ state: 'visible', timeout: 10000 });
+    await moreBtn.waitFor({ state: 'visible' });
     await moreBtn.click();
     // Wait for menu to appear
-    await this.page.waitForSelector(salesSelectors.moreMenu, { state: 'visible', timeout: 5000 });
+    await this.page.waitForSelector(salesSelectors.moreMenu, { state: 'visible' });
     this.logger.info('MORE menu opened');
   }
 
@@ -1281,7 +1353,7 @@ export class SalesPage {
     this.logger.info('Closing MORE menu');
     await this.page.keyboard.press('Escape');
     // Wait for menu overlay to close
-    await this.page.locator(salesSelectors.moreMenu).waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+    await this.page.locator(salesSelectors.moreMenu).waitFor({ state: 'hidden' }).catch(() => {});
     this.logger.info('MORE menu closed');
   }
 
@@ -1332,25 +1404,25 @@ export class SalesPage {
   async clickResendPayment(): Promise<void> {
     this.logger.info('Clicking "Re-send Payment" button');
     const resendBtn = this.page.locator(salesSelectors.resendPaymentButton);
-    await resendBtn.waitFor({ state: 'visible', timeout: 5000 });
+    await resendBtn.waitFor({ state: 'visible' });
     await resendBtn.click();
     this.logger.info('"Re-send Payment" button clicked');
 
     // Wait for modal/dialog to appear
     const resendModal = this.page.locator('[data-testid="modal-sales-mail-div-modal-sales-mail-component-0"]');
-    const specificModalVisible = await resendModal.waitFor({ state: 'visible', timeout: 10000 }).then(() => true).catch(() => false);
+    const specificModalVisible = await resendModal.waitFor({ state: 'visible' }).then(() => true).catch(() => false);
 
     if (specificModalVisible) {
       this.logger.info('Resend payment modal appeared');
 
       // Click the Send button in the modal
       const sendButton = this.page.locator('[data-testid="modal-sales-mail-div-modal-sales-mail-component-0"] button:has-text("Send")').first();
-      await sendButton.waitFor({ state: 'visible', timeout: 5000 });
+      await sendButton.waitFor({ state: 'visible' });
       await sendButton.click();
       this.logger.info('Send button clicked');
 
       // Wait for the modal to disappear
-      await resendModal.waitFor({ state: 'hidden', timeout: 10000 });
+      await resendModal.waitFor({ state: 'hidden' });
       this.logger.info('Modal disappeared');
     } else {
       // Fallback: Try generic mat-dialog-container
@@ -1369,7 +1441,7 @@ export class SalesPage {
           this.logger.info('Send button clicked');
 
           // Wait for dialog to disappear
-          await genericDialog.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {
+          await genericDialog.waitFor({ state: 'hidden' }).catch(() => {
             this.logger.warn('Dialog may not have disappeared');
           });
           this.logger.info('Dialog disappeared');
@@ -1391,7 +1463,7 @@ export class SalesPage {
 
     // Wait for toast/snackbar to appear
     const toastLocator = this.page.locator(salesSelectors.toastNotification);
-    await toastLocator.first().waitFor({ state: 'visible', timeout: 10000 });
+    await toastLocator.first().waitFor({ state: 'visible' });
 
     // Verify message content
     const toastText = await toastLocator.first().textContent();
@@ -1416,25 +1488,25 @@ export class SalesPage {
   async clickVoidInvoice(): Promise<void> {
     this.logger.info('Clicking Void menu item');
     const voidItem = this.page.locator(salesSelectors.voidMenuItem);
-    await voidItem.waitFor({ state: 'visible', timeout: 5000 });
+    await voidItem.waitFor({ state: 'visible' });
     await voidItem.click();
     this.logger.info('Void menu item clicked, waiting for confirmation dialog');
 
     // Wait for void confirmation dialog
-    await this.page.waitForSelector(salesSelectors.voidConfirmDialog, { state: 'visible', timeout: 5000 });
+    await this.page.waitForSelector(salesSelectors.voidConfirmDialog, { state: 'visible' });
     this.logger.info('Void confirmation dialog appeared');
 
     // Click "void this sale" button
     const confirmBtn = this.page.locator(salesSelectors.voidConfirmButton);
-    await confirmBtn.waitFor({ state: 'visible', timeout: 5000 });
+    await confirmBtn.waitFor({ state: 'visible' });
     await confirmBtn.click();
     this.logger.info('Clicked "void this sale" confirmation button');
 
     // Wait for redirect to sales table
-    await this.page.waitForURL(/sales-table/, { timeout: 15000 });
+    await this.page.waitForURL(/sales-table/);
     await this.page.waitForLoadState('domcontentloaded');
     // Wait for table to be visible
-    await this.page.waitForSelector('table', { state: 'visible', timeout: 10000 });
+    await this.page.waitForSelector('table', { state: 'visible' });
     this.logger.info('Voided successfully, redirected to sales table');
   }
 
@@ -1465,7 +1537,7 @@ export class SalesPage {
       this.logger.info('Checking status in sales list table');
       
       // Wait for sales table to be visible
-      await this.page.waitForSelector('table tbody tr', { state: 'visible', timeout: 10000 });
+      await this.page.waitForSelector('table tbody tr', { state: 'visible' });
       // Wait for table to stabilize (Angular rendering)
       await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 3000 });
 

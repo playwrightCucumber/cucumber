@@ -5,52 +5,52 @@ import { replacePlaceholdersInObject, replacePlaceholders } from '../../utils/Te
 // Initialize page object - Reset for each scenario
 let intermentPage: IntermentPage;
 
-When('I click Add Interment button', { timeout: 15000 }, async function () {
+When('I click Add Interment button', async function () {
   const page = this.page;
   intermentPage = new IntermentPage(page);
   await intermentPage.clickAddIntermentButton();
 });
 
-When('I fill interment form with following details', { timeout: 60000 }, async function (dataTable: any) {
+When('I fill interment form with following details', async function (dataTable: any) {
   const intermentData = dataTable.rowsHash(); // For vertical tables with key-value pairs
   const actualData = replacePlaceholdersInObject(intermentData);
   await intermentPage.fillIntermentForm(actualData as any);
 });
 
-When('I save the Interment', { timeout: 40000 }, async function () {
+When('I save the Interment', async function () {
   await intermentPage.saveInterment();
 });
 
-Then('I should see deceased {string} in the Interment tab', { timeout: 30000 }, async function (deceasedName: string) {
+Then('I should see deceased {string} in the Interment tab', async function (deceasedName: string) {
   const actualName = replacePlaceholders(deceasedName);
   await intermentPage.verifyDeceasedInTab(actualName);
 });
 
-Then('I should see interment type {string}', { timeout: 10000 }, async function (intermentType: string) {
+Then('I should see interment type {string}', async function (intermentType: string) {
   const actualType = replacePlaceholders(intermentType);
   await intermentPage.verifyIntermentType(actualType);
 });
 
-When('I add interment applicant', { timeout: 15000 }, async function () {
+When('I add interment applicant', async function () {
   await intermentPage.addIntermentApplicant();
 });
 
-When('I add next of kin', { timeout: 15000 }, async function () {
+When('I add next of kin', async function () {
   await intermentPage.addNextOfKin();
 });
 
-When('I click on Interments tab', { timeout: 25000 }, async function () {
+When('I click on Interments tab', async function () {
   const page = this.page;
   // Always create a new instance to ensure we have the current page
   intermentPage = new IntermentPage(page);
   await intermentPage.clickIntermentTab();
 });
 
-When('I click Edit Interment button', { timeout: 30000 }, async function () {
+When('I click Edit Interment button', async function () {
   await intermentPage.clickEditIntermentButton();
 });
 
-When('I update interment form with following details', { timeout: 60000 }, async function (dataTable: any) {
+When('I update interment form with following details', async function (dataTable: any) {
   console.log('========== UPDATE INTERMENT STEP START ==========');
   const intermentData = dataTable.rowsHash();
   console.log('Raw data from feature file:', JSON.stringify(intermentData, null, 2));

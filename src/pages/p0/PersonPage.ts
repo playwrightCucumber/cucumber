@@ -39,11 +39,11 @@ export class PersonPage {
     // Set up listener BEFORE clicking the tab
     const personApiPromise = this.page.waitForResponse(
       (response) => response.url().includes('/person') && response.status() === 200,
-      { timeout: 30000 }
+      {}
     ).catch(() => null);
     
     const personTab = this.page.locator(PersonSelectors.personTab);
-    await personTab.waitFor({ state: 'visible', timeout: 15000 });
+    await personTab.waitFor({ state: 'visible' });
     await personTab.click();
     
     this.logger.info('PERSONS tab clicked successfully');
@@ -67,11 +67,11 @@ export class PersonPage {
     this.logger.info('Clicking Add Person button');
     
     const button = this.page.locator(PersonSelectors.addPersonButton);
-    await button.waitFor({ state: 'visible', timeout: 15000 });
+    await button.waitFor({ state: 'visible' });
     await button.click();
     
     // Wait for navigation to add person form
-    await this.page.waitForURL('**/manage/add/person/**', { timeout: 15000 });
+    await this.page.waitForURL('**/manage/add/person/**');
     this.logger.info('Navigated to add person form');
   }
 
@@ -147,7 +147,7 @@ export class PersonPage {
   private async fillField(selector: string, value: string, fieldName: string): Promise<void> {
     this.logger.info(`Filling ${fieldName}: ${value}`);
     const field = this.page.locator(selector);
-    await field.waitFor({ state: 'visible', timeout: 10000 });
+    await field.waitFor({ state: 'visible' });
     
     // Clear field first
     await field.clear();
@@ -164,12 +164,12 @@ export class PersonPage {
     
     // Click dropdown to open
     const dropdown = this.page.locator(PersonSelectors.genderDropdown);
-    await dropdown.waitFor({ state: 'visible', timeout: 10000 });
+    await dropdown.waitFor({ state: 'visible' });
     await dropdown.click();
     
     // Wait for dropdown options to appear
     const option = this.page.getByRole('option', { name: gender, exact: true });
-    await option.waitFor({ state: 'visible', timeout: 5000 });
+    await option.waitFor({ state: 'visible' });
     await option.click();
     
     this.logger.info(`Gender ${gender} selected`);
@@ -201,7 +201,7 @@ export class PersonPage {
     this.logger.info('Clicking save button (add person)');
     
     const saveButton = this.page.locator(PersonSelectors.saveAddButton);
-    await saveButton.waitFor({ state: 'visible', timeout: 10000 });
+    await saveButton.waitFor({ state: 'visible' });
     
     // Validate button text is "Save" before clicking
     const buttonText = await saveButton.textContent();
@@ -215,13 +215,13 @@ export class PersonPage {
     // Set up listener BEFORE clicking - this is the key fix!
     const personApiPromise = this.page.waitForResponse(
       (response) => response.url().includes('/person') && response.status() === 200,
-      { timeout: 30000 }
+      {}
     ).catch(() => null);
     
     await saveButton.click();
     
     // Wait for navigation back to persons table
-    await this.page.waitForURL('**/advance-table?tab=persons', { timeout: 20000 });
+    await this.page.waitForURL('**/advance-table?tab=persons');
     this.logger.info('Person saved successfully, navigated back to persons table');
     
     // Wait for person API to reload data after save
@@ -259,7 +259,7 @@ export class PersonPage {
     }
     
     const saveButton = this.page.locator(PersonSelectors.saveEditButton);
-    await saveButton.waitFor({ state: 'visible', timeout: 10000 });
+    await saveButton.waitFor({ state: 'visible' });
     
     // Validate button text is "Save" before clicking
     const buttonText = await saveButton.textContent();
@@ -298,13 +298,13 @@ export class PersonPage {
         }
         return isPersonApi;
       },
-      { timeout: 15000 }
+      {}
     ).catch(() => null);
     
     // Set up listener for GET /person API BEFORE clicking - this is the key fix!
     const personApiPromise = this.page.waitForResponse(
       (resp) => resp.url().includes('/person') && resp.request().method() === 'GET' && resp.status() === 200,
-      { timeout: 30000 }
+      {}
     ).catch(() => null);
     
     await saveButton.click();
@@ -337,7 +337,7 @@ export class PersonPage {
     }
     
     // Wait for navigation back to persons table
-    await this.page.waitForURL('**/advance-table?tab=persons', { timeout: 20000 });
+    await this.page.waitForURL('**/advance-table?tab=persons');
     this.logger.info('Person saved successfully, navigated back to persons table');
     
     // Wait for person API to reload data after save
@@ -360,7 +360,7 @@ export class PersonPage {
 
     // Wait for table to finish loading (progressbar elements should disappear)
     try {
-      await this.page.waitForSelector('[role="table"] progressbar', { state: 'detached', timeout: 25000 });
+      await this.page.waitForSelector('[role="table"] progressbar', { state: 'detached' });
       this.logger.info('Table loading complete');
     } catch (error) {
       this.logger.info('No loading indicators found or already loaded');
@@ -373,7 +373,7 @@ export class PersonPage {
       const rows = table.querySelectorAll('[role="row"]');
       // Table should have at least 2 rows: 1 header + 1 data row
       return rows.length >= 2;
-    }`, { timeout: 10000 });
+    }`);
 
     this.logger.info('Data rows are present in table');
 
@@ -437,12 +437,12 @@ export class PersonPage {
     this.logger.info('Clicking filter button');
     
     const filterButton = this.page.locator(PersonSelectors.filterButton);
-    await filterButton.waitFor({ state: 'visible', timeout: 10000 });
+    await filterButton.waitFor({ state: 'visible' });
     await filterButton.click();
     
     this.logger.info('Filter dialog opened');
     // Wait for filter dialog to fully render
-    await this.page.locator('[role="dialog"]').waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    await this.page.locator('[role="dialog"]').waitFor({ state: 'visible' }).catch(() => {});
   }
 
   /**
@@ -453,7 +453,7 @@ export class PersonPage {
     
     // Fill first name
     const firstNameInput = this.page.locator(PersonSelectors.filterFirstNameInput);
-    await firstNameInput.waitFor({ state: 'visible', timeout: 10000 });
+    await firstNameInput.waitFor({ state: 'visible' });
     await firstNameInput.fill(firstName);
     
     // Fill last name
@@ -470,12 +470,12 @@ export class PersonPage {
     this.logger.info('Applying filter');
 
     const applyButton = this.page.locator(PersonSelectors.filterApplyButton);
-    await applyButton.waitFor({ state: 'visible', timeout: 5000 });
+    await applyButton.waitFor({ state: 'visible' });
 
     // Set up listener BEFORE clicking apply
     const personApiPromise = this.page.waitForResponse(
       (response) => response.url().includes('/person') && response.status() === 200,
-      { timeout: 30000 }
+      {}
     ).catch(() => null);
 
     await applyButton.click();
@@ -498,7 +498,7 @@ export class PersonPage {
           return false;
         }
         return true;
-      }, { timeout: 5000 });
+      });
       this.logger.info('Filter dialog closed');
     } catch (error) {
       this.logger.info('Could not verify dialog closed, continuing anyway');
@@ -517,7 +517,7 @@ export class PersonPage {
       if (!table) return false;
       const rows = table.querySelectorAll('[role="row"]');
       return rows.length >= 2;
-    }`, { timeout: 10000 });
+    }`);
 
     const tableLocator = this.page.locator('[role="table"]');
     const firstDataRow = tableLocator.locator('[role="row"]').nth(1);
@@ -529,12 +529,12 @@ export class PersonPage {
 
     // Wait for navigation to edit page
     try {
-      await this.page.waitForURL('**/manage/edit/person/**', { timeout: 10000 });
+      await this.page.waitForURL('**/manage/edit/person/**');
       this.logger.info('Successfully navigated to person edit page');
     } catch (error) {
       this.logger.warn('Did not navigate to edit page, might need different approach');
       await firstDataRow.click();
-      await this.page.waitForURL('**/manage/edit/person/**', { timeout: 10000 }).catch(() => {});
+      await this.page.waitForURL('**/manage/edit/person/**').catch(() => {});
     }
   }
 
@@ -545,11 +545,11 @@ export class PersonPage {
     this.logger.info('Clicking edit button');
     
     const editButton = this.page.locator(PersonSelectors.editButton);
-    await editButton.waitFor({ state: 'visible', timeout: 10000 });
+    await editButton.waitFor({ state: 'visible' });
     await editButton.click();
     
     this.logger.info('Edit button clicked, navigating to edit form');
-    await this.page.waitForURL('**/manage/edit/person/**', { timeout: 10000 });
+    await this.page.waitForURL('**/manage/edit/person/**');
   }
 
   /**
@@ -567,7 +567,7 @@ export class PersonPage {
     }
     
     const lastNameInput = this.page.locator(PersonSelectors.lastNameInput);
-    await lastNameInput.waitFor({ state: 'visible', timeout: 10000 });
+    await lastNameInput.waitFor({ state: 'visible' });
     
     // Check the current value
     const currentValue = await lastNameInput.inputValue();
@@ -610,11 +610,11 @@ export class PersonPage {
   async clickDelete(): Promise<void> {
     this.logger.info('Clicking delete button');
     const deleteButton = this.page.locator(PersonSelectors.deleteButton);
-    await deleteButton.waitFor({ state: 'visible', timeout: 10000 });
+    await deleteButton.waitFor({ state: 'visible' });
     await deleteButton.click();
 
     // Wait for confirmation dialog
-    await this.page.locator(PersonSelectors.confirmDeleteButton).last().waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.locator(PersonSelectors.confirmDeleteButton).last().waitFor({ state: 'visible' });
     this.logger.info('Delete button clicked, confirmation dialog visible');
   }
 
@@ -626,19 +626,19 @@ export class PersonPage {
     
     // Wait for and click confirm delete button in dialog
     const confirmButton = this.page.locator(PersonSelectors.confirmDeleteButton).last();
-    await confirmButton.waitFor({ state: 'visible', timeout: 5000 });
+    await confirmButton.waitFor({ state: 'visible' });
     
     // Wait for delete API call
     const deletePromise = this.page.waitForResponse(
       response => response.url().includes('/customer-organization/person') && 
                   response.request().method() === 'DELETE',
-      { timeout: 15000 }
+      {}
     );
     
     // Set up listener for GET /person API BEFORE clicking confirm
     const personApiPromise = this.page.waitForResponse(
       (response) => response.url().includes('/person') && response.status() === 200,
-      { timeout: 30000 }
+      {}
     ).catch(() => null);
     
     await confirmButton.click();
@@ -659,7 +659,7 @@ export class PersonPage {
     }
     
     // Wait for navigation back to persons table
-    await this.page.waitForURL('**/advance-table?tab=persons', { timeout: 20000 });
+await this.page.waitForURL('**/advance-table?tab=persons', { waitUntil: 'domcontentloaded' });
     this.logger.info('Navigated back to persons table after deletion');
     
     // Wait for person API to reload data after deletion
@@ -684,7 +684,7 @@ export class PersonPage {
     this.logger.info(`Searching for person: ${firstName} ${lastName}`);
 
     // Wait for page to be fully loaded
-    await this.page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
+    await this.page.waitForLoadState('domcontentloaded').catch(() => {});
     await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
 
     // Open filter dialog
@@ -701,14 +701,14 @@ export class PersonPage {
 
     // Wait for table to finish loading
     try {
-      await this.page.waitForSelector('[role="table"] progressbar', { state: 'detached', timeout: 15000 });
+      await this.page.waitForSelector('[role="table"] progressbar', { state: 'detached' });
       this.logger.info('Table loading complete after filter');
     } catch (error) {
       this.logger.info('No loading indicators found or already loaded');
     }
 
     // Wait for table to be present
-    await this.page.waitForSelector('[role="table"]', { state: 'attached', timeout: 15000 })
+    await this.page.waitForSelector('[role="table"]', { state: 'attached' })
       .catch(() => {
         this.logger.error('Table element not found in DOM after filter');
         throw new Error('Table element not found in DOM after filter applied. The filter may have returned no results or the page structure has changed.');
@@ -809,7 +809,7 @@ export class PersonPage {
 
     // Wait for table to finish loading
     try {
-      await this.page.waitForSelector('[role="table"] progressbar', { state: 'detached', timeout: 15000 });
+      await this.page.waitForSelector('[role="table"] progressbar', { state: 'detached' });
       this.logger.info('Table loading complete');
     } catch (error) {
       this.logger.info('No loading indicators found or already loaded');
@@ -856,7 +856,7 @@ export class PersonPage {
 
     // Wait for table to load
     try {
-      await this.page.waitForSelector('[role="table"] progressbar', { state: 'detached', timeout: 15000 });
+      await this.page.waitForSelector('[role="table"] progressbar', { state: 'detached' });
       this.logger.info('Table loading complete after clear filter');
     } catch (error) {
       this.logger.info('No loading indicators found or already loaded');

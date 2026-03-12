@@ -18,7 +18,7 @@ function ensurePageObjects(page: any) {
   }
 }
 
-When('I navigate to all plots page', { timeout: 15000 }, async function () {
+When('I navigate to all plots page', async function () {
   const page = this.page;
   plotPage = new PlotPage(page);
   roiPage = new ROIPage(page);
@@ -41,7 +41,7 @@ When('I select occupied filter', async function () {
   await plotPage.selectOccupiedFilter();
 });
 
-When('I apply the filter plot', { timeout: 10000 }, async function () {
+When('I apply the filter plot', async function () {
   await plotPage.applyFilter();
 });
 
@@ -49,23 +49,23 @@ When('I expand section {string}', async function (section: string) {
   await plotPage.expandSection(section);
 });
 
-When('I expand the first section', { timeout: 15000 }, async function () {
+When('I expand the first section', async function () {
   const expandedSection = await plotPage.expandFirstSection();
   this.expandedSection = expandedSection; // Store for reference if needed
   this.logger?.info(`Expanded section: ${expandedSection.toUpperCase()}`);
 });
 
-When('I select plot {string}', { timeout: 15000 }, async function (plotName: string) {
+When('I select plot {string}', async function (plotName: string) {
   const actualPlotName = replacePlaceholders(plotName);
   await plotPage.selectPlot(actualPlotName);
 });
 
-Then('the plot status should be {string}', { timeout: 10000 }, async function (expectedStatus: string) {
+Then('the plot status should be {string}', async function (expectedStatus: string) {
   const isCorrect = await plotPage.verifyStatusChanged(expectedStatus);
   expect(isCorrect).toBeTruthy();
 });
 
-When('I click Add ROI button', { timeout: 50000 }, async function () {
+When('I click Add ROI button', async function () {
   await roiPage.clickAddRoi();
 });
 
@@ -73,18 +73,18 @@ When('I click ROI tab', async function () {
   await roiPage.clickRoiTab();
 });
 
-When('I click Edit ROI button', { timeout: 50000 }, async function () {
+When('I click Edit ROI button', async function () {
   ensurePageObjects(this.page);
   await roiPage.clickEditRoi();
 });
 
-When('I fill ROI form with following details', { timeout: 30000 }, async function (dataTable: any) {
+When('I fill ROI form with following details', async function (dataTable: any) {
   const roiData = dataTable.rowsHash(); // For vertical tables with key-value pairs
   const actualData = replacePlaceholdersInObject(roiData);
   await roiPage.fillRoiForm(actualData);
 });
 
-When('I select the first vacant plot', { timeout: 30000 }, async function () {
+When('I select the first vacant plot', async function () {
   const plotName = await plotPage.selectFirstVacantPlot();
   this.selectedPlotName = plotName; // Store for later reference
   // Click the plot to navigate to plot detail page
@@ -93,33 +93,33 @@ When('I select the first vacant plot', { timeout: 30000 }, async function () {
   await NetworkHelper.waitForApiRequestsComplete(plotPage.page, 5000);
 });
 
-When('I select the first reserved plot', { timeout: 15000 }, async function () {
+When('I select the first reserved plot', async function () {
   const plotName = await plotPage.selectFirstReservedPlot();
   this.selectedPlotName = plotName; // Store for later reference
 });
 
-When('I select the first occupied plot', { timeout: 15000 }, async function () {
+When('I select the first occupied plot', async function () {
   const plotName = await plotPage.selectFirstOccupiedPlot();
   this.selectedPlotName = plotName; // Store for later reference
 });
 
-When('I add ROI holder person with following details', { timeout: 15000 }, async function (dataTable: any) {
+When('I add ROI holder person with following details', async function (dataTable: any) {
   const holderData = dataTable.rowsHash(); // For vertical tables with key-value pairs
   const actualData = replacePlaceholdersInObject(holderData);
   await roiPage.addRoiHolderPerson(actualData as any);
 });
 
-When('I add ROI applicant person with following details', { timeout: 15000 }, async function (dataTable: any) {
+When('I add ROI applicant person with following details', async function (dataTable: any) {
   const applicantData = dataTable.rowsHash(); // For vertical tables with key-value pairs
   const actualData = replacePlaceholdersInObject(applicantData);
   await roiPage.addRoiApplicantPerson(actualData as any);
 });
 
-When('I search and select ROI holder {string}', { timeout: 15000 }, async function (personName: string) {
+When('I search and select ROI holder {string}', async function (personName: string) {
   await roiPage.searchAndSelectRoiHolder(personName);
 });
 
-When('I save the ROI', { timeout: 35000 }, async function () {
+When('I save the ROI', async function () {
   ensurePageObjects(this.page);
   const page = this.page;
   
@@ -127,11 +127,11 @@ When('I save the ROI', { timeout: 35000 }, async function () {
   
   // After save, we're redirected to plot detail page
   // Wait for tab list to be visible
-  await page.locator('[role="tablist"]').waitFor({ state: 'visible', timeout: 8000 });
+  await page.locator('[role="tablist"]').waitFor({ state: 'visible' });
   
   // Click ROI tab explicitly (same as search scenario)
   const roiTab = page.getByRole('tab', { name: 'ROI' });
-  await roiTab.waitFor({ state: 'visible', timeout: 5000 });
+  await roiTab.waitFor({ state: 'visible' });
   await roiTab.click();
   
   // Verify ROI tab is actually selected after click (with retry)
@@ -146,15 +146,15 @@ When('I save the ROI', { timeout: 35000 }, async function () {
   }
   
   // Wait for ROI data to load completely
-  await NetworkHelper.waitForApiRequestsComplete(page, 5000);
+  await NetworkHelper.waitForApiRequestsComplete(page);
 });
 
-Then('I should see ROI holder {string} in the ROI tab', { timeout: 20000 }, async function (holderName: string) {
+Then('I should see ROI holder {string} in the ROI tab', async function (holderName: string) {
   const actualName = replacePlaceholders(holderName);
   const page = this.page;
   
   // Wait for ROI content to load after tab click
-  await NetworkHelper.waitForApiRequestsComplete(page, 5000);
+  await NetworkHelper.waitForApiRequestsComplete(page);
   
   // Verify ROI tab is selected, re-click if needed (Angular SPA may reset tab)
   const roiTab = page.getByRole('tab', { name: 'ROI' });
@@ -163,7 +163,7 @@ Then('I should see ROI holder {string} in the ROI tab', { timeout: 20000 }, asyn
   if (isSelected !== 'true') {
     console.log('ROI tab not selected, re-clicking...');
     await roiTab.click();
-    await expect(roiTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 });
+    await expect(roiTab).toHaveAttribute('aria-selected', 'true');
     await NetworkHelper.waitForStabilization(page, { minWait: 500, maxWait: 3000 });
   }
   
@@ -187,7 +187,7 @@ Then('I should see ROI holder {string} in the ROI tab', { timeout: 20000 }, asyn
   console.log(`✓ ROI holder verified: "${actualName}" with label "ROI HOLDER"`);
 });
 
-Then('I should see ROI applicant {string} in the ROI tab', { timeout: 15000 }, async function (applicantName: string) {
+Then('I should see ROI applicant {string} in the ROI tab', async function (applicantName: string) {
   const actualName = replacePlaceholders(applicantName);
   const isVisible = await roiPage.verifyRoiPerson(actualName, 'applicant');
   if (!isVisible) {
@@ -195,7 +195,7 @@ Then('I should see ROI applicant {string} in the ROI tab', { timeout: 15000 }, a
   }
 });
 
-Then('I should see both ROI holder {string} and applicant {string}', { timeout: 15000 }, async function (holderName: string, applicantName: string) {
+Then('I should see both ROI holder {string} and applicant {string}', async function (holderName: string, applicantName: string) {
   const actualHolder = replacePlaceholders(holderName);
   const actualApplicant = replacePlaceholders(applicantName);
   const isVisible = await roiPage.verifyRoiHolderAndApplicant(actualHolder, actualApplicant);
@@ -204,14 +204,14 @@ Then('I should see both ROI holder {string} and applicant {string}', { timeout: 
   }
 });
 
-Then('I should see fee {string} in ROI form', { timeout: 10000 }, async function (expectedFee: string) {
+Then('I should see fee {string} in ROI form', async function (expectedFee: string) {
   const isValid = await roiPage.verifyFeeInForm(expectedFee);
   if (!isValid) {
     throw new Error(`❌ Verification failed: Fee "${expectedFee}" not found in ROI form. Check logs above for details.`);
   }
 });
 
-Then('I should see certificate number {string} in ROI form', { timeout: 10000 }, async function (expectedCertificate: string) {
+Then('I should see certificate number {string} in ROI form', async function (expectedCertificate: string) {
   const isValid = await roiPage.verifyCertificateInForm(expectedCertificate);
   if (!isValid) {
     throw new Error(`❌ Verification failed: Certificate number "${expectedCertificate}" not found in ROI form. Check logs above for details.`);
@@ -219,37 +219,37 @@ Then('I should see certificate number {string} in ROI form', { timeout: 10000 },
 });
 
 // Activity Notes steps
-When('I add activity note {string}', { timeout: 10000 }, async function (noteText: string) {
+When('I add activity note {string}', async function (noteText: string) {
   await roiPage.addActivityNote(noteText);
 });
 
-Then('I should see activity note {string}', { timeout: 10000 }, async function (expectedNote: string) {
+Then('I should see activity note {string}', async function (expectedNote: string) {
   const isVisible = await roiPage.verifyActivityNote(expectedNote);
   if (!isVisible) {
     throw new Error(`❌ Verification failed: Activity note "${expectedNote}" not found. Check logs above for details.`);
   }
 });
 
-When('I edit activity note {string} to {string}', { timeout: 15000 }, async function (oldText: string, newText: string) {
+When('I edit activity note {string} to {string}', async function (oldText: string, newText: string) {
   await roiPage.editActivityNote(oldText, newText);
 });
 
 // Find reserved plot by certificate number
-When('I find reserved plot with certificate number {string}', { timeout: 120000 }, async function (certNumber: string) {
+When('I find reserved plot with certificate number {string}', async function (certNumber: string) {
   const actualCertNumber = replacePlaceholders(certNumber);
   const plotName = await plotPage.findReservedPlotByCertificateNumber(actualCertNumber);
   this.selectedPlotName = plotName;
 });
 
 // Remove ROI holder by name
-When('I remove ROI holder {string}', { timeout: 30000 }, async function (holderName: string) {
+When('I remove ROI holder {string}', async function (holderName: string) {
   ensurePageObjects(this.page);
   const actualName = replacePlaceholders(holderName);
   await roiPage.removeRoiHolder(actualName);
 });
 
 // Verify ROI holder has been removed
-Then('I should not see ROI holder {string} in the ROI tab', { timeout: 20000 }, async function (holderName: string) {
+Then('I should not see ROI holder {string} in the ROI tab', async function (holderName: string) {
   ensurePageObjects(this.page);
   const actualName = replacePlaceholders(holderName);
   const isRemoved = await roiPage.verifyRoiHolderRemoved(actualName);
@@ -259,14 +259,14 @@ Then('I should not see ROI holder {string} in the ROI tab', { timeout: 20000 }, 
 });
 
 // Remove ROI applicant by name
-When('I remove ROI applicant {string}', { timeout: 30000 }, async function (applicantName: string) {
+When('I remove ROI applicant {string}', async function (applicantName: string) {
   ensurePageObjects(this.page);
   const actualName = replacePlaceholders(applicantName);
   await roiPage.removeRoiApplicant(actualName);
 });
 
 // Verify ROI applicant has been removed
-Then('I should not see ROI applicant {string} in the ROI tab', { timeout: 20000 }, async function (applicantName: string) {
+Then('I should not see ROI applicant {string} in the ROI tab', async function (applicantName: string) {
   ensurePageObjects(this.page);
   const actualName = replacePlaceholders(applicantName);
   const isRemoved = await roiPage.verifyRoiApplicantRemoved(actualName);

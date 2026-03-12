@@ -13,7 +13,7 @@ const logger = new Logger('SearchBoxSteps');
 // PUBLIC SEARCH STEPS (WITHOUT LOGIN)
 // ==========================================
 
-When('I select cemetery {string} for public search', { timeout: 30000 }, async function (cemeteryName: string) {
+When('I select cemetery {string} for public search', async function (cemeteryName: string) {
   const page = this.page;
   const actualCemetery = replacePlaceholders(cemeteryName);
 
@@ -27,7 +27,7 @@ When('I select cemetery {string} for public search', { timeout: 30000 }, async f
   await searchInput.fill(actualCemetery);
 
   // Wait for search dropdown to appear
-  await page.locator('cl-search-cemetery-item').first().waitFor({ state: 'visible', timeout: 10000 });
+  await page.locator('cl-search-cemetery-item').first().waitFor({ state: 'visible' });
 
   // Find and click the cemetery search result (avoid US variant)
   const cemeteryResult = page.locator('cl-search-cemetery-item').filter({ hasText: new RegExp(actualCemetery, 'i') }).first();
@@ -54,7 +54,6 @@ When('I select cemetery {string} for public search', { timeout: 30000 }, async f
     // URL changed from homepage AND not just the base domain
     return url.href !== `${homepageUrl}/` && !url.href.endsWith(`${BASE_CONFIG.environment}.${BASE_CONFIG.baseDomain}`);
   }, { 
-    timeout: 15000, 
     waitUntil: 'domcontentloaded' 
   });
 
@@ -72,7 +71,7 @@ When('I select cemetery {string} for public search', { timeout: 30000 }, async f
   logger.info(`Selected cemetery: ${actualCemetery}, now at: ${page.url()}`);
 });
 
-When('I search for {string} in global search without login', { timeout: 15000 }, async function (searchQuery: string) {
+When('I search for {string} in global search without login', async function (searchQuery: string) {
   const page = this.page;
   const actualSearchQuery = replacePlaceholders(searchQuery);
 
@@ -82,7 +81,7 @@ When('I search for {string} in global search without login', { timeout: 15000 },
 
   // Find and click search input in header
   const searchInput = page.locator('input[type="text"][placeholder*="Search" i], [data-testid*="search-input" i]').first();
-  await searchInput.waitFor({ state: 'visible', timeout: 10000 });
+  await searchInput.waitFor({ state: 'visible' });
   await searchInput.click();
   await searchInput.fill(actualSearchQuery);
 
@@ -93,12 +92,12 @@ When('I search for {string} in global search without login', { timeout: 15000 },
   logger.info(`Searched for: ${actualSearchQuery}`);
 });
 
-Then('I should see {string} message indicating privacy protection', { timeout: 10000 }, async function (expectedMessage: string) {
+Then('I should see {string} message indicating privacy protection', async function (expectedMessage: string) {
   const page = this.page;
 
   // Verify "No results" message is visible
   const noResultsMessage = page.getByText(expectedMessage, { exact: false });
-  await noResultsMessage.waitFor({ state: 'visible', timeout: 5000 });
+  await noResultsMessage.waitFor({ state: 'visible' });
 
   logger.info(`Verified "${expectedMessage}" message is visible (privacy protection working)`);
 });
@@ -107,7 +106,7 @@ Then('I should see {string} message indicating privacy protection', { timeout: 1
 // LOGGED-IN USER SEARCH STEPS
 // ==========================================
 
-When('I search for {string} in global search', { timeout: 15000 }, async function (searchQuery: string) {
+When('I search for {string} in global search', async function (searchQuery: string) {
   const page = this.page;
   const actualSearchQuery = replacePlaceholders(searchQuery);
 
@@ -118,19 +117,19 @@ When('I search for {string} in global search', { timeout: 15000 }, async functio
 
   // Wait for search results panel
   const searchResultPanel = page.locator('cl-search-person-item').first();
-  await searchResultPanel.waitFor({ state: 'visible', timeout: 10000 });
+  await searchResultPanel.waitFor({ state: 'visible' });
 
   this.searchQuery = actualSearchQuery;
   logger.info(`Searched for: ${actualSearchQuery}`);
 });
 
-Then('I should see search result with plot {string}', { timeout: 10000 }, async function (plotName: string) {
+Then('I should see search result with plot {string}', async function (plotName: string) {
   const page = this.page;
   const actualPlotName = replacePlaceholders(plotName);
 
   // Wait for search result item containing the plot name
   const searchResultItem = page.locator('cl-search-person-item').filter({ hasText: actualPlotName });
-  await searchResultItem.waitFor({ state: 'visible', timeout: 5000 });
+  await searchResultItem.waitFor({ state: 'visible' });
 
   // Verify plot name is visible
   const plotNameVisible = await searchResultItem.locator(`text=${actualPlotName}`).isVisible();
@@ -145,7 +144,7 @@ Then('I should see search result with plot {string}', { timeout: 10000 }, async 
   logger.info(`Search result verified with plot: ${actualPlotName}`);
 });
 
-When('I click on search result plot {string}', { timeout: 20000 }, async function (plotName: string) {
+When('I click on search result plot {string}', async function (plotName: string) {
   const page = this.page;
   const actualPlotName = replacePlaceholders(plotName);
 
@@ -154,27 +153,27 @@ When('I click on search result plot {string}', { timeout: 20000 }, async functio
   await searchResult.click();
 
   // Wait for navigation to plot detail page
-  await page.waitForURL(`**/${encodeURIComponent(actualPlotName)}**`, { timeout: 10000 });
+  await page.waitForURL(`**/${encodeURIComponent(actualPlotName)}**`);
   await page.waitForLoadState('domcontentloaded');
 
   // Wait for tab list to be visible
-  await page.locator('[role="tablist"]').waitFor({ state: 'visible', timeout: 8000 });
+  await page.locator('[role="tablist"]').waitFor({ state: 'visible' });
 
   // Click ROI tab directly using getByRole
   const roiTab = page.getByRole('tab', { name: 'ROI' });
-  await roiTab.waitFor({ state: 'visible', timeout: 5000 });
+  await roiTab.waitFor({ state: 'visible' });
   await roiTab.click();
 
   // Verify ROI tab is actually selected after click (with retry)
-  await expect(roiTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 }).catch(async () => {
+  await expect(roiTab).toHaveAttribute('aria-selected', 'true').catch(async () => {
     console.log('ROI tab not selected, clicking again...');
     await roiTab.click();
-    await expect(roiTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 });
+    await expect(roiTab).toHaveAttribute('aria-selected', 'true');
   });
 
   // Wait for ROI tab content to actually load (ROI holder cards or edit button)
   try {
-    await page.locator('button:has-text("EDIT ROI"), cl-roi-holder-card, [class*="roi"]').first().waitFor({ state: 'visible', timeout: 10000 });
+    await page.locator('button:has-text("EDIT ROI"), cl-roi-holder-card, [class*="roi"]').first().waitFor({ state: 'visible' });
   } catch {
     // ROI content structure varies, fall back to stabilization
     await NetworkHelper.waitForStabilization(page, { minWait: 1000, maxWait: 3000 });
@@ -183,31 +182,31 @@ When('I click on search result plot {string}', { timeout: 20000 }, async functio
   logger.info(`Clicked on search result plot: ${actualPlotName}, now at: ${page.url()}`);
 });
 
-When('I click on the first search result', { timeout: 20000 }, async function () {
+When('I click on the first search result', async function () {
   const page = this.page;
 
   const firstResult = page.locator('cl-search-person-item').first();
-  await firstResult.waitFor({ state: 'visible', timeout: 5000 });
+  await firstResult.waitFor({ state: 'visible' });
   await firstResult.click();
 
   // Wait for navigation to plot detail page
   await page.waitForLoadState('domcontentloaded');
-  await page.locator('[role="tablist"]').waitFor({ state: 'visible', timeout: 8000 });
+  await page.locator('[role="tablist"]').waitFor({ state: 'visible' });
 
   // Click ROI tab and wait for content to load
   const roiTab = page.getByRole('tab', { name: 'ROI' });
-  await roiTab.waitFor({ state: 'visible', timeout: 5000 });
+  await roiTab.waitFor({ state: 'visible' });
   await roiTab.click();
 
   // Wait and verify ROI tab is selected (with retry)
-  await expect(roiTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 }).catch(async () => {
+  await expect(roiTab).toHaveAttribute('aria-selected', 'true').catch(async () => {
     await roiTab.click();
-    await expect(roiTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 });
+    await expect(roiTab).toHaveAttribute('aria-selected', 'true');
   });
 
   // Wait for ROI content to load
   try {
-    await page.locator('button:has-text("EDIT ROI"), cl-roi-holder-card, [class*="roi"]').first().waitFor({ state: 'visible', timeout: 10000 });
+    await page.locator('button:has-text("EDIT ROI"), cl-roi-holder-card, [class*="roi"]').first().waitFor({ state: 'visible' });
   } catch {
     await NetworkHelper.waitForStabilization(page, { minWait: 1000, maxWait: 3000 });
   }

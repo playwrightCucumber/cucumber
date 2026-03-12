@@ -11,13 +11,13 @@ let selectedPlotName: string;
 // ============================================
 
 // Updated to work without parameter - uses centralized cemetery config
-Given('I am on the sell plots page for cemetery', { timeout: 30000 }, async function () {
+Given('I am on the sell plots page for cemetery', async function () {
   requestSalesFormPage = new RequestSalesFormPage(this.page);
   await requestSalesFormPage.navigateToSellPlotsPage();
 });
 
 // Backward compatibility - keep the old step definition
-Given('I am on the sell plots page for {string}', { timeout: 30000 }, async function (cemeteryName: string) {
+Given('I am on the sell plots page for {string}', async function (cemeteryName: string) {
   requestSalesFormPage = new RequestSalesFormPage(this.page);
   await requestSalesFormPage.navigateToSellPlotsPage();
 });
@@ -31,7 +31,7 @@ When('I expand the first section in sell plots page', async function () {
   await requestSalesFormPage.expandSection(sectionName);
 });
 
-When('I find a plot with purchase option available', { timeout: 60000 }, async function () {
+When('I find a plot with purchase option available', async function () {
   selectedPlotName = await requestSalesFormPage.findPlotWithPurchaseOption();
 });
 
@@ -44,16 +44,16 @@ Then('I should see a Request to Buy button on the plot details page', async func
 // REQUEST TO BUY FLOW STEPS
 // ============================================
 
-When('I click the Request to Buy button', { timeout: 30000 }, async function () {
+When('I click the Request to Buy button', async function () {
   // Pass the selected plot name to re-navigate and clear history
   await requestSalesFormPage.clickRequestToBuy(selectedPlotName);
 });
 
-When('I select Pre-need plot purchase option', { timeout: 30000 }, async function () {
+When('I select Pre-need plot purchase option', async function () {
   await requestSalesFormPage.selectPreNeedPurchase();
 });
 
-When('I select At-need plot purchase option', { timeout: 30000 }, async function () {
+When('I select At-need plot purchase option', async function () {
   await requestSalesFormPage.selectAtNeedPurchase();
 });
 
@@ -98,7 +98,7 @@ When('I continue from the Interment Details section', async function () {
   await requestSalesFormPage.continueIntermentDetailsSection();
 });
 
-When('I fill the ROI form with valid data', { timeout: 10000 }, async function () {
+When('I fill the ROI form with valid data', async function () {
   await requestSalesFormPage.fillROIForm();
 });
 
@@ -106,7 +106,7 @@ When('I continue from the ROI section', async function () {
   await requestSalesFormPage.continueROISection();
 });
 
-When('I agree to the terms and conditions', { timeout: 15000 }, async function () {
+When('I agree to the terms and conditions', async function () {
   await requestSalesFormPage.agreeToTerms();
 });
 
@@ -126,7 +126,7 @@ When('I continue from the signature section', async function () {
 // FORM SUBMISSION STEPS
 // ============================================
 
-When('I submit the request form', { timeout: 60000 }, async function () {
+When('I submit the request form', async function () {
   await requestSalesFormPage.submitRequest();
 });
 
@@ -134,7 +134,7 @@ When('I submit the request form', { timeout: 60000 }, async function () {
 // CONFIRMATION VALIDATION STEPS
 // ============================================
 
-Then('I should see a confirmation dialog', { timeout: 15000 }, async function () {
+Then('I should see a confirmation dialog', async function () {
   const isVisible = await requestSalesFormPage.verifyConfirmationDialog();
   expect(isVisible).toBe(true);
 });
@@ -176,11 +176,11 @@ When('I continue from the Event Service section for At-need', async function () 
   await requestSalesFormPage.continueEventServiceSectionAtNeed();
 });
 
-When('I fill the Service form with valid data for At-need', { timeout: 30000 }, async function () {
+When('I fill the Service form with valid data for At-need', async function () {
   await requestSalesFormPage.fillServiceForm();
 });
 
-When('I continue from the Service section for At-need', { timeout: 15000 }, async function () {
+When('I continue from the Service section for At-need', async function () {
   await requestSalesFormPage.continueServiceSection();
 });
 

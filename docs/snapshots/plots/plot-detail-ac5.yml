@@ -1,0 +1,256 @@
+- generic [ref=e7]:
+  - generic [ref=e9]:
+    - generic [ref=e12]:
+      - generic [ref=e13]: Astana Tegal Gunduls
+      - generic [ref=e17]:
+        - generic [ref=e19]:
+          - img [ref=e21]:
+            - img [ref=e22]
+          - textbox "Search" [ref=e27]
+        - generic [ref=e31]:
+          - generic [ref=e32]:
+            - generic [ref=e33]:
+              - img [ref=e34]:
+                - img [ref=e35]
+              - generic [ref=e38]: People
+            - generic [ref=e39]:
+              - img [ref=e40]:
+                - img [ref=e41]
+              - generic [ref=e46]: Plots
+          - heading "within Astana Tegal Gundul" [level=5] [ref=e47]
+      - generic [ref=e48]:
+        - button "Advanced" [ref=e49] [cursor=pointer]:
+          - generic [ref=e52]: Advanced
+        - generic [ref=e55]:
+          - button "Notifications - 7 unread" [ref=e56] [cursor=pointer]:
+            - img "Notification bell" [ref=e58]
+          - generic [ref=e59]: "7"
+    - button "Astana Tegal Gunduls faris+astanaorg@chronicle.rip" [ref=e62] [cursor=pointer]:
+      - generic [ref=e65]:
+        - paragraph [ref=e66]: Astana Tegal Gunduls
+        - generic [ref=e67]: faris+astanaorg@chronicle.rip
+  - generic:
+    - generic [ref=e69]:
+      - generic:
+        - generic:
+          - generic:
+            - img
+        - generic:
+          - generic:
+            - generic [ref=e98] [cursor=pointer]:
+              - generic [ref=e100]: A D 3
+              - list
+            - generic [ref=e101] [cursor=pointer]:
+              - generic [ref=e103]: A D 4
+              - list
+            - generic [ref=e104] [cursor=pointer]:
+              - generic [ref=e106]: A D 5
+              - list
+            - generic [ref=e107] [cursor=pointer]:
+              - generic [ref=e109]: A D 6
+              - list
+            - generic [ref=e110] [cursor=pointer]:
+              - generic [ref=e112]: A D 7
+              - list
+            - generic [ref=e113] [cursor=pointer]:
+              - generic [ref=e115]: A D 8
+              - list
+            - generic [ref=e116] [cursor=pointer]:
+              - generic [ref=e118]: A D 9
+              - list
+            - generic [ref=e119] [cursor=pointer]:
+              - generic [ref=e121]: A D 10
+              - list
+            - generic [ref=e122] [cursor=pointer]:
+              - generic [ref=e124]: A C 1
+              - list
+            - generic [ref=e125] [cursor=pointer]:
+              - generic [ref=e127]: A C 2
+              - list
+            - generic [ref=e128] [cursor=pointer]:
+              - generic [ref=e130]: A C 3
+              - list
+            - generic [ref=e131] [cursor=pointer]:
+              - generic [ref=e133]: A C 4
+              - list [ref=e134]:
+                - listitem [ref=e135]: J. Davis
+                - listitem [ref=e136]: M. Moore
+            - generic [ref=e137] [cursor=pointer]:
+              - generic [ref=e139]: A C 5
+              - list
+            - generic [ref=e140] [cursor=pointer]:
+              - generic [ref=e142]: A C 6
+              - list
+            - generic [ref=e143] [cursor=pointer]:
+              - generic [ref=e145]: A C 7
+              - list
+            - generic [ref=e146] [cursor=pointer]:
+              - generic [ref=e148]: A C 8
+              - list
+            - generic [ref=e149] [cursor=pointer]:
+              - generic [ref=e151]: A C 9
+              - list
+            - generic [ref=e152] [cursor=pointer]:
+              - generic [ref=e153]:
+                - generic [ref=e154]: A B 1
+                - generic [ref=e155]:
+                  - img [ref=e156]
+                  - img [ref=e157]
+              - list [ref=e158]:
+                - listitem [ref=e159]: I. Sari
+            - generic [ref=e160] [cursor=pointer]:
+              - generic [ref=e162]: A B 2
+              - list
+            - generic [ref=e163] [cursor=pointer]:
+              - generic [ref=e165]: A B 3
+              - list
+            - generic [ref=e166] [cursor=pointer]:
+              - generic [ref=e168]: A B 4
+              - list
+            - generic [ref=e169] [cursor=pointer]:
+              - generic [ref=e171]: A B 5
+              - list [ref=e172]:
+                - listitem [ref=e173]: T. Moore
+                - listitem [ref=e174]: S. Hernandez
+            - generic [ref=e175] [cursor=pointer]:
+              - generic [ref=e176]:
+                - generic [ref=e177]: A A 1
+                - img [ref=e179]
+              - list [ref=e180]:
+                - listitem [ref=e181]: J. Smith
+            - generic [ref=e182] [cursor=pointer]:
+              - generic [ref=e184]: A E 8
+              - list
+            - generic [ref=e185] [cursor=pointer]:
+              - generic [ref=e187]: A E 9
+              - list
+            - generic [ref=e188] [cursor=pointer]:
+              - generic [ref=e190]: A E 10
+              - list
+            - generic [ref=e191] [cursor=pointer]:
+              - generic [ref=e193]: A E 11
+              - list
+            - generic [ref=e195] [cursor=pointer]: Section LOT A2
+            - generic [ref=e197] [cursor=pointer]: Section LOT A1
+      - generic:
+        - generic:
+          - button [ref=e199] [cursor=pointer]
+          - button [ref=e200] [cursor=pointer]
+        - generic:
+          - link "Current location" [ref=e202] [cursor=pointer]:
+            - /url: "#"
+          - generic [ref=e203]:
+            - button "Zoom in" [disabled] [ref=e204]: +
+            - button "Zoom out" [ref=e205] [cursor=pointer]: −
+          - generic [ref=e206]:
+            - link "Leaflet" [ref=e207] [cursor=pointer]:
+              - /url: https://leafletjs.com
+              - img [ref=e208]
+              - text: Leaflet
+            - text: "| Map data ©"
+            - link "OpenStreetMap" [ref=e212] [cursor=pointer]:
+              - /url: https://www.openstreetmap.org/
+            - text: contributors,
+            - link "CC-BY-SA" [ref=e213] [cursor=pointer]:
+              - /url: https://creativecommons.org/licenses/by-sa/2.0/
+    - button [ref=e216] [cursor=pointer]:
+      - img [ref=e218]:
+        - img [ref=e219]
+  - generic [ref=e222]:
+    - generic [ref=e227] [cursor=pointer]:
+      - group [ref=e229]:
+        - button "Map" [pressed] [ref=e230]:
+          - generic [ref=e231]:
+            - img [ref=e233]:
+              - img [ref=e234]
+            - generic [ref=e236]: Map
+        - button "Tables" [ref=e237]:
+          - generic [ref=e238]:
+            - img [ref=e240]:
+              - img [ref=e241]
+            - generic [ref=e244]: Tables
+        - button "Calendar" [ref=e245]:
+          - generic [ref=e246]:
+            - img [ref=e248]:
+              - img [ref=e249]
+            - generic [ref=e251]: Calendar
+        - button "Request 16" [ref=e252]:
+          - generic [ref=e253]:
+            - img [ref=e255]:
+              - img [ref=e256]
+            - generic [ref=e259]: Request
+            - generic [ref=e260]: "16"
+        - button "Sales" [ref=e261]:
+          - generic [ref=e262]:
+            - img [ref=e264]:
+              - img [ref=e265]
+            - generic [ref=e268]: Sales
+        - button "Reports" [ref=e269]:
+          - generic [ref=e270]:
+            - img [ref=e272]:
+              - img [ref=e273]
+            - generic [ref=e276]: Reports
+      - group [disabled] [ref=e278]:
+        - button "help" [disabled] [ref=e279]:
+          - link "help" [disabled] [ref=e281]:
+            - /url: https://help.chronicle.rip/
+            - img "help" [ref=e282]
+        - button "home" [disabled] [ref=e283]:
+          - link "home" [disabled] [ref=e285]:
+            - /url: https://chronicle.rip/
+            - img "home" [ref=e286]
+    - generic [ref=e299]:
+      - button "Choose File" [ref=e302]
+      - img [ref=e303] [cursor=pointer]:
+        - img [ref=e304]
+      - generic [ref=e307]:
+        - generic [ref=e308]:
+          - generic [ref=e309]:
+            - paragraph [ref=e311]: Astana Tegal Gundul
+            - heading "A C 5 VACANT" [level=3] [ref=e313]:
+              - generic [ref=e315]: A C 5
+              - generic [ref=e316]: VACANT
+            - generic [ref=e318]:
+              - generic [ref=e320]: "- / 1"
+              - generic [ref=e323]: "- / 1"
+              - generic [ref=e325]:
+                - generic [ref=e326]: west
+                - generic [ref=e327]: W
+              - generic [ref=e330]: Monumental
+          - button "Edit" [ref=e332] [cursor=pointer]:
+            - paragraph [ref=e334]: Edit
+        - paragraph [ref=e336]
+        - generic [ref=e339]:
+          - button "Requests" [ref=e340] [cursor=pointer]:
+            - img [ref=e341]:
+              - img [ref=e342]
+            - text: Requests
+            - img [ref=e344]:
+              - img [ref=e345]
+          - button [ref=e347] [cursor=pointer]:
+            - img [ref=e349]:
+              - img [ref=e350]
+          - button [ref=e353] [cursor=pointer]:
+            - img [ref=e355]: share_outlined
+        - generic [ref=e357]:
+          - tablist [ref=e360]:
+            - generic [ref=e361]:
+              - tab "EVENTS" [selected] [ref=e362] [cursor=pointer]:
+                - generic [ref=e363]: EVENTS
+              - tab "ACTIVITY" [ref=e364] [cursor=pointer]:
+                - generic [ref=e365]: ACTIVITY
+          - generic [ref=e367]:
+            - tabpanel "EVENTS" [ref=e368]:
+              - generic [ref=e371]:
+                - button "GO TO TODAY" [ref=e374] [cursor=pointer]: GO TO TODAY
+                - generic [ref=e375]:
+                  - button "ADD NEW EVENT" [ref=e376] [cursor=pointer]:
+                    - generic [ref=e377]: ADD NEW EVENT
+                  - button "filter" [ref=e378] [cursor=pointer]:
+                    - img [ref=e380]
+            - tabpanel "ACTIVITY" [ref=e381]
+      - generic [ref=e383]:
+        - button "Add interment" [ref=e385] [cursor=pointer]:
+          - generic [ref=e386]: Add interment
+        - button "Add ROI" [ref=e388] [cursor=pointer]:
+          - generic [ref=e389]: Add ROI

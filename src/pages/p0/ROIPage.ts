@@ -20,19 +20,19 @@ export class ROIPage {
     
     try {
       // Wait for button to be visible and clickable
-      await this.page.waitForSelector(RoiSelectors.addRoiButton, { state: 'visible', timeout: 10000 });
+      await this.page.waitForSelector(RoiSelectors.addRoiButton, { state: 'visible' });
       this.logger.info('Add ROI button found, clicking...');
       
       // Click and wait for navigation
       await Promise.all([
-        this.page.waitForURL('**/manage/add/roi', { timeout: 20000 }),
+        this.page.waitForURL('**/manage/add/roi'),
         this.page.click(RoiSelectors.addRoiButton)
       ]);
       
       this.logger.info('✓ Navigated to Add ROI form page');
       
       // Wait for form to be ready (form title visible = page loaded + data rendered)
-      await this.page.waitForSelector(RoiSelectors.roiFormTitle, { state: 'visible', timeout: 15000 });
+      await this.page.waitForSelector(RoiSelectors.roiFormTitle, { state: 'visible' });
       this.logger.info('✓ ROI form title loaded');
       
       this.logger.success('Add ROI button clicked and form loaded');
@@ -43,11 +43,11 @@ export class ROIPage {
       
       try {
         await Promise.all([
-          this.page.waitForURL('**/manage/add/roi', { timeout: 20000 }),
+          this.page.waitForURL('**/manage/add/roi'),
           this.page.getByRole('button', { name: /add roi/i }).click()
         ]);
         
-        await this.page.waitForSelector(RoiSelectors.roiFormTitle, { state: 'visible', timeout: 15000 });
+        await this.page.waitForSelector(RoiSelectors.roiFormTitle, { state: 'visible' });
         
         this.logger.success('Add ROI button clicked (fallback)');
       } catch (e2) {
@@ -87,7 +87,7 @@ export class ROIPage {
           this.logger.info('DOM content loaded');
           
           // Wait for form inputs to appear (Angular dynamic rendering)
-          await this.page.locator('input[type="text"], input[type="number"], textarea').first().waitFor({ state: 'visible', timeout: 10000 });
+          await this.page.locator('input[type="text"], input[type="number"], textarea').first().waitFor({ state: 'visible' });
           this.logger.info('ROI edit form loaded successfully - found input fields');
         } catch (e) {
           this.logger.warn(`Edit page load check failed: ${e}, continuing anyway`);
@@ -105,7 +105,7 @@ export class ROIPage {
       
       // Wait for the Right Type dropdown to be visible — proves form is fully rendered
       const rightTypeDropdown = this.page.getByRole('combobox', { name: 'Right type' });
-      await rightTypeDropdown.waitFor({ state: 'visible', timeout: 15000 });
+      await rightTypeDropdown.waitFor({ state: 'visible' });
       this.logger.info('Right Type dropdown visible - form is ready');
       
       // Click the Right Type dropdown
@@ -113,11 +113,11 @@ export class ROIPage {
       await rightTypeDropdown.click();
       
       // Wait for dropdown overlay to appear
-      await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'visible', timeout: 5000 });
+      await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'visible' });
       
       // Use getByRole which works reliably (tested with MCP Playwright)
       const optionLocator = this.page.getByRole('option', { name: roiData.rightType });
-      await optionLocator.waitFor({ state: 'visible', timeout: 10000 });
+      await optionLocator.waitFor({ state: 'visible' });
       this.logger.info(`Option "${roiData.rightType}" is visible`);
       
       // Click the option
@@ -136,11 +136,11 @@ export class ROIPage {
       await termDropdown.click();
       
       // Wait for dropdown overlay to appear
-      await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'visible', timeout: 5000 });
+      await this.page.locator('.cdk-overlay-pane').waitFor({ state: 'visible' });
       
       // Use getByRole which works reliably
       const termOptionLocator = this.page.getByRole('option', { name: roiData.termOfRight });
-      await termOptionLocator.waitFor({ state: 'visible', timeout: 10000 });
+      await termOptionLocator.waitFor({ state: 'visible' });
       this.logger.info(`Option "${roiData.termOfRight}" is visible`);
       
       // Click the option
@@ -154,11 +154,11 @@ export class ROIPage {
       this.logger.info(`Entering fee: ${roiData.fee}`);
       try {
         // Try data-testid selector first (for add page)
-        await this.page.fill(RoiSelectors.feeInput, roiData.fee, { timeout: 5000 });
+        await this.page.fill(RoiSelectors.feeInput, roiData.fee);
       } catch (e) {
         // Fallback: use aria-label or placeholder for edit page
         try {
-          await this.page.getByLabel(/fee/i).fill(roiData.fee, { timeout: 5000 });
+          await this.page.getByLabel(/fee/i).fill(roiData.fee);
         } catch (e2) {
           // Last resort: find input with type="number" near "Fee" text
           await this.page.locator('input[type="number"]').first().fill(roiData.fee);
@@ -178,11 +178,11 @@ export class ROIPage {
       this.logger.info(`Entering certificate number: ${roiData.certificateNumber}`);
       try {
         // Try data-testid selector first
-        await this.page.fill(RoiSelectors.certificateNumberInput, roiData.certificateNumber, { timeout: 5000 });
+        await this.page.fill(RoiSelectors.certificateNumberInput, roiData.certificateNumber);
       } catch (e) {
         // Fallback: use label or placeholder
         try {
-          await this.page.getByLabel(/certificate/i).fill(roiData.certificateNumber, { timeout: 5000 });
+          await this.page.getByLabel(/certificate/i).fill(roiData.certificateNumber);
         } catch (e2) {
           // Last resort: find input near "Certificate" text
           await this.page.locator('input[type="text"]').filter({ hasText: /certificate/i }).fill(roiData.certificateNumber);
@@ -208,7 +208,7 @@ export class ROIPage {
     
     // Click Add ROI Holder button and wait for form to appear
     await this.page.click(RoiSelectors.addRoiHolderButton);
-    await this.page.waitForSelector(RoiSelectors.roiHolderFirstNameInput, { state: 'visible', timeout: 5000 });
+    await this.page.waitForSelector(RoiSelectors.roiHolderFirstNameInput, { state: 'visible' });
     
     // Fill first name (required)
     this.logger.info(`Entering ROI holder first name: ${holderData.firstName}`);
@@ -237,7 +237,7 @@ export class ROIPage {
     
     // Wait for the person card to appear in the UI (confirms creation)
     try {
-      await this.page.waitForSelector(`text=${holderData.firstName} ${holderData.lastName}`, { timeout: 8000 });
+      await this.page.waitForSelector(`text=${holderData.firstName} ${holderData.lastName}`);
       this.logger.info('Person card appeared in UI');
     } catch (e) {
       // Fallback: wait for API to finish processing
@@ -280,11 +280,11 @@ export class ROIPage {
     this.logger.info('Waiting for applicant form to appear...');
     try {
       // Try role-based selector first (more reliable after holder added)
-      await this.page.getByRole('textbox', { name: /first.*name/i }).first().waitFor({ state: 'visible', timeout: 10000 });
+      await this.page.getByRole('textbox', { name: /first.*name/i }).first().waitFor({ state: 'visible' });
       this.logger.info('✓ Form detected using role-based selector');
     } catch (e) {
       // Fallback to data-testid (when no holder added yet)
-      await this.page.waitForSelector(RoiSelectors.roiApplicantFirstNameInput, { state: 'visible', timeout: 5000 });
+      await this.page.waitForSelector(RoiSelectors.roiApplicantFirstNameInput, { state: 'visible' });
       this.logger.info('✓ Form detected using data-testid selector');
     }
     
@@ -335,7 +335,7 @@ export class ROIPage {
     
     // Wait for the person card to appear in the UI
     try {
-      await this.page.waitForSelector(`text=${applicantData.firstName} ${applicantData.lastName}`, { timeout: 8000 });
+      await this.page.waitForSelector(`text=${applicantData.firstName} ${applicantData.lastName}`);
       this.logger.info('Person card appeared in UI');
     } catch (e) {
       // Fallback: wait for API to finish processing
@@ -371,7 +371,7 @@ export class ROIPage {
       // Try to find the person in mat-option or similar dropdown
       const personOption = this.page.locator('mat-option, .mat-option, [role="option"]').filter({ hasText: personName }).first();
       
-      await personOption.waitFor({ state: 'visible', timeout: 5000 });
+      await personOption.waitFor({ state: 'visible' });
       this.logger.info(`Found person "${personName}" in search results, clicking...`);
       await personOption.click();
       
@@ -394,13 +394,13 @@ export class ROIPage {
     try {
       // Try data-testid selector first (for add page)
       this.logger.info('Attempting to click Save button using data-testid selector');
-      await this.page.click(RoiSelectors.saveButton, { timeout: 5000 });
+      await this.page.click(RoiSelectors.saveButton);
       this.logger.info('Save button clicked successfully (data-testid)');
     } catch (e) {
       // Fallback: look for any button with "Save" text (for edit page)
       try {
         this.logger.info('Data-testid failed, trying getByRole with /save/i');
-        await this.page.getByRole('button', { name: /save/i }).first().click({ timeout: 5000 });
+        await this.page.getByRole('button', { name: /save/i }).first().click();
         this.logger.info('Save button clicked successfully (getByRole)');
       } catch (e2) {
         // Last resort: look for button with save icon or similar
@@ -412,7 +412,7 @@ export class ROIPage {
     
     this.logger.info('Waiting for URL redirect to plot detail page...');
     // Wait for save to complete and redirect back to plot detail
-    await this.page.waitForURL(`**${RoiUrls.plotDetailPattern}**`, { timeout: 30000 });
+    await this.page.waitForURL(`**${RoiUrls.plotDetailPattern}**`);
     await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
     this.logger.success('ROI saved successfully');
   }
@@ -427,7 +427,7 @@ export class ROIPage {
     try {
       // Wait for Activity section to be visible
       const notesInput = this.page.locator(RoiSelectors.activityNotesInput);
-      await notesInput.waitFor({ state: 'visible', timeout: 5000 });
+      await notesInput.waitFor({ state: 'visible' });
       
       // Fill note in Activity Notes textbox
       await notesInput.fill(noteText);
@@ -437,7 +437,7 @@ export class ROIPage {
       await NetworkHelper.waitForAnimation(this.page);
       
       const sendButton = this.page.locator(RoiSelectors.activityNotesSendButton);
-      await sendButton.waitFor({ state: 'visible', timeout: 5000 });
+      await sendButton.waitFor({ state: 'visible' });
       await sendButton.click();
       this.logger.info('Send button clicked');
       
@@ -466,7 +466,7 @@ export class ROIPage {
       
       // Find the note by text and click its three dots menu
       const noteElement = this.page.getByText(oldText, { exact: false }).first();
-      await noteElement.waitFor({ state: 'visible', timeout: 5000 });
+      await noteElement.waitFor({ state: 'visible' });
       
       // Find the three dots menu icon for this note
       // The menu icon is typically next to or within the same parent as the note text
@@ -476,7 +476,7 @@ export class ROIPage {
       
       // Wait for menu to appear and click Edit
       const editMenuItem = this.page.getByRole('menuitem', { name: 'Edit' });
-      await editMenuItem.waitFor({ state: 'visible', timeout: 5000 });
+      await editMenuItem.waitFor({ state: 'visible' });
       await editMenuItem.click();
       this.logger.info('Edit menu item clicked');
       
@@ -488,7 +488,7 @@ export class ROIPage {
       
       // Wait for the save button (checkmark) to appear - this indicates edit mode is active
       const saveButton = this.page.locator(RoiSelectors.activityNoteEditSaveButton);
-      await saveButton.waitFor({ state: 'visible', timeout: 5000 });
+      await saveButton.waitFor({ state: 'visible' });
       
       // Get all textareas and find the one that's NOT the "Add Notes" form
       const allTextareas = await this.page.locator('textarea').all();
@@ -525,7 +525,7 @@ export class ROIPage {
       
       // Verify save completed by checking if edit mode closed (checkmark disappeared)
       try {
-        await saveButton.waitFor({ state: 'hidden', timeout: 3000 });
+        await saveButton.waitFor({ state: 'hidden' });
         this.logger.info('Edit mode closed - save completed');
       } catch (e) {
         this.logger.warn('Checkmark still visible after 3s - edit mode may still be active');
@@ -550,29 +550,24 @@ export class ROIPage {
     this.logger.info(`Verifying activity note: ${expectedNote}`);
     
     try {
-      // Wait for activity section and notes to fully load from backend
-      await NetworkHelper.waitForApiRequestsComplete(this.page, 8000);
-      this.logger.info('Activity notes API requests completed');
+      // Wait for the note text to appear — activity notes may load lazily after page render,
+      // so waitForApiRequestsComplete alone can resolve before the API call even starts.
+      const noteLocator = this.page.getByText(expectedNote, { exact: false }).first();
       
-      // Look for the note text - use count() to handle multiple matches
-      const noteLocator = this.page.getByText(expectedNote, { exact: false });
-      const noteCount = await noteLocator.count();
-      
-      this.logger.info(`Found ${noteCount} elements with text "${expectedNote}"`);
-      
-      if (noteCount > 0) {
-        // Check if at least one is visible
-        const firstNote = noteLocator.first();
-        const isVisible = await firstNote.isVisible({ timeout: 3000 }).catch(() => false);
+      try {
+        await noteLocator.waitFor({ state: 'visible', timeout: 15000 });
+        this.logger.success(`✓ Activity note verified: ${expectedNote}`);
+        return true;
+      } catch {
+        // Element didn't appear within timeout — check if it exists but is not visible (scrolled)
+        const noteCount = await this.page.getByText(expectedNote, { exact: false }).count();
+        this.logger.info(`Found ${noteCount} elements with text "${expectedNote}" (not visible)`);
         
-        if (isVisible) {
-          this.logger.success(`✓ Activity note verified: ${expectedNote}`);
-          return true;
-        } else {
+        if (noteCount > 0) {
           this.logger.success(`✓ Activity note found in page (might be scrolled): ${expectedNote}`);
           return true;
         }
-      } else {
+        
         this.logger.info(`❌ Activity note not found: ${expectedNote}`);
         return false;
       }
@@ -593,8 +588,8 @@ export class ROIPage {
     try {
       // Wait for ROI content indicators (person cards, edit button, or "No ROI" message)
       await Promise.race([
-        this.page.waitForSelector('[data-testid*="person-card"]', { state: 'visible', timeout: 3000 }),
-        this.page.waitForSelector('button:has-text("EDIT ROI")', { state: 'visible', timeout: 3000 }),
+        this.page.waitForSelector('[data-testid*="person-card"]', { state: 'visible' }),
+        this.page.waitForSelector('button:has-text("EDIT ROI")', { state: 'visible' }),
         NetworkHelper.waitForAnimation(this.page)
       ]);
       this.logger.success('ROI tab opened - content loaded');
@@ -614,7 +609,7 @@ export class ROIPage {
       // Ensure ROI tab is selected first
       try {
         const roiTab = this.page.getByRole('tab', { name: /roi/i });
-        await roiTab.waitFor({ state: 'visible', timeout: 5000 });
+        await roiTab.waitFor({ state: 'visible' });
         await roiTab.click();
         this.logger.info('ROI tab clicked');
       } catch (e) {
@@ -625,7 +620,7 @@ export class ROIPage {
       
       // Look for "Edit ROI" button (case-insensitive)
       const editRoiBtn = this.page.getByRole('button', { name: /edit roi/i });
-      await editRoiBtn.waitFor({ state: 'visible', timeout: 10000 });
+      await editRoiBtn.waitFor({ state: 'visible' });
       this.logger.info('EDIT ROI button found');
       
       await editRoiBtn.click();
@@ -633,7 +628,7 @@ export class ROIPage {
       // Wait for navigation to edit page (URL should change to include '/edit/')
       this.logger.info('Waiting for navigation to edit page...');
       try {
-        await this.page.waitForURL('**/edit/roi/**', { timeout: 10000 });
+        await this.page.waitForURL('**/edit/roi/**');
         this.logger.success('Navigated to edit page');
       } catch (e) {
         this.logger.warn('URL did not change to edit page within 10s, continuing anyway');
@@ -643,12 +638,12 @@ export class ROIPage {
       // Edit pages have continuous network activity, so check for form elements instead
       try {
         // Wait for DOM to load
-        await this.page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        await this.page.waitForLoadState('domcontentloaded');
         
         // Wait for form elements to appear (fee, certificate, or activity notes)
         await Promise.race([
-          this.page.waitForSelector('input[data-testid="user-log-activity-textarea-add-notes"]', { state: 'visible', timeout: 5000 }),
-          this.page.waitForSelector('input[type="number"], input[type="text"]', { state: 'visible', timeout: 5000 })
+          this.page.waitForSelector('input[data-testid="user-log-activity-textarea-add-notes"]', { state: 'visible' }),
+          this.page.waitForSelector('input[type="number"], input[type="text"]', { state: 'visible' })
         ]);
         
         this.logger.info('Edit page loaded - form elements ready');
@@ -682,7 +677,7 @@ export class ROIPage {
     // Use a generous timeout since ROI content takes time to load
     this.logger.info(`Waiting for "${personName}" to appear in ROI tab (30s timeout)...`);
     try {
-      await this.page.waitForSelector(`text=${personName}`, { state: 'visible', timeout: 30000 });
+      await this.page.waitForSelector(`text=${personName}`, { state: 'visible' });
       this.logger.info(`✓ Found "${personName}" on the page`);
     } catch (e) {
       this.logger.error(`❌ Timeout waiting for "${personName}" to appear after 30s`);
@@ -761,10 +756,10 @@ export class ROIPage {
       let feeValue: string | null = null;
       
       try {
-        feeValue = await this.page.locator(RoiSelectors.feeInput).inputValue({ timeout: 3000 });
+        feeValue = await this.page.locator(RoiSelectors.feeInput).inputValue();
       } catch (e) {
         try {
-          feeValue = await this.page.getByLabel(/fee/i).inputValue({ timeout: 3000 });
+          feeValue = await this.page.getByLabel(/fee/i).inputValue();
         } catch (e2) {
           feeValue = await this.page.locator('input[type="number"]').first().inputValue();
         }
@@ -796,10 +791,10 @@ export class ROIPage {
       let certValue: string | null = null;
       
       try {
-        certValue = await this.page.locator(RoiSelectors.certificateNumberInput).inputValue({ timeout: 3000 });
+        certValue = await this.page.locator(RoiSelectors.certificateNumberInput).inputValue();
       } catch (e) {
         try {
-          certValue = await this.page.getByLabel(/certificate/i).inputValue({ timeout: 3000 });
+          certValue = await this.page.getByLabel(/certificate/i).inputValue();
         } catch (e2) {
           // Find text input that contains certificate value
           const inputs = await this.page.locator('input[type="text"]').all();
@@ -840,7 +835,7 @@ export class ROIPage {
     
     // Find the person heading (h2) that contains the name, then navigate up to the card
     const personHeading = this.page.locator(`h2:has-text("${personName}")`).first();
-    await personHeading.waitFor({ state: 'visible', timeout: 10000 });
+    await personHeading.waitFor({ state: 'visible' });
     this.logger.info(`Found person heading for "${personName}"`);
     
     // Navigate up to the holder card container using xpath ancestor
@@ -854,13 +849,13 @@ export class ROIPage {
     
     // Click "REMOVE ONLY" button (appears after expansion)
     const removeOnlyBtn = targetCard.getByRole('button', { name: 'REMOVE ONLY' });
-    await removeOnlyBtn.waitFor({ state: 'visible', timeout: 5000 });
+    await removeOnlyBtn.waitFor({ state: 'visible' });
     await removeOnlyBtn.click();
     this.logger.info('Clicked REMOVE ONLY button');
     
     // Click "REMOVE" in the confirmation dialog
     const dialog = this.page.getByRole('dialog');
-    await dialog.waitFor({ state: 'visible', timeout: 5000 });
+    await dialog.waitFor({ state: 'visible' });
     const confirmBtn = dialog.getByRole('button', { name: 'remove' });
     await confirmBtn.click();
     this.logger.info('Clicked REMOVE in confirmation dialog');
@@ -920,7 +915,7 @@ export class ROIPage {
 
     // Find the applicant card directly by its exact data-testid
     const applicantCard = this.page.locator('[data-testid="roi-form-div-info-card"]');
-    await applicantCard.waitFor({ state: 'visible', timeout: 10000 });
+    await applicantCard.waitFor({ state: 'visible' });
     this.logger.info(`Found applicant card for "${personName}"`);
 
     // Click "REMOVE & REPLACE" button within the applicant card
@@ -931,13 +926,13 @@ export class ROIPage {
 
     // Click "REMOVE ONLY" button (appears after expansion)
     const removeOnlyBtn = applicantCard.getByRole('button', { name: 'REMOVE ONLY' });
-    await removeOnlyBtn.waitFor({ state: 'visible', timeout: 5000 });
+    await removeOnlyBtn.waitFor({ state: 'visible' });
     await removeOnlyBtn.click();
     this.logger.info('Clicked REMOVE ONLY button');
 
     // Click "REMOVE" in the confirmation dialog
     const dialog = this.page.getByRole('dialog');
-    await dialog.waitFor({ state: 'visible', timeout: 5000 });
+    await dialog.waitFor({ state: 'visible' });
     const confirmBtn = dialog.getByRole('button', { name: 'remove' });
     await confirmBtn.click();
     this.logger.info('Clicked REMOVE in confirmation dialog');
@@ -996,7 +991,7 @@ export class ROIPage {
     // Certificate number is displayed as "Certificate number :XXX" in ROI tab
     const certElement = this.page.locator('text=/Certificate number/').first();
     try {
-      await certElement.waitFor({ state: 'visible', timeout: 5000 });
+      await certElement.waitFor({ state: 'visible' });
       const parentText = await certElement.locator('..').textContent();
       // Extract: "Certificate number :CERT-TEST-004" -> "CERT-TEST-004"
       const match = parentText?.match(/Certificate number\s*:\s*(.+)/);

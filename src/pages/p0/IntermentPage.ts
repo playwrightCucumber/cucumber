@@ -40,30 +40,30 @@ export class IntermentPage {
     
     // Wait for button to be visible and clickable
     const button = this.page.locator(IntermentSelectors.addIntermentButton);
-    await button.waitFor({ state: 'visible', timeout: 15000 });
+    await button.waitFor({ state: 'visible' });
     
     this.logger.info('Add Interment button found, clicking...');
+    
+    // Setup navigation listener BEFORE clicking (waitForURL must be set up first)
+    const navigationPromise = this.page.waitForURL('**/manage/add/interment', { timeout: 30000 }).catch(() => null);
     await button.click();
     
-    // Wait for navigation - try multiple patterns
-    try {
-      await this.page.waitForURL('**/manage/add/interment', { timeout: 15000 });
+    const navigated = await navigationPromise;
+    const currentUrl = this.page.url();
+    
+    if (currentUrl.includes('/manage/add/interment')) {
       this.logger.info('✓ Navigated to Add Interment form');
-    } catch (e) {
-      // Log current URL if navigation fails
-      const currentUrl = this.page.url();
-      this.logger.info(`Current URL after click: ${currentUrl}`);
-      
-      // Check if we're on any manage page
-      if (currentUrl.includes('/manage/')) {
-        this.logger.info('On a manage page, proceeding...');
-      } else {
-        throw new Error(`Failed to navigate to Add Interment form. Current URL: ${currentUrl}`);
-      }
+    } else {
+      this.logger.info(`URL after first click: ${currentUrl}`);
+      // Retry click - button may need a second click or the first was intercepted
+      this.logger.info('Retrying Add Interment button click...');
+      await button.click();
+      await this.page.waitForURL('**/manage/add/interment', { timeout: 30000 });
+      this.logger.info('✓ Navigated to Add Interment form after retry');
     }
     
     // Wait for form to be visible
-    await this.page.getByLabel('First name').first().waitFor({ state: 'visible', timeout: 15000 });
+    await this.page.getByLabel('First name').first().waitFor({ state: 'visible' });
     this.logger.success('Add Interment form loaded');
   }
 
@@ -76,7 +76,7 @@ export class IntermentPage {
 
     // Wait for form fields to be visible
     const firstNameField = this.page.getByLabel('First name').first();
-    await firstNameField.waitFor({ state: 'visible', timeout: 10000 });
+    await firstNameField.waitFor({ state: 'visible' });
     
     // Fill Deceased Person section - required fields
     this.logger.info(`Filling first name: ${data.firstName}`);
@@ -85,7 +85,7 @@ export class IntermentPage {
 
     this.logger.info(`Filling last name: ${data.lastName}`);
     const lastNameField = this.page.getByLabel('Last name').first();
-    await lastNameField.waitFor({ state: 'visible', timeout: 10000 });
+    await lastNameField.waitFor({ state: 'visible' });
     await lastNameField.click();
     await lastNameField.fill(data.lastName);
 
@@ -158,11 +158,11 @@ export class IntermentPage {
     
     // Select option
     const typeOption = this.page.getByRole('option', { name: type });
-    await typeOption.waitFor({ state: 'visible', timeout: 5000 });
+    await typeOption.waitFor({ state: 'visible' });
     await typeOption.click();
     
     // Wait for dropdown to close
-    await typeOption.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+    await typeOption.waitFor({ state: 'hidden' }).catch(() => {});
     
     this.logger.success(`Interment type ${type} selected`);
   }
@@ -177,7 +177,7 @@ export class IntermentPage {
     await this.page.click(IntermentSelectors.saveButton);
     
     // Wait for redirect back to plot detail page (longer timeout for production)
-    await this.page.waitForURL('**/plots/**', { timeout: 30000 });
+    await this.page.waitForURL('**/plots/**');
     await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 5000 });
     
     this.logger.success('Interment saved and redirected to plot detail');
@@ -191,17 +191,17 @@ export class IntermentPage {
     
     // Wait for tab to be visible first
     const intermentsTab = this.page.getByRole('tab', { name: /INTERMENTS/i });
-    await intermentsTab.waitFor({ state: 'visible', timeout: 10000 });
+    await intermentsTab.waitFor({ state: 'visible' });
     
     // Click the tab
     await intermentsTab.click();
     this.logger.info('INTERMENTS tab clicked, waiting for content to load...');
     
     // Wait for tab to be selected
-    await expect(intermentsTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 }).catch(async () => {
+    await expect(intermentsTab).toHaveAttribute('aria-selected', 'true').catch(async () => {
       this.logger.info('Retrying tab click...');
       await intermentsTab.click();
-      await expect(intermentsTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 }).catch(() => {});
+      await expect(intermentsTab).toHaveAttribute('aria-selected', 'true').catch(() => {});
     });
     
     // Wait for content to stabilize
@@ -231,7 +231,7 @@ export class IntermentPage {
     
     // Verify deceased name appears as heading
     const deceasedHeading = this.page.locator(IntermentSelectors.deceasedNameHeading(fullName));
-    await expect(deceasedHeading).toBeVisible({ timeout: 20000 });
+    await expect(deceasedHeading).toBeVisible();
     
     this.logger.success(`Deceased "${fullName}" found in INTERMENTS tab`);
   }
@@ -244,7 +244,7 @@ export class IntermentPage {
     this.logger.info(`Verifying interment type: ${intermentType}`);
     
     const typeLabel = this.page.locator(IntermentSelectors.intermentTypeLabel(intermentType));
-    await expect(typeLabel).toBeVisible({ timeout: 5000 });
+    await expect(typeLabel).toBeVisible();
     
     this.logger.success(`Interment type ${intermentType} verified`);
   }
@@ -278,26 +278,26 @@ export class IntermentPage {
     this.logger.info('Clicking INTERMENTS tab');
 
     // Wait for page to be ready - ensure tablist is loaded
-    await this.page.waitForSelector('[role="tablist"]', { state: 'visible', timeout: 10000 });
+    await this.page.waitForSelector('[role="tablist"]', { state: 'visible' });
 
     // Wait for tab to be visible first
     const intermentsTab = this.page.getByRole('tab', { name: /INTERMENTS/i });
-    await intermentsTab.waitFor({ state: 'visible', timeout: 10000 });
+    await intermentsTab.waitFor({ state: 'visible' });
 
     // Click the tab
     await intermentsTab.click();
     this.logger.info('INTERMENTS tab clicked, waiting for content to load...');
 
     // Wait for tab to be selected
-    await expect(intermentsTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 }).catch(async () => {
+    await expect(intermentsTab).toHaveAttribute('aria-selected', 'true').catch(async () => {
       this.logger.info('Retrying tab click...');
       await intermentsTab.click();
-      await expect(intermentsTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 }).catch(() => {});
+      await expect(intermentsTab).toHaveAttribute('aria-selected', 'true').catch(() => {});
     });
 
     // Wait for content to stabilize - wait for network to be idle
     try {
-      await this.page.waitForLoadState('networkidle', { timeout: 5000 });
+      await this.page.waitForLoadState('networkidle');
     } catch {
       // Network idle timeout is ok, continue
       this.logger.info('Network idle timeout, continuing...');
@@ -317,14 +317,14 @@ export class IntermentPage {
     
     // Wait for button to be visible and enabled
     const editButton = this.page.getByTestId('interment-item-button-edit-interment');
-    await editButton.waitFor({ state: 'visible', timeout: 15000 });
+    await editButton.waitFor({ state: 'visible' });
     
     this.logger.info('Edit button found, clicking...');
     await editButton.click();
     
     // Wait for edit form to load
     try {
-      await this.page.waitForURL('**/manage/edit/interment/**', { timeout: 15000 });
+      await this.page.waitForURL('**/manage/edit/interment/**');
       this.logger.info('✓ Navigated to Edit Interment form');
     } catch (e) {
       const currentUrl = this.page.url();
@@ -354,7 +354,7 @@ export class IntermentPage {
     
     try {
       // Check if expand button is visible (timeout quickly if not found)
-      const isVisible = await expandButton.isVisible({ timeout: 3000 });
+      const isVisible = await expandButton.isVisible();
       
       if (isVisible) {
         this.logger.info('Multiple interments detected, expanding list...');
@@ -387,7 +387,7 @@ export class IntermentPage {
     this.logger.info('Looking for "Deceased person" button...');
     try {
       const deceasedPersonButton = this.page.getByRole('button', { name: 'Deceased person' });
-      const isVisible = await deceasedPersonButton.isVisible({ timeout: 5000 });
+      const isVisible = await deceasedPersonButton.isVisible();
       this.logger.info(`"Deceased person" button visible: ${isVisible}`);
 
       // Log all buttons on page for debugging
@@ -397,7 +397,7 @@ export class IntermentPage {
       await deceasedPersonButton.click();
       this.logger.success('Clicked "Deceased person" button');
       // Wait for form fields to appear
-      await this.page.getByLabel('First name').first().waitFor({ state: 'visible', timeout: 10000 });
+      await this.page.getByLabel('First name').first().waitFor({ state: 'visible' });
     } catch (e) {
       this.logger.error(`Failed to click "Deceased person" button: ${e}`);
       throw e;
@@ -408,7 +408,7 @@ export class IntermentPage {
       this.logger.info(`Updating first name to: ${data.firstName}`);
       try {
         const firstNameField = this.page.getByLabel('First name').first();
-        await firstNameField.waitFor({ state: 'visible', timeout: 5000 });
+        await firstNameField.waitFor({ state: 'visible' });
         this.logger.info('First name field found and visible');
 
         await firstNameField.click();
@@ -430,7 +430,7 @@ export class IntermentPage {
       this.logger.info(`Updating last name to: ${data.lastName}`);
       try {
         const lastNameField = this.page.getByLabel('Last name').first();
-        await lastNameField.waitFor({ state: 'visible', timeout: 5000 });
+        await lastNameField.waitFor({ state: 'visible' });
         this.logger.info('Last name field found and visible');
 
         await lastNameField.click();
@@ -475,13 +475,13 @@ export class IntermentPage {
       this.logger.info('Looking for "Interment details" button...');
       try {
         const intermentDetailsButton = this.page.getByRole('button', { name: 'Interment details' });
-        const isVisible = await intermentDetailsButton.isVisible({ timeout: 5000 });
+        const isVisible = await intermentDetailsButton.isVisible();
         this.logger.info(`"Interment details" button visible: ${isVisible}`);
 
         await intermentDetailsButton.click();
         this.logger.success('Clicked "Interment details" button');
         // Wait for interment type dropdown to be visible
-        await this.page.getByLabel('Interment type').waitFor({ state: 'visible', timeout: 10000 });
+        await this.page.getByLabel('Interment type').waitFor({ state: 'visible' });
 
         this.logger.info(`Updating interment type to: ${data.intermentType}`);
         await this.selectIntermentType(data.intermentType);
