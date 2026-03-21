@@ -58,45 +58,63 @@ export class RequestSalesFormPage {
    * Dynamically find the first available "For Sale" plot and return its name
    * This method does NOT rely on hardcoded plot names - it finds any available plot
    * Returns the plot name that has the Request to Buy button
+   *
+   * Fix: Snapshot all "For Sale" plot IDs from DOM first, then navigate directly
+   * to each plot URL. This avoids stale locator issues after goBack() which can
+   * cause section to collapse and invalidate the locator.
    */
   async findPlotWithPurchaseOption(): Promise<string> {
     this.logger.info('Dynamically searching for any available "For Sale" plot');
 
-    // Wait for the plot list to be visible after section expansion
-    await this.page.locator('text=/[A-Z]\\s+[A-Z]\\s+\\d+/i').first().waitFor({ state: 'visible' }).catch(() => {});
+    // Wait for the plot list DOM to be ready using stable data-testid selector
+    const plotIdSpan = this.page.locator('[data-testid*="sell-plots-cdk-tree-node-span-plot-id"]').first();
+    await plotIdSpan.waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
 
-    // Find all plots with "For Sale" status in the expanded section
-    // Pattern matches: "X X N For Sale" where X is letter and N is number
-    const forSalePlots = this.page.locator('text=/[A-Z]\\s+[A-Z]\\s+\\d+\\s+For Sale/i');
-    const plotCount = await forSalePlots.count();
+    // Snapshot all "For Sale" plot IDs at once from the DOM.
+    // Using data-testid selectors to avoid fragile text regex on Angular CDK tree nodes.
+    // li.plot is the container, span[data-testid*=plot-id] has the plot name.
+    const forSalePlotIds: string[] = await this.page.evaluate(() => {
+      const plotItems = document.querySelectorAll('li.plot');
+      const ids: string[] = [];
+      plotItems.forEach((li) => {
+        const statusSpan = li.querySelector('[data-testid*="span-for"]');
+        const idSpan = li.querySelector('[data-testid*="span-plot-id"]');
+        if (statusSpan && idSpan && statusSpan.textContent?.trim().toLowerCase().includes('for sale')) {
+          const plotId = idSpan.textContent?.trim();
+          if (plotId) ids.push(plotId);
+        }
+      });
+      return ids;
+    });
 
-    this.logger.info(`Found ${plotCount} plots with "For Sale" status`);
+    this.logger.info(`Found ${forSalePlotIds.length} plots with "For Sale" status`);
 
-    if (plotCount === 0) {
-      throw new Error('No plots with "For Sale" status found in expanded section. Make sure section is expanded and contains For Sale plots.');
+    if (forSalePlotIds.length === 0) {
+      throw new Error('No plots with "For Sale" status found. Make sure section is expanded and contains For Sale plots.');
     }
 
-    // Try each For Sale plot until we find one with Request to Buy button
-    for (let i = 0; i < Math.min(plotCount, 5); i++) { // Try up to 5 plots
-      const plotElement = forSalePlots.nth(i);
-      const fullText = await plotElement.textContent();
+    // Get cemetery slug from current URL for direct navigation
+    const currentUrl = this.page.url();
+    const cemeterySlugMatch = currentUrl.match(/map\.chronicle\.rip\/([^/]+)\//);
+    const cemeterySlug = cemeterySlugMatch ? cemeterySlugMatch[1] : '';
 
-      // Extract plot name from text like "B A 1 For Sale"
-      const plotName = fullText?.replace(/\s*For Sale.*/i, '').trim() || '';
-
-      this.logger.info(`Trying plot ${i + 1}/${plotCount}: "${plotName}"`);
+    // Try each plot by navigating directly to its URL (avoids stale locator after goBack)
+    for (let i = 0; i < Math.min(forSalePlotIds.length, 13); i++) {
+      const plotName = forSalePlotIds[i];
+      this.logger.info(`Trying plot ${i + 1}/${forSalePlotIds.length}: "${plotName}"`);
 
       try {
-        await plotElement.click();
+        // Navigate directly to plot detail page using URL (no goBack stale issue)
+        const encodedPlot = encodeURIComponent(plotName);
+        const plotUrl = cemeterySlug
+          ? `https://map.chronicle.rip/${cemeterySlug}/plots/${encodedPlot}`
+          : currentUrl.replace(/sell-plots.*/, `plots/${encodedPlot}`);
 
-        // Wait for navigation to plot details page
-        await this.page.waitForURL(/\/plots\//, { waitUntil: 'domcontentloaded' });
+        await this.page.goto(plotUrl, { waitUntil: 'domcontentloaded' });
 
         // Wait for plot details to load
         this.logger.info('Waiting for plot details to load (v1_customform_public_detail)...');
         await waitForEndpoint(this.page, 'v1_customform_public_detail', 200);
-
-        // Wait for URL to stabilize (app may add query params like from=map&zoom=21)
         await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 2000 });
 
         // Verify Request to Buy button exists
@@ -108,23 +126,10 @@ export class RequestSalesFormPage {
           return plotName;
         }
 
-        // Button not visible, go back and try next plot
         this.logger.info(`Plot "${plotName}" does not have Request to Buy button, trying next...`);
-        await this.page.goBack({ waitUntil: 'domcontentloaded' });
-        // Wait for sell plots page and plot list to restore
-        await this.page.waitForURL(/sell-plots/).catch(() => {});
-        await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
 
       } catch (error) {
-        this.logger.warn(`Error with plot "${plotName}": ${error}`);
-        // Try to go back in case we're on a different page
-        try {
-          await this.page.goBack({ waitUntil: 'domcontentloaded' });
-          await this.page.waitForURL(/sell-plots/).catch(() => {});
-          await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
-        } catch {
-          // Ignore navigation errors
-        }
+        this.logger.warn(`Error checking plot "${plotName}": ${error}`);
       }
     }
 

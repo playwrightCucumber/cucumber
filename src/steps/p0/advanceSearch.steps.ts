@@ -34,8 +34,40 @@ When('I click Advanced search button without login', async function () {
   await advancedButton.waitFor({ state: 'visible' });
   await advancedButton.click();
   await page.locator('.advanced-search-form').waitFor({ state: 'visible' });
-  // Wait for API requests (cemetery list) to complete after dialog opens
-  await NetworkHelper.waitForApiRequestsComplete(page, 5000);
+
+  // Wait for Angular to fully render the form including accessibility tree.
+  // Cemetery data is preloaded (no network call needed), but Angular CDK needs
+  // time to attach aria-labelledby references to the accessibility tree.
+  // We wait until the first mat-select inside the form has a valid accessible name.
+  const maxWaitMs = 15000;
+  const startTime = Date.now();
+  let cemeteryComboboxReady = false;
+
+  while (Date.now() - startTime < maxWaitMs) {
+    const accessible = await page.evaluate(() => {
+      const form = document.querySelector('.advanced-search-form');
+      if (!form) return null;
+      const select = form.querySelector('mat-select');
+      if (!select) return null;
+      const labelledBy = select.getAttribute('aria-labelledby');
+      if (!labelledBy) return null;
+      const labelId = labelledBy.split(' ')[0];
+      const labelEl = labelId ? document.getElementById(labelId) : null;
+      return labelEl?.textContent?.trim() || null;
+    });
+
+    if (accessible && accessible.includes('Cemeteries')) {
+      cemeteryComboboxReady = true;
+      logger.info(`Cemetery combobox accessible name ready: "${accessible}" (${Date.now() - startTime}ms)`);
+      break;
+    }
+    await page.waitForTimeout(300);
+  }
+
+  if (!cemeteryComboboxReady) {
+    logger.info('Cemetery combobox accessible name not ready after timeout, proceeding anyway...');
+  }
+
   logger.success('Advanced search dialog opened');
 });
 
@@ -44,22 +76,42 @@ When('I select cemetery {string} in advanced search', async function (cemeteryNa
   const cemetery = replacePlaceholders(cemeteryName);
   logger.info(`Selecting cemetery: ${cemetery}`);
 
-  const combobox = page.getByRole('combobox', { name: 'Cemeteries' });
+  // Use CSS selector via the form context instead of getByRole to avoid
+  // Angular dynamic ID timing issues with aria-labelledby accessibility tree.
+  // The cemetery mat-select is always the first mat-select inside .advanced-search-form.
+  const advancedSearchForm = page.locator('.advanced-search-form');
+  const cemeterySelectLocator = advancedSearchForm.locator('mat-select').first();
   const overlayOption = page.locator('.cdk-overlay-pane mat-option');
 
-  // Retry clicking combobox if dropdown opens empty (FE may not have rendered list yet)
+  // Wait until cemetery combobox is visible and interactable
+  await cemeterySelectLocator.waitFor({ state: 'visible', timeout: 15000 });
+
+  // Retry clicking combobox if dropdown opens empty.
+  // IMPORTANT: Do NOT press Escape here as it will close the entire dialog, not just the dropdown.
+  // Instead, click somewhere neutral inside the form to dismiss any partial open state.
   const maxRetries = 3;
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    await combobox.click();
+    await cemeterySelectLocator.click();
     try {
       // Wait for at least one option to render in the dropdown
       await overlayOption.first().waitFor({ state: 'visible', timeout: 5000 });
+      logger.info(`Cemetery dropdown options loaded on attempt ${attempt}`);
       break;
     } catch {
-      logger.info(`Cemetery list not rendered yet (attempt ${attempt}/${maxRetries}), closing and retrying...`);
-      await page.keyboard.press('Escape');
-      // Wait for FE to finish rendering before retrying
-      await NetworkHelper.waitForApiRequestsComplete(page, 3000);
+      logger.info(`Cemetery list not rendered yet (attempt ${attempt}/${maxRetries}), dismissing and retrying...`);
+      // Click the form header/title area to dismiss dropdown without closing the dialog
+      // Using body click outside overlay to close dropdown
+      await page.mouse.click(10, 10);
+      // Verify dialog is still open before retrying
+      const formStillOpen = await advancedSearchForm.isVisible().catch(() => false);
+      if (!formStillOpen) {
+        logger.info('Advanced search form was closed unexpectedly, reopening...');
+        const advancedButton = page.locator(AdvanceSearchSelectors.advancedSearchButton);
+        await advancedButton.click();
+        await advancedSearchForm.waitFor({ state: 'visible', timeout: 10000 });
+        await cemeterySelectLocator.waitFor({ state: 'visible', timeout: 10000 });
+      }
+      await page.waitForTimeout(1000);
     }
   }
 
