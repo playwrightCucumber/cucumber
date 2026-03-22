@@ -77,7 +77,8 @@ Feature: Interment Management
   # ─────────────────────────────────────────────────────────────────────────────
   # FLOW 3: Edit Interment via Plot Detail page
   #
-  # Entry: Select an occupied plot → INTERMENTS tab → Edit button
+  # Entry: Select an occupied plot → INTERMENTS tab → "Edit Interment" button
+  # URL pattern: /customer-organization/{org}/{plotId}/manage/edit/interment/{id}
   # ─────────────────────────────────────────────────────────────────────────────
 
   @edit-interment @smoke @p0
@@ -97,3 +98,37 @@ Feature: Interment Management
     And I save the Interment
     Then I should see deceased "<TEST_INTERMENT_EDIT_FIRSTNAME> <TEST_INTERMENT_EDIT_LASTNAME>" in the Interment tab
     And I should see interment type "<TEST_INTERMENT_EDIT_TYPE>"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # FLOW 4: Delete Interment via Edit Interment form
+  #
+  # Entry: Select occupied plot → INTERMENTS tab → Edit Interment → MORE → Delete
+  # The delete option is in the MORE menu inside the Edit Interment form.
+  # After deletion, plot status returns to Vacant.
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Note for Delete: We first ADD an interment to a vacant plot, then delete it.
+  # This ensures we're deleting the only interment → plot returns to VACANT.
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  @delete-interment @p0
+  Scenario: Add then Delete Interment and verify plot returns to vacant
+    When I navigate to all plots page
+    And I open the filter dialog
+    And I select vacant filter
+    And I apply the filter plot
+    And I expand the first section
+    And I select the first vacant plot
+    When I click Add Interment button from plot detail
+    And I fill interment form with following details
+      | firstName     | <TEST_INTERMENT_FIRSTNAME> |
+      | lastName      | <TEST_INTERMENT_LASTNAME>  |
+      | intermentType | <TEST_INTERMENT_TYPE>      |
+    And I save the Interment
+    When I click Edit Interment button
+    And I click More menu on interment form
+    And I click Delete interment option
+    And I confirm delete interment
+    Then I should be navigated back to the plot detail page
+    And the plot status should be "VACANT"

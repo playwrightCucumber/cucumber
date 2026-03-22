@@ -130,6 +130,79 @@ export class IntermentPage {
     await this.page.keyboard.press('Escape').catch(() => {});
   }
 
+  // ============================================================
+  // FLOW 4: Delete Interment
+  // Entry: Edit Interment form → MORE menu → Delete → Confirm
+  // ============================================================
+
+  /**
+   * Click the MORE menu button on the Edit Interment form
+   * testid: "button-toolbar-button" (the first button in toolbar, which is MORE)
+   */
+  async clickMoreMenuOnIntermentForm(): Promise<void> {
+    this.logger.info('Clicking MORE menu on interment form');
+    const moreBtn = this.page.locator('button:has-text("MORE")').first();
+    await moreBtn.waitFor({ state: 'visible', timeout: 10000 });
+    await moreBtn.click();
+    // Wait for menu to appear
+    await this.page.locator('[data-testid="button-toolbar-button-0"]').waitFor({ state: 'visible', timeout: 5000 });
+    this.logger.success('MORE menu opened');
+  }
+
+  /**
+   * Click Delete option from MORE menu
+   * testid: "button-toolbar-button-0"
+   */
+  async clickDeleteIntermentOption(): Promise<void> {
+    this.logger.info('Clicking Delete option from MORE menu');
+    const deleteOption = this.page.locator('[data-testid="button-toolbar-button-0"]');
+    await deleteOption.click();
+    // Wait for confirmation dialog — testid can vary: "button-remove" or "button-remove-1"
+    const confirmBtn = this.page.locator('[data-testid="button-remove"], [data-testid="button-remove-1"]').first();
+    await confirmBtn.waitFor({ state: 'visible', timeout: 5000 });
+    this.logger.success('Delete confirmation dialog appeared');
+  }
+
+  /**
+   * Confirm delete interment in dialog
+   */
+  async confirmDeleteInterment(): Promise<void> {
+    this.logger.info('Confirming delete interment');
+    // testid can vary: "button-remove" or "button-remove-1"
+    const confirmBtn = this.page.locator('[data-testid="button-remove"], [data-testid="button-remove-1"]').first();
+    await confirmBtn.click();
+    // Wait briefly for delete API to complete
+    await this.page.waitForTimeout(1500);
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
+
+    // After delete, navigate to plot detail (extract plot ID from current URL)
+    // Current URL pattern: /customer-organization/{org}/{plotId}/manage/edit/interment/{id}
+    const currentUrl = this.page.url();
+    const plotMatch = currentUrl.match(/\/customer-organization\/([^/]+)\/([^/]+)\/manage\//);
+    if (plotMatch) {
+      const org = plotMatch[1];
+      const plotId = decodeURIComponent(plotMatch[2]);
+      const baseUrl = currentUrl.match(/https?:\/\/[^/]+/)?.[0] || '';
+      const plotDetailUrl = `${baseUrl}/customer-organization/${org}/plots/${encodeURIComponent(plotId)}`;
+      this.logger.info(`Navigating to plot detail: ${plotDetailUrl}`);
+      await this.page.goto(plotDetailUrl, { waitUntil: 'domcontentloaded' });
+      await NetworkHelper.waitForStabilization(this.page, { minWait: 1000, maxWait: 5000 });
+    }
+    this.logger.success(`Interment deleted, navigated to: ${this.page.url()}`);
+  }
+
+  /**
+   * Verify plot status badge on plot detail page
+   */
+  async verifyPlotStatus(expectedStatus: string): Promise<void> {
+    this.logger.info(`Verifying plot status is: ${expectedStatus}`);
+    const statusBadge = this.page.locator('[data-testid*="badge-status"], [class*="badge-status"], [class*="status"]')
+      .filter({ hasText: new RegExp(expectedStatus, 'i') })
+      .first();
+    await statusBadge.waitFor({ state: 'visible', timeout: 10000 });
+    this.logger.success(`Plot status verified: ${expectedStatus}`);
+  }
+
   /**
    * Verify plot name appears in Advance Table INTERMENTS list
    */

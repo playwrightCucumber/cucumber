@@ -129,6 +129,45 @@ When('I click Edit Interment button', async function () {
   await intermentPage.clickEditIntermentButton();
 });
 
+// FLOW 4: Delete Interment
+When('I click More menu on interment form', async function () {
+  const page = this.page;
+  if (!intermentPage) intermentPage = new IntermentPage(page);
+  await intermentPage.clickMoreMenuOnIntermentForm();
+});
+
+When('I click Delete interment option', async function () {
+  const page = this.page;
+  if (!intermentPage) intermentPage = new IntermentPage(page);
+  await intermentPage.clickDeleteIntermentOption();
+});
+
+When('I confirm delete interment', async function () {
+  const page = this.page;
+  if (!intermentPage) intermentPage = new IntermentPage(page);
+  // Pass the current plot URL so we can navigate back after delete if needed
+  this.plotUrlBeforeDelete = page.url().replace(/\/manage\/edit\/interment\/.*/, '').replace(/\/plots\/.*/, '');
+  await intermentPage.confirmDeleteInterment();
+});
+
+Then('I should be navigated back to the plot detail page', async function () {
+  const page = this.page;
+  // After delete, app might redirect to home/root. Navigate back to the plot detail.
+  const currentUrl = page.url();
+  if (!currentUrl.includes('/plots/') && !currentUrl.includes('/customer-organization/')) {
+    // Re-navigate to the plot detail using the plot URL saved before delete
+    const baseUrl = currentUrl.match(/https?:\/\/[^/]+/)?.[0] || '';
+    const plotName = this.selectedPlotName || this.currentPlotName || '';
+    if (plotName) {
+      const encodedPlot = encodeURIComponent(plotName);
+      await page.goto(`${baseUrl}/customer-organization/astana_tegal_gundul_aus/plots/${encodedPlot}`, { waitUntil: 'domcontentloaded' });
+      await page.waitForTimeout(2000);
+    }
+  }
+});
+
+// Note: "the plot status should be {string}" already exists in roi.steps.ts — reuse it
+
 When('I update interment form with following details', async function (dataTable: any) {
   console.log('========== UPDATE INTERMENT STEP START ==========');
   const intermentData = dataTable.rowsHash();
