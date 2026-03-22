@@ -1,14 +1,78 @@
 import { When, Then } from '@cucumber/cucumber';
 import { IntermentPage } from '../../pages/p0/IntermentPage.js';
 import { replacePlaceholdersInObject, replacePlaceholders } from '../../utils/TestDataHelper.js';
+import { NetworkHelper } from '../../utils/NetworkHelper.js';
 
 // Initialize page object - Reset for each scenario
 let intermentPage: IntermentPage;
 
+// FLOW 1: Add interment from plot detail page
+// Used in: "Add Interment from plot detail page" scenario
+When('I click Add Interment button from plot detail', async function () {
+  const page = this.page;
+  intermentPage = new IntermentPage(page);
+  await intermentPage.clickAddIntermentButton();
+});
+
+// Backward compatibility alias (keep existing step working)
 When('I click Add Interment button', async function () {
   const page = this.page;
   intermentPage = new IntermentPage(page);
   await intermentPage.clickAddIntermentButton();
+});
+
+// FLOW 1 (Table): Steps for Add Interment via Advance Table → INTERMENTS tab
+// Reuses shared steps from roiTable.steps.ts:
+//   - "I click the sidebar table menu"
+//   - "I filter plots by status {string} in Plots tab"
+//   - "I get the first plot name from the filtered table"
+
+When('I click the Interments tab in advance table', async function () {
+  const page = this.page;
+  intermentPage = new IntermentPage(page);
+  // INTERMENTS tab testid: content-wrapper-a-1 (same pattern as ROIs = content-wrapper-a-2)
+  const tab = page.locator('a[data-testid="content-wrapper-a-1"]')
+    .or(page.locator('a.mat-tab-link:has-text("INTERMENTS")'));
+  await tab.waitFor({ state: 'visible', timeout: 10000 });
+  await tab.click();
+  await page.waitForURL(/tab=interment/i, { timeout: 10000 }).catch(() => {});
+  await NetworkHelper.waitForApiRequestsComplete(page, 10000);
+});
+
+When('I click Add Interments button from advance table', async function () {
+  const page = this.page;
+  if (!intermentPage) intermentPage = new IntermentPage(page);
+  await intermentPage.clickAddIntermentFromTable();
+});
+
+Then('I should see the Add Interment form', async function () {
+  const page = this.page;
+  await page.getByLabel('First name').first().waitFor({ state: 'visible', timeout: 15000 });
+});
+
+When('I search and select the saved vacant plot for Interment', async function () {
+  const page = this.page;
+  if (!this.vacantPlotName) {
+    throw new Error('No vacant plot name saved. Run "I get the first plot name from the filtered table" first.');
+  }
+  if (!intermentPage) intermentPage = new IntermentPage(page);
+  await intermentPage.selectPlotInIntermentForm(this.vacantPlotName);
+});
+
+When('I save the Interment from table', async function () {
+  const page = this.page;
+  if (!intermentPage) intermentPage = new IntermentPage(page);
+  await intermentPage.saveIntermentFromTable();
+});
+
+Then('I should be redirected to advance table interments list', async function () {
+  const page = this.page;
+  // After successful save, page should be on advance-table?tab=interments
+  await page.waitForURL(/advance-table/, { timeout: 15000 });
+  const url = page.url();
+  if (!url.includes('advance-table')) {
+    throw new Error(`Expected to be on advance-table page, but got: ${url}`);
+  }
 });
 
 When('I fill interment form with following details', async function (dataTable: any) {

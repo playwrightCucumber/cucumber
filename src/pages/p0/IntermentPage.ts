@@ -32,6 +32,122 @@ export class IntermentPage {
     this.logger = new Logger('IntermentPage');
   }
 
+  // ============================================================
+  // FLOW 2: Add Interment via Advance Table (Tables → INTERMENTS tab)
+  // Entry: Tables → INTERMENTS tab → "+ ADD INTERMENTS" button
+  // URL: /customer-organization/advance-table/manage/add/interment-table/{id}
+  // ============================================================
+
+  /**
+   * Navigate to Advance Table and switch to INTERMENTS tab
+   */
+  async navigateToAdvanceTableInterments(): Promise<void> {
+    this.logger.info('Navigating to Advance Table INTERMENTS tab');
+    // Extract base URL (e.g. https://aus.chronicle.rip) from current URL
+    const baseUrl = this.page.url().match(/https?:\/\/[^/]+/)?.[0] || '';
+    await this.page.goto(`${baseUrl}/customer-organization/advance-table?tab=interments`, { waitUntil: 'domcontentloaded' });
+    await this.page.waitForSelector('[data-testid="content-wrapper-button-add-plot"]', { state: 'visible', timeout: 15000 });
+    this.logger.success('On Advance Table INTERMENTS tab');
+  }
+
+  /**
+   * Click "+ ADD INTERMENTS" button from Advance Table INTERMENTS tab
+   */
+  async clickAddIntermentFromTable(): Promise<void> {
+    this.logger.info('Clicking ADD INTERMENTS button from Advance Table');
+    const addBtn = this.page.locator('[data-testid="content-wrapper-button-add-plot"]');
+    await addBtn.waitFor({ state: 'visible', timeout: 10000 });
+    await addBtn.click();
+    // Wait for the Add Interment form (different URL pattern from plot detail flow)
+    await this.page.waitForURL('**/manage/add/interment-table/**', { timeout: 15000 });
+    await this.page.getByLabel('First name').first().waitFor({ state: 'visible', timeout: 10000 });
+    this.logger.success('Add Interment form loaded (from Advance Table)');
+  }
+
+  /**
+   * Search and select a specific plot in the Add Interment form (Advance Table flow)
+   * Uses the same search combobox pattern as ROI Table flow.
+   * @param plotName - Plot name previously saved (e.g. "B G 2")
+   */
+  async selectPlotInIntermentForm(plotName: string): Promise<void> {
+    this.logger.info(`Selecting plot "${plotName}" in interment form`);
+
+    // The form has a plot search combobox with aria-label="Event Type"
+    // Use CSS selector directly to avoid Angular dynamic aria-labelledby timing issues
+    const plotCombobox = this.page.locator('mat-select[aria-label="Event Type"]').first();
+    await plotCombobox.waitFor({ state: 'visible', timeout: 10000 });
+
+    // Open the plot dropdown — try click then wait for search input.
+    // In headless mode there can be a render delay before .mat-select-panel appears.
+    // Strategy: click → wait up to 1s for search input → if not visible, try Space key.
+    await plotCombobox.click();
+
+    const searchInput = this.page.locator('[data-testid="input-start-typing-to-search"], [data-testid="input-start-typing-to-search-0"]').first();
+
+    // Try waiting for search input; if it doesn't appear, use keyboard to open
+    const inputVisible = await searchInput.isVisible().catch(() => false);
+    if (!inputVisible) {
+      await this.page.waitForTimeout(600);
+      const stillNotVisible = !(await searchInput.isVisible().catch(() => false));
+      if (stillNotVisible) {
+        this.logger.info('Search input not visible after click, using Space key to open dropdown...');
+        await plotCombobox.press('Space');
+        await this.page.waitForTimeout(600);
+      }
+    }
+
+    await searchInput.waitFor({ state: 'visible', timeout: 10000 });
+
+    // Type plot name, then delete last char & retype to ensure Angular CDK triggers filtering.
+    // This double-input trick forces Angular's change detection to re-evaluate the search.
+    await searchInput.clear();
+    await searchInput.type(plotName, { delay: 80 });
+    await this.page.waitForTimeout(300);
+    // Delete last character then retype it
+    await searchInput.press('Backspace');
+    await this.page.waitForTimeout(200);
+    await searchInput.type(plotName.slice(-1), { delay: 80 });
+    await this.page.waitForTimeout(500);
+
+    // Select matching option with exact match to avoid strict mode violations
+    // (e.g. "B G 1" would also match "B G 10", "B G 11" etc. without exact: true)
+    const plotOption = this.page.getByRole('option', { name: plotName, exact: true });
+    await plotOption.waitFor({ state: 'visible', timeout: 10000 });
+    await plotOption.click();
+
+    await NetworkHelper.waitForAnimation(this.page);
+    this.logger.success(`Plot "${plotName}" selected in interment form`);
+  }
+
+  /**
+   * @deprecated Use selectPlotInIntermentForm(plotName) instead
+   */
+  async selectVacantPlotInIntermentForm(): Promise<void> {
+    this.logger.info('Selecting a vacant plot in interment form (deprecated method)');
+    const options = this.page.locator('.cdk-overlay-pane mat-option');
+    await options.first().waitFor({ state: 'visible', timeout: 10000 });
+    await options.first().click();
+    await this.page.keyboard.press('Escape').catch(() => {});
+  }
+
+  /**
+   * Save interment from Advance Table flow — redirect goes back to advance-table
+   */
+  async saveIntermentFromTable(): Promise<void> {
+    this.logger.info('Saving interment from Advance Table');
+    await this.page.click(IntermentSelectors.saveButton);
+    // After save from table, redirects back to advance-table
+    await this.page.waitForURL(/advance-table/, { timeout: 30000 });
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 5000 });
+    this.logger.success('Interment saved, redirected back to Advance Table');
+  }
+
+  // ============================================================
+  // FLOW 1: Add Interment via Plot Detail page
+  // Entry: Map → See all Plots → Filter Vacant → Select plot → "Add interment" button
+  // URL: /customer-organization/{org}/{plotId}/manage/add/interment
+  // ============================================================
+
   /**
    * Click Add Interment button from plot detail page
    */
@@ -173,14 +289,22 @@ export class IntermentPage {
   async saveInterment(): Promise<void> {
     this.logger.info('Saving interment');
     
+    const isFromTable = this.page.url().includes('interment-table');
+    
     // Click save button
     await this.page.click(IntermentSelectors.saveButton);
     
-    // Wait for redirect back to plot detail page (longer timeout for production)
-    await this.page.waitForURL('**/plots/**');
-    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 5000 });
+    if (isFromTable) {
+      // From Advance Table flow: redirect goes back to advance-table interments tab
+      await this.page.waitForURL('**/advance-table**', { timeout: 30000 });
+      this.logger.success('Interment saved and redirected to Advance Table');
+    } else {
+      // From Plot Detail flow: redirect goes back to plot detail page
+      await this.page.waitForURL('**/plots/**', { timeout: 30000 });
+      this.logger.success('Interment saved and redirected to plot detail');
+    }
     
-    this.logger.success('Interment saved and redirected to plot detail');
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 5000 });
   }
 
   /**
