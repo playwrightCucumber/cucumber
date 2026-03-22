@@ -39,6 +39,8 @@ Feature: Interment Management
       | intermentType | <TEST_INTERMENT_TYPE>      |
     And I save the Interment from table
     Then I should be redirected to advance table interments list
+    And I should see the saved plot name in the interments list
+    And I should see deceased first name "<TEST_INTERMENT_FIRSTNAME>" in the interments list
 
   # ─────────────────────────────────────────────────────────────────────────────
   # FLOW 2: Add Interment via Plot Detail page (from Map sidebar or Plots list)

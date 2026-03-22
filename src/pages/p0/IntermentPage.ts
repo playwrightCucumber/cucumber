@@ -131,6 +131,42 @@ export class IntermentPage {
   }
 
   /**
+   * Verify plot name appears in Advance Table INTERMENTS list
+   */
+  async verifyPlotInIntermentList(plotName: string): Promise<void> {
+    this.logger.info(`Verifying plot "${plotName}" in interments list`);
+    const plotCell = this.page.locator('[data-testid="content-wrapper-div-plot-id"]').filter({ hasText: plotName }).first();
+    await plotCell.waitFor({ state: 'visible', timeout: 10000 });
+    this.logger.success(`Plot "${plotName}" found in interments list`);
+  }
+
+  /**
+   * Verify deceased first name appears in Advance Table INTERMENTS list
+   */
+  async verifyDeceasedFirstNameInList(firstName: string): Promise<void> {
+    this.logger.info(`Verifying first name "${firstName}" in interments list`);
+    // First name is in the 4th column (index 3): Plot ID, #, First Name, Last Name...
+    const rows = this.page.locator('[role="table"] [role="row"]');
+    const count = await rows.count();
+    let found = false;
+    for (let i = 1; i < Math.min(count, 5); i++) {
+      const cells = rows.nth(i).locator('[role="cell"]');
+      const firstNameCell = cells.nth(3); // 4th column = First Name
+      const text = await firstNameCell.textContent().catch(() => '');
+      if (text?.trim() === firstName) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      // Fallback: just check if name appears anywhere in the table
+      const nameInTable = this.page.locator('[role="table"]').getByText(firstName, { exact: true }).first();
+      await nameInTable.waitFor({ state: 'visible', timeout: 5000 });
+    }
+    this.logger.success(`First name "${firstName}" found in interments list`);
+  }
+
+  /**
    * Save interment from Advance Table flow — redirect goes back to advance-table
    */
   async saveIntermentFromTable(): Promise<void> {

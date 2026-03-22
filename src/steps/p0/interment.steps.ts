@@ -67,12 +67,27 @@ When('I save the Interment from table', async function () {
 
 Then('I should be redirected to advance table interments list', async function () {
   const page = this.page;
-  // After successful save, page should be on advance-table?tab=interments
   await page.waitForURL(/advance-table/, { timeout: 15000 });
   const url = page.url();
   if (!url.includes('advance-table')) {
     throw new Error(`Expected to be on advance-table page, but got: ${url}`);
   }
+  // Wait for interment table to load
+  await page.locator('[role="table"] [role="row"]').nth(1).waitFor({ state: 'visible', timeout: 15000 });
+});
+
+Then('I should see the saved plot name in the interments list', async function () {
+  const page = this.page;
+  if (!this.vacantPlotName) throw new Error('No vacantPlotName saved');
+  if (!intermentPage) intermentPage = new IntermentPage(page);
+  await intermentPage.verifyPlotInIntermentList(this.vacantPlotName);
+});
+
+Then('I should see deceased first name {string} in the interments list', async function (firstName: string) {
+  const page = this.page;
+  const actualName = replacePlaceholders(firstName);
+  if (!intermentPage) intermentPage = new IntermentPage(page);
+  await intermentPage.verifyDeceasedFirstNameInList(actualName);
 });
 
 When('I fill interment form with following details', async function (dataTable: any) {
