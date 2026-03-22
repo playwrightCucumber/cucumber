@@ -397,22 +397,24 @@ export class IntermentPage {
    */
   async saveInterment(): Promise<void> {
     this.logger.info('Saving interment');
-    
+
     const isFromTable = this.page.url().includes('interment-table');
-    
+
+    // Setup waitForURL BEFORE clicking (per CLAUDE.md: must be set up before action)
+    const urlPattern = isFromTable ? '**/advance-table**' : '**/plots/**';
+    const navigationPromise = this.page.waitForURL(urlPattern, { timeout: 30000 });
+
     // Click save button
     await this.page.click(IntermentSelectors.saveButton);
-    
+
     if (isFromTable) {
-      // From Advance Table flow: redirect goes back to advance-table interments tab
-      await this.page.waitForURL('**/advance-table**', { timeout: 30000 });
+      await navigationPromise;
       this.logger.success('Interment saved and redirected to Advance Table');
     } else {
-      // From Plot Detail flow: redirect goes back to plot detail page
-      await this.page.waitForURL('**/plots/**', { timeout: 30000 });
+      await navigationPromise;
       this.logger.success('Interment saved and redirected to plot detail');
     }
-    
+
     await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 5000 });
   }
 
