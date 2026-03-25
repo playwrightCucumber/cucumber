@@ -27,9 +27,9 @@ export const LoginSelectors = {
   // Error messages (snackbar appears in cdk-overlay-container after failed login)
   errorMessage: 'snack-bar-container.custom-snackbar-error [data-testid="login-snackbar-error-div-left"]',
 
-  // Success indicators (Dashboard after login)
+  // Success indicators (Dashboard after login) - dynamically built in page object
   organizationName: 'div:has-text("astana tegal gundul")',
-  userEmail: 'div:has-text("faris+astanaorg@chronicle.rip")',
+  userEmail: '', // Dynamic: built in LoginPage.getUserEmail() based on region
 
   // Login page elements
   loginPageTitle: 'h1:has-text("Login to your account"), h2:has-text("Login to your account")',

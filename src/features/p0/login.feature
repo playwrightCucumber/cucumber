@@ -6,7 +6,7 @@ Feature: Login to Chronicle
   Background:
     Given I am on the Chronicle login page
 
-  @p0x @login @smoke
+  @p0x @login-valid @smoke
   Scenario: Successful login with valid credentials
     When I enter email "<TEST_EMAIL>"
     And I enter password "<TEST_PASSWORD>"

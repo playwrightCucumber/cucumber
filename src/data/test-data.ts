@@ -150,12 +150,35 @@ export function getCustomerOrgUrl(path: string = '', region: string = BASE_CONFI
 export const CEMETERY = CEMETERY_CONFIG.displayName;
 
 // ============================================
-// LOGIN DATA
+// LOGIN DATA (per-region credentials)
 // ============================================
-export const LOGIN_DATA = {
-  valid: {
+const REGION_CREDENTIALS: Record<string, { email: string; password: string }> = {
+  aus: {
+    email: process.env.TEST_EMAIL_AUS || 'faris+astanaorg@chronicle.rip',
+    password: process.env.TEST_PASSWORD_AUS || '12345',
+  },
+  us: {
+    email: process.env.TEST_EMAIL_US || 'faris+astanaorgus@chronicle.rip',
+    password: process.env.TEST_PASSWORD_US || '12345',
+  },
+};
+
+function getRegionCredentials() {
+  const region = BASE_CONFIG.region;
+  // Fall back to env vars, then to AUS defaults
+  if (REGION_CREDENTIALS[region]) {
+    return REGION_CREDENTIALS[region];
+  }
+  return {
     email: process.env.TEST_EMAIL || process.env.CHRONICLE_EMAIL || 'faris+astanaorg@chronicle.rip',
     password: process.env.TEST_PASSWORD || process.env.CHRONICLE_PASSWORD || '12345',
+  };
+}
+
+export const LOGIN_DATA = {
+  valid: {
+    email: getRegionCredentials().email,
+    password: getRegionCredentials().password,
     organizationName: CEMETERY_CONFIG.organizationName // Use centralized org name
   },
   invalid: {

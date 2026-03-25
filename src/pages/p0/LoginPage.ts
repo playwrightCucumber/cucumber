@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test';
 import { Logger } from '../../utils/Logger.js';
-import { BASE_CONFIG } from '../../data/test-data.js';
+import { BASE_CONFIG, LOGIN_DATA } from '../../data/test-data.js';
 import { NetworkHelper } from '../../utils/NetworkHelper.js';
 import { LoginSelectors, LoginUrls } from '../../selectors/p0/login/index.js';
 
@@ -87,7 +87,9 @@ export class LoginPage {
 
   async getUserEmail(): Promise<string | null> {
     try {
-      const emailElement = this.page.locator(LoginSelectors.userEmail).first();
+      // Build selector dynamically based on current region's email
+      const email = LOGIN_DATA.valid.email;
+      const emailElement = this.page.locator(`div:has-text("${email}")`).first();
       if (await emailElement.isVisible()) {
         return await emailElement.textContent();
       }
