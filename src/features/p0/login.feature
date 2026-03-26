@@ -1,3 +1,5 @@
+@login @authenticated @p0
+
 Feature: Login to Chronicle
   As a cemetery organization user
   I want to login to Chronicle
@@ -6,7 +8,7 @@ Feature: Login to Chronicle
   Background:
     Given I am on the Chronicle login page
 
-  @p0x @login-valid @smoke
+  @login-valid @smoke
   Scenario: Successful login with valid credentials
     When I enter email "<TEST_EMAIL>"
     And I enter password "<TEST_PASSWORD>"
@@ -15,20 +17,20 @@ Feature: Login to Chronicle
     And I should see the organization name "<TEST_ORG_NAME>"
     And I should see my email "<TEST_EMAIL>"
 
-  @p0x @login @negative
+  @login-invalid @negative
   Scenario: Login with invalid credentials
     When I enter email "invalid@chronicle.rip"
     And I enter password "wrongpassword"
     And I click the login button
     Then I should see an error message
 
-  @p0x @login @negative
+  @login-empty-email @negative
   Scenario: Login with empty email
     When I enter password "<TEST_PASSWORD>"
     And I click the login button
     Then the login button should be disabled
 
-  @p0x @login @negative
+  @login-empty-password @negative
   Scenario: Login with empty password
     When I enter email "<TEST_EMAIL>"
     And I click the login button

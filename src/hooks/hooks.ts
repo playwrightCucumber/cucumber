@@ -1,7 +1,8 @@
-import { Before, After, BeforeAll, AfterAll, setDefaultTimeout } from '@cucumber/cucumber';
+import { Before, After, BeforeAll, AfterAll, BeforeStep, setDefaultTimeout } from '@cucumber/cucumber';
 import { BrowserManager } from '../core/BrowserManager.js';
 import { Logger } from '../utils/Logger.js';
 import { NetworkHelper } from '../utils/NetworkHelper.js';
+import { RequestThrottler } from '../utils/RequestThrottler.js';
 import { BASE_CONFIG } from '../data/test-data.js';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -40,6 +41,26 @@ Before(async function (scenario) {
   await browserManager.closeContext(); // Close previous context if exists
   this.page = await browserManager.createPage(scenario.pickle.name);
   this.scenarioName = scenario.pickle.name;
+
+  // Attach request throttler to prevent Sentry rate limiting
+  await RequestThrottler.attach(this.page);
+});
+
+/**
+ * BeforeStep — ensure previous step's network activity is fully settled
+ * before starting the next step. Prevents request spam / Sentry rate limiting.
+ */
+BeforeStep(async function () {
+  if (!this.page || this.page.isClosed()) return;
+
+  try {
+    // Wait for any in-flight API requests from the previous step to finish
+    await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
+    // Small stabilization gap so the server is not hammered
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 200, maxWait: 1000 });
+  } catch {
+    // Page may have navigated or closed — safe to ignore
+  }
 });
 
 After({ timeout: 30000 }, async function (scenario) {

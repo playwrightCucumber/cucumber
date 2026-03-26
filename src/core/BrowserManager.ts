@@ -28,9 +28,10 @@ export class BrowserManager {
   async initializeBrowser(scenarioName?: string): Promise<BrowserContext> {
     if (!this.browser) {
       const isHeadless = process.env.HEADLESS === 'true';
-      // Use higher slowMo in headless mode for better video recording quality
-      // In headless mode, actions happen too fast for video to capture properly
-      const slowMoValue = isHeadless ? 200 : 50;
+      // Higher slowMo prevents Sentry rate limiting & improves video quality
+      // Headless: 500ms ensures each action fully completes before the next
+      // Headed: 150ms balance between speed and stability
+      const slowMoValue = isHeadless ? 500 : 150;
 
       this.browser = await chromium.launch({
         headless: isHeadless,
