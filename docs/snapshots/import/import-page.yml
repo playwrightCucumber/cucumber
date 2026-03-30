@@ -1,0 +1,49 @@
+# Import Page Snapshot
+# URL: https://aus.chronicle.rip/chronicle-admin/astana_tegal_gundul_aus/import-data
+# Account: support@chronicle.rip (support admin)
+# Date: 2026-03-27
+
+## Page Elements
+
+### Header
+- h1: "Import data"
+- button: "Back to the Cemetery"
+- link: "Download Import Template"
+- button: "Import" (disabled - no file uploaded)
+- button: "Wipe data"
+
+### Data Categories (with counts)
+| Category   | Count | File Type |
+|------------|-------|-----------|
+| Sections   | 2     | .geojson  |
+| Plots      | 185   | .geojson  |
+| Plots      | 211   | .csv      |
+| Persons    | 303   | .csv      |
+| ROIs       | 93    | .csv      |
+| Interments | 49    | .csv      |
+| Stories    | 20    | .csv      |
+| Events     | 2     | .csv      |
+| LOT        | 3     | .geojson  |
+| Notes      | 147   | .csv      |
+| Invoices   | 88    | .csv      |
+
+### Drop Zones
+- "Drag here to import .geojson" (for Sections, Plots, LOT)
+- "Drag here to import .csv" (for Plots, Persons, ROIs, Interments, Stories, Events, Notes, Invoices)
+
+## Navigation Flow
+1. Login (support@chronicle.rip)
+2. Select AUS Server
+3. Search cemetery in sidebar
+4. Click cemetery card
+5. Click "More" button (three dots) in cemetery admin page
+6. Click "Import" from dropdown menu
+7. URL changes to: .../chronicle-admin/{cemetery_slug}/import-data
+
+## Key Selectors
+- Import button: `button:has-text("Import")`
+- Back button: `button:has-text("Back to the Cemetery")`
+- More menu: `button[aria-label="More options"]`
+- Import menu item: `menuitem` with text "Import"
+- Page title: `h1:has-text("Import data")`
+- Category count: `h3:has-text("CategoryName") + h4`

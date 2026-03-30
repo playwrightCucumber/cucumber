@@ -1,0 +1,96 @@
+- generic [ref=e931]:
+  - generic [ref=e933]:
+    - generic [ref=e934]:
+      - link [ref=e935] [cursor=pointer]:
+        - /url: /
+      - link:
+        - /url: /
+    - generic [ref=e936]:
+      - button "Wipe data" [ref=e937] [cursor=pointer]: Wipe data
+      - generic [ref=e938] [cursor=pointer]: Download Import Template
+      - button "Import" [disabled] [ref=e940]: Import
+  - generic [ref=e941]:
+    - banner [ref=e942]:
+      - button "Back to the Cemetery" [ref=e943] [cursor=pointer]:
+        - generic [ref=e944]:
+          - img [ref=e945]: west
+          - text: Back to the Cemetery
+      - heading "Import data" [level=1] [ref=e946]
+    - generic [ref=e947]:
+      - generic [ref=e949]:
+        - banner [ref=e950]:
+          - heading "Sections" [level=3] [ref=e952]
+          - heading "2" [level=4] [ref=e954]
+        - generic [ref=e957] [cursor=pointer]:
+          - generic [ref=e958]: Drag here to import
+          - generic [ref=e959]: .geojson
+      - generic [ref=e961]:
+        - banner [ref=e962]:
+          - heading "Plots" [level=3] [ref=e964]
+          - heading "185" [level=4] [ref=e966]
+        - generic [ref=e969] [cursor=pointer]:
+          - generic [ref=e970]: Drag here to import
+          - generic [ref=e971]: .geojson
+      - generic [ref=e973]:
+        - banner [ref=e974]:
+          - heading "Plots" [level=3] [ref=e976]
+          - heading "213" [level=4] [ref=e978]
+        - generic [ref=e981] [cursor=pointer]:
+          - generic [ref=e982]: Drag here to import
+          - generic [ref=e983]: .csv
+      - generic [ref=e985]:
+        - banner [ref=e986]:
+          - heading "Persons" [level=3] [ref=e988]
+          - heading "309" [level=4] [ref=e990]
+        - generic [ref=e993] [cursor=pointer]:
+          - generic [ref=e994]: Drag here to import
+          - generic [ref=e995]: .csv
+      - generic [ref=e997]:
+        - banner [ref=e998]:
+          - heading "ROIs" [level=3] [ref=e1000]
+          - heading "94" [level=4] [ref=e1002]
+        - generic [ref=e1005] [cursor=pointer]:
+          - generic [ref=e1006]: Drag here to import
+          - generic [ref=e1007]: .csv
+      - generic [ref=e1009]:
+        - banner [ref=e1010]:
+          - heading "Interments" [level=3] [ref=e1012]
+          - heading "52" [level=4] [ref=e1014]
+        - generic [ref=e1017] [cursor=pointer]:
+          - generic [ref=e1018]: Drag here to import
+          - generic [ref=e1019]: .csv
+      - generic [ref=e1021]:
+        - banner [ref=e1022]:
+          - heading "Stories" [level=3] [ref=e1024]
+          - heading "21" [level=4] [ref=e1026]
+        - generic [ref=e1029] [cursor=pointer]:
+          - generic [ref=e1030]: Drag here to import
+          - generic [ref=e1031]: .csv
+      - generic [ref=e1033]:
+        - banner [ref=e1034]:
+          - heading "Events" [level=3] [ref=e1036]
+          - heading "2" [level=4] [ref=e1038]
+        - generic [ref=e1041] [cursor=pointer]:
+          - generic [ref=e1042]: Drag here to import
+          - generic [ref=e1043]: .csv
+      - generic [ref=e1045]:
+        - banner [ref=e1046]:
+          - heading "LOT" [level=3] [ref=e1048]
+          - heading "3" [level=4] [ref=e1050]
+        - generic [ref=e1053] [cursor=pointer]:
+          - generic [ref=e1054]: Drag here to import
+          - generic [ref=e1055]: .geojson
+      - generic [ref=e1057]:
+        - banner [ref=e1058]:
+          - heading "Notes" [level=3] [ref=e1060]
+          - heading "153" [level=4] [ref=e1062]
+        - generic [ref=e1065] [cursor=pointer]:
+          - generic [ref=e1066]: Drag here to import
+          - generic [ref=e1067]: .csv
+      - generic [ref=e1069]:
+        - banner [ref=e1070]:
+          - heading "Invoices" [level=3] [ref=e1072]
+          - heading "88" [level=4] [ref=e1074]
+        - generic [ref=e1077] [cursor=pointer]:
+          - generic [ref=e1078]: Drag here to import
+          - generic [ref=e1079]: .csv

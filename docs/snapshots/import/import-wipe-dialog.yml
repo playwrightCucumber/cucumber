@@ -1,0 +1,102 @@
+- generic [ref=e1]:
+  - generic [ref=e6]:
+    - generic [ref=e8]:
+      - link [ref=e10] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e11]:
+        - button [ref=e163] [cursor=pointer]: Wipe data
+        - generic [ref=e13] [cursor=pointer]: Download Import Template
+        - button [disabled] [ref=e164]: Import
+    - generic [ref=e16]:
+      - banner [ref=e17]:
+        - button [ref=e165] [cursor=pointer]:
+          - generic [ref=e19]:
+            - img [ref=e20]: west
+            - text: Back to the Cemetery
+        - heading [level=1] [ref=e166]: Import data
+      - generic [ref=e22]:
+        - generic [ref=e24]:
+          - banner [ref=e25]:
+            - heading [level=3] [ref=e167]: Sections
+            - heading [level=4] [ref=e168]: "2"
+          - generic [ref=e32] [cursor=pointer]:
+            - generic [ref=e33]: Drag here to import
+            - generic [ref=e34]: .geojson
+        - generic [ref=e36]:
+          - banner [ref=e37]:
+            - heading [level=3] [ref=e169]: Plots
+            - heading [level=4] [ref=e170]: "185"
+          - generic [ref=e51] [cursor=pointer]:
+            - generic [ref=e52]: Drag here to import
+            - generic [ref=e53]: .geojson
+        - generic [ref=e55]:
+          - banner [ref=e56]:
+            - heading [level=3] [ref=e171]: Plots
+            - heading [level=4] [ref=e172]: "213"
+          - generic [ref=e63] [cursor=pointer]:
+            - generic [ref=e64]: Drag here to import
+            - generic [ref=e65]: .csv
+        - generic [ref=e67]:
+          - banner [ref=e68]:
+            - heading [level=3] [ref=e173]: Persons
+            - heading [level=4] [ref=e174]: "311"
+          - generic [ref=e75] [cursor=pointer]:
+            - generic [ref=e76]: Drag here to import
+            - generic [ref=e77]: .csv
+        - generic [ref=e79]:
+          - banner [ref=e80]:
+            - heading [level=3] [ref=e175]: ROIs
+            - heading [level=4] [ref=e176]: "94"
+          - generic [ref=e87] [cursor=pointer]:
+            - generic [ref=e88]: Drag here to import
+            - generic [ref=e89]: .csv
+        - generic [ref=e91]:
+          - banner [ref=e92]:
+            - heading [level=3] [ref=e177]: Interments
+            - heading [level=4] [ref=e178]: "52"
+          - generic [ref=e99] [cursor=pointer]:
+            - generic [ref=e100]: Drag here to import
+            - generic [ref=e101]: .csv
+        - generic [ref=e103]:
+          - banner [ref=e104]:
+            - heading [level=3] [ref=e179]: Stories
+            - heading [level=4] [ref=e180]: "21"
+          - generic [ref=e111] [cursor=pointer]:
+            - generic [ref=e112]: Drag here to import
+            - generic [ref=e113]: .csv
+        - generic [ref=e115]:
+          - banner [ref=e116]:
+            - heading [level=3] [ref=e181]: Events
+            - heading [level=4] [ref=e182]: "2"
+          - generic [ref=e123] [cursor=pointer]:
+            - generic [ref=e124]: Drag here to import
+            - generic [ref=e125]: .csv
+        - generic [ref=e127]:
+          - banner [ref=e128]:
+            - heading [level=3] [ref=e183]: LOT
+            - heading [level=4] [ref=e184]: "3"
+          - generic [ref=e135] [cursor=pointer]:
+            - generic [ref=e136]: Drag here to import
+            - generic [ref=e137]: .geojson
+        - generic [ref=e139]:
+          - banner [ref=e140]:
+            - heading [level=3] [ref=e185]: Notes
+            - heading [level=4] [ref=e186]: "154"
+          - generic [ref=e147] [cursor=pointer]:
+            - generic [ref=e148]: Drag here to import
+            - generic [ref=e149]: .csv
+        - generic [ref=e151]:
+          - banner [ref=e152]:
+            - heading [level=3] [ref=e187]: Invoices
+            - heading [level=4] [ref=e188]: "88"
+          - generic [ref=e159] [cursor=pointer]:
+            - generic [ref=e160]: Drag here to import
+            - generic [ref=e161]: .csv
+  - dialog [active] [ref=e192]:
+    - generic [ref=e194]:
+      - generic [ref=e195]:
+        - heading "Сlear Cemetery database" [level=4] [ref=e196]
+        - paragraph [ref=e197]: Are you sure you want to permanently delete all the Astana Tegal Gundul data? This includes records, shape files, persons linked to the given Cemetery and the process cannot be undone.
+      - generic [ref=e198]:
+        - button "cancel & keep" [ref=e199] [cursor=pointer]: cancel & keep
+        - button "yes, wipe all data" [ref=e200] [cursor=pointer]: yes, wipe all data
