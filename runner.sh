@@ -212,6 +212,10 @@ if [ "$INTERACTIVE" = true ]; then
   echo -e "${BOLD}4. Loop (repeat count)${NC}"
   read -p "   How many times? [1]: " loop_input
   LOOP=${loop_input:-1}
+  if ! [[ "$LOOP" =~ ^[0-9]+$ ]] || [ "$LOOP" -lt 1 ]; then
+    echo -e "   ${YELLOW}Invalid input, defaulting to 1${NC}"
+    LOOP=1
+  fi
   echo -e "   ${GREEN}-> ${LOOP}x${NC}"
   echo ""
 
@@ -328,12 +332,12 @@ for region in "${REGION_LIST[@]}"; do
   REGION_FAIL=0
   CMD=$(build_cmd "$region")
 
-  echo -e "${BOLD}${BLUE}>>> Region: ${region^^} ${NC}"
+  echo -e "${BOLD}${BLUE}>>> Region: $(echo "$region" | tr '[:lower:]' '[:upper:]') ${NC}"
   echo -e "${BLUE}$(printf '=%.0s' {1..40})${NC}"
 
   for i in $(seq 1 $LOOP); do
     echo ""
-    echo -e "${CYAN}--- ${region^^} | Run $i/$LOOP ---${NC}"
+    echo -e "${CYAN}--- $(echo "$region" | tr '[:lower:]' '[:upper:]') | Run $i/$LOOP ---${NC}"
     START_TIME=$(date +%s)
 
     if eval "$CMD" 2>&1; then
@@ -342,19 +346,19 @@ for region in "${REGION_LIST[@]}"; do
       echo -e "${GREEN}PASSED${NC} (${DURATION}s)"
       REGION_PASS=$((REGION_PASS + 1))
       TOTAL_PASS=$((TOTAL_PASS + 1))
-      RESULTS+=("${region^^} Run $i: PASSED (${DURATION}s)")
+      RESULTS+=("$(echo "$region" | tr '[:lower:]' '[:upper:]') Run $i: PASSED (${DURATION}s)")
     else
       END_TIME=$(date +%s)
       DURATION=$((END_TIME - START_TIME))
       echo -e "${RED}FAILED${NC} (${DURATION}s)"
       REGION_FAIL=$((REGION_FAIL + 1))
       TOTAL_FAIL=$((TOTAL_FAIL + 1))
-      RESULTS+=("${region^^} Run $i: FAILED (${DURATION}s)")
+      RESULTS+=("$(echo "$region" | tr '[:lower:]' '[:upper:]') Run $i: FAILED (${DURATION}s)")
     fi
   done
 
   echo ""
-  echo -e "${BLUE}${region^^} Summary: ${GREEN}${REGION_PASS} passed${NC} / ${RED}${REGION_FAIL} failed${NC} out of ${LOOP}"
+  echo -e "${BLUE}$(echo "$region" | tr '[:lower:]' '[:upper:]') Summary: ${GREEN}${REGION_PASS} passed${NC} / ${RED}${REGION_FAIL} failed${NC} out of ${LOOP}"
   echo ""
 done
 

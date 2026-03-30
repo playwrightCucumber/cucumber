@@ -299,6 +299,17 @@ export class IntermentPage {
   async fillIntermentForm(data: IntermentData): Promise<void> {
     this.logger.info('Filling interment form');
 
+    // Dismiss any open CDK overlay/dropdown before filling form
+    // (e.g. search autocomplete may still be open after plot selection)
+    const overlay = this.page.locator('.cdk-overlay-backdrop, .cdk-overlay-transparent-backdrop');
+    if (await overlay.count() > 0) {
+      this.logger.info('CDK overlay detected, pressing Escape to dismiss...');
+      await this.page.keyboard.press('Escape');
+      await this.page.waitForTimeout(300);
+    }
+    // Also wait for any person-info dropdown to disappear
+    await this.page.locator('[data-testid="div-person-info-0"]').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+
     // Wait for form fields to be visible
     const firstNameField = this.page.getByLabel('First name').first();
     await firstNameField.waitFor({ state: 'visible' });
