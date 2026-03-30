@@ -151,6 +151,9 @@ Then('I should see the following data categories on the import page', async func
     importPage = new ImportPage(this.page);
   }
 
+  // Wait for category counts to load via API before reading DOM
+  await NetworkHelper.waitForApiRequestsComplete(this.page, 8000);
+
   const categories = await importPage.getImportCategories();
   const expectedCategories = dataTable.raw().map((row: string[]) => row[0]);
 
