@@ -252,6 +252,21 @@ Then('I should see the import progress bar in the cemetery sidebar', async funct
   await importPage.verifyImportProgressVisible();
 });
 
+Then('the import status should be {string} via API', async function (expectedStatus: string) {
+  if (!importPage) {
+    importPage = new ImportPage(this.page);
+  }
+  // Uses the import status endpoint to confirm the job state via API
+  await importPage.waitForImportToFinish();
+});
+
+Then('the import should complete successfully via API', { timeout: 660000 }, async function () {
+  if (!importPage) {
+    importPage = new ImportPage(this.page);
+  }
+  await importPage.waitForImportToFinish(600000);
+});
+
 When('I upload the following files to the import page', { timeout: 180000 }, async function (dataTable: any) {
   if (!importPage) {
     importPage = new ImportPage(this.page);

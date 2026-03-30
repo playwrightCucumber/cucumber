@@ -94,6 +94,7 @@ Feature: Cemetery Data Import
     And I click the Import button
     Then the import should be submitted successfully
     And I should see the import progress bar in the cemetery sidebar
+    And the import should complete successfully via API
     # Upload order matters after wipe (count=0):
     # 1. Sections, Plots (geojson+csv), Persons → always available
     # 2. ROIs, Interments, Stories, Events → unlocked after Plots+Persons are uploaded

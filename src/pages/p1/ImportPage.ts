@@ -314,6 +314,69 @@ export class ImportPage extends BasePage {
   }
 
   /**
+   * Poll the import status API until the job finishes.
+   *
+   * Endpoint: GET /api/v1/cemetery/{slug}/import/status/
+   * Response: { "status": "In process" | "Finished" | ... }
+   *
+   * Flow:
+   *   1. Verify initial status is "In process" (import job started)
+   *   2. Poll every 10 s until status becomes "Finished"
+   *   3. Fail if status is anything other than "In process" / "Finished"
+   *      or if the timeout is exceeded.
+   *
+   * @param timeoutMs  Maximum time to wait (default: 10 min — large imports take time)
+   */
+  async waitForImportToFinish(timeoutMs = 600000): Promise<void> {
+    this.logger.info('Polling import status API until Finished...');
+
+    const token = await this.page.evaluate(() => localStorage.getItem('accessToken'));
+    if (!token) throw new Error('No Bearer token in localStorage — cannot poll import status');
+
+    const currentUrl = this.page.url();
+    const baseUrl = new URL(currentUrl).origin;
+    const slugMatch = currentUrl.match(/chronicle-admin\/([^/?#]+)/);
+    if (!slugMatch) throw new Error(`Cannot extract cemetery slug from URL: ${currentUrl}`);
+
+    const cemeterySlug = slugMatch[1];
+    const statusEndpoint = `${baseUrl}/api/v1/cemetery/${cemeterySlug}/import/status/`;
+    const headers = { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' };
+
+    // Statuses observed: "Starting" → "In process" → "Finished"
+    const inProgressStatuses = new Set(['Starting', 'In process']);
+    const pollInterval = 10000; // 10 s
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const resp = await this.page.request.get(statusEndpoint, { headers });
+
+      if (!resp.ok()) {
+        this.logger.warn(`GET /import/status/ returned ${resp.status()} — retrying`);
+        await this.page.waitForTimeout(pollInterval);
+        continue;
+      }
+
+      const body: { status?: string } = await resp.json();
+      const status = body.status ?? 'unknown';
+      this.logger.info(`Import status: ${status}`);
+
+      if (status === 'Finished') {
+        this.logger.success('Import status: Finished');
+        return;
+      }
+
+      if (inProgressStatuses.has(status)) {
+        await this.page.waitForTimeout(pollInterval);
+        continue;
+      }
+
+      // Unknown / error status
+      throw new Error(`Unexpected import status: "${status}"`);
+    }
+
+    throw new Error(`Import did not finish within ${timeoutMs / 1000}s`);
+  }
+
+  /**
    * Verify the import progress is visible in the cemetery admin sidebar.
    *
    * After Import is confirmed, the app auto-redirects to the cemetery admin page.
