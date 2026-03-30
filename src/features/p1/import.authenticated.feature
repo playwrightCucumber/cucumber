@@ -33,10 +33,10 @@ Feature: Cemetery Data Import
       | Notes      |
       | Invoices   |
 
-  @verify-import-button-state @p1
-  Scenario: Verify Import button is disabled without file upload
-    When I navigate to the import page
-    Then the Import button should be disabled
+  # @verify-import-button-state @p1
+  # Scenario: Verify Import button is disabled without file upload
+  #   When I navigate to the import page
+  #   Then the Import button should be disabled
 
   @back-to-cemetery @p1
   Scenario: Navigate back to cemetery from import page
@@ -78,6 +78,19 @@ Feature: Cemetery Data Import
   @wipe-and-import @p1
   Scenario: Wipe data then upload all files and submit import
     When I navigate to the import page
+    And the Import button should be disabled
+    And I should see the following data categories on the import page
+      | Category   |
+      | Sections   |
+      | Plots      |
+      | Persons    |
+      | ROIs       |
+      | Interments |
+      | Stories    |
+      | Events     |
+      | LOT        |
+      | Notes      |
+      | Invoices   |
     And I wipe the cemetery data and confirm
     And I upload the following files to the import page
       | Category   | FileType | FileName                                        |
@@ -95,7 +108,7 @@ Feature: Cemetery Data Import
     Then the import should be submitted successfully
     And I should see the import progress bar in the cemetery sidebar
     And the import should complete successfully via API
-    # Upload order matters after wipe (count=0):
-    # 1. Sections, Plots (geojson+csv), Persons → always available
-    # 2. ROIs, Interments, Stories, Events → unlocked after Plots+Persons are uploaded
-    # 3. LOT, Notes → always available
+# Upload order matters after wipe (count=0):
+# 1. Sections, Plots (geojson+csv), Persons → always available
+# 2. ROIs, Interments, Stories, Events → unlocked after Plots+Persons are uploaded
+# 3. LOT, Notes → always available
