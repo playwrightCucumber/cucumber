@@ -268,9 +268,20 @@ export class PlotPage {
   async getPlotStatus(): Promise<string> {
     this.logger.info('Getting plot status');
     const statusElement = await this.page.locator(RoiSelectors.plotStatusBadge).first();
-    const status = await statusElement.textContent();
+    await statusElement.waitFor({ state: 'attached', timeout: 10000 });
+    // Status is determined by CSS class (reserved/vacant/occupied), not text content
+    const className = await statusElement.getAttribute('class') || '';
+    let status = '';
+    if (className.includes('reserved')) status = 'RESERVED';
+    else if (className.includes('occupied')) status = 'OCCUPIED';
+    else if (className.includes('vacant') || className.includes('forsale')) status = 'VACANT';
+    else {
+      // Fallback: try text content
+      const text = await statusElement.textContent();
+      status = text?.trim() || className;
+    }
     this.logger.info(`Current plot status: ${status}`);
-    return status?.trim() || '';
+    return status;
   }
 
   /**
@@ -279,6 +290,11 @@ export class PlotPage {
    */
   async verifyStatusChanged(expectedStatus: string): Promise<boolean> {
     this.logger.info(`Verifying plot status is: ${expectedStatus}`);
+    
+    // Wait for API to complete before reading status
+    await NetworkHelper.waitForApiEndpoint(this.page, '/details/cemetery/', 15000, { optional: true });
+    await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
+    
     const currentStatus = await this.getPlotStatus();
     const isCorrect = currentStatus.toUpperCase() === expectedStatus.toUpperCase();
     

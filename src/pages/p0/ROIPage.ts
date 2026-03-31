@@ -152,18 +152,12 @@ export class ROIPage {
     // Fill Fee if provided
     if (roiData.fee) {
       this.logger.info(`Entering fee: ${roiData.fee}`);
-      try {
-        // Try data-testid selector first (for add page)
-        await this.page.fill(RoiSelectors.feeInput, roiData.fee);
-      } catch (e) {
-        // Fallback: use aria-label or placeholder for edit page
-        try {
-          await this.page.getByLabel(/fee/i).fill(roiData.fee);
-        } catch (e2) {
-          // Last resort: find input with type="number" near "Fee" text
-          await this.page.locator('input[type="number"]').first().fill(roiData.fee);
-        }
-      }
+      // Add form uses "roi-form-input-number-0", edit form uses "roi-form-input-number"
+      // Use OR selector to match either without waiting 30s on a wrong selector
+      const feeLocator = this.page.locator(
+        `${RoiSelectors.feeInput}, input[data-testid="roi-form-input-number"]`
+      ).first();
+      await feeLocator.fill(roiData.fee);
       this.logger.info('Fee entered successfully');
     }
 
@@ -176,18 +170,12 @@ export class ROIPage {
     // Fill Certificate Number if provided
     if (roiData.certificateNumber) {
       this.logger.info(`Entering certificate number: ${roiData.certificateNumber}`);
-      try {
-        // Try data-testid selector first
-        await this.page.fill(RoiSelectors.certificateNumberInput, roiData.certificateNumber);
-      } catch (e) {
-        // Fallback: use label or placeholder
-        try {
-          await this.page.getByLabel(/certificate/i).fill(roiData.certificateNumber);
-        } catch (e2) {
-          // Last resort: find input near "Certificate" text
-          await this.page.locator('input[type="text"]').filter({ hasText: /certificate/i }).fill(roiData.certificateNumber);
-        }
-      }
+      // Add form uses "roi-form-input-text-0", edit form uses "roi-form-input-text"
+      // Use OR selector to match either without waiting 30s on a wrong selector
+      const certLocator = this.page.locator(
+        `${RoiSelectors.certificateNumberInput}, input[data-testid="roi-form-input-text"]`
+      ).first();
+      await certLocator.fill(roiData.certificateNumber);
       this.logger.info('Certificate number entered successfully');
     }
 

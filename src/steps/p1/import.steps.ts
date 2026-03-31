@@ -1,4 +1,4 @@
-import { Given, When, Then, setDefaultTimeout } from '@cucumber/cucumber';
+import { Given, When, Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 import { LoginPage } from '../../pages/p0/LoginPage.js';
 import { ImportPage } from '../../pages/p1/ImportPage.js';
@@ -10,8 +10,6 @@ import { ImportSelectors } from '../../selectors/p1/import/index.js';
 const logger = new Logger('ImportSteps');
 let loginPage: LoginPage;
 let importPage: ImportPage;
-
-setDefaultTimeout(60 * 1000);
 
 // ============================================
 // Background Steps (reuses login from login.steps.ts)

@@ -1016,12 +1016,12 @@ export class SalesPage {
     
     // Setup API endpoint listener BEFORE clicking save (per CLAUDE.md wait strategy)
     const apiPromise = NetworkHelper.waitForApiEndpoint(this.page, '/api/v1/invoices/', 30000, { optional: true });
-    
+
     await this.page.locator(salesSelectors.saveButton).scrollIntoViewIfNeeded();
     await this.page.locator(salesSelectors.saveButton).click();
-    
-    // Wait for potential confirmation dialog (short timeout — 10s, not default 30s)
-    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').waitFor({ state: 'visible', timeout: 10000 }).then(() => true).catch(() => false);
+
+    // Wait for potential confirmation dialog — 15s timeout for prod env, where API is slower
+    const dialogVisible = await this.page.locator('mat-dialog-container, [role="dialog"]').waitFor({ state: 'visible', timeout: 15000 }).then(() => true).catch(() => false);
     
     if (dialogVisible) {
       this.logger.info('Payment confirmation dialog appeared');
@@ -1057,8 +1057,8 @@ export class SalesPage {
     }
     
     // Wait for potential redirect to sales list (app auto-redirects after save)
-    // Use short timeout (10s) — if no redirect happens, we're still on edit page
-    const redirected = await this.page.waitForURL(/\/sales$|\/sales\?|\/sales-table/, { timeout: 10000 }).then(() => true).catch(() => false);
+    // 15s timeout for prod env
+    const redirected = await this.page.waitForURL(/\/sales$|\/sales\?|\/sales-table/, { timeout: 15000 }).then(() => true).catch(() => false);
     
     if (redirected) {
       this.logger.info('App redirected to sales list — navigating back to edit page');

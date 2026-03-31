@@ -53,6 +53,16 @@ Feature: ROI Management
     Then the plot status should be "RESERVED"
     And I should see ROI holder "<TEST_ROI_HOLDER_FIRSTNAME> <TEST_ROI_HOLDER_LASTNAME>" in the ROI tab
 
+  @delete-roi-holder @p0
+  Scenario: Delete ROI holder from recently created ROI
+    When I search for "<TEST_ROI_HOLDER_FIRSTNAME> <TEST_ROI_HOLDER_LASTNAME>" in global search
+    And I click on the first search result
+    And I click Edit ROI button
+    And I remove ROI holder "<TEST_ROI_HOLDER_FIRSTNAME> <TEST_ROI_HOLDER_LASTNAME>"
+    And I save the ROI
+    Then I should not see ROI holder "<TEST_ROI_HOLDER_FIRSTNAME> <TEST_ROI_HOLDER_LASTNAME>" in the ROI tab
+
+
   @add-roi @roi-applicant @p0
   Scenario: Add ROI with person ROI applicant to vacant plot
     When I navigate to all plots page
@@ -63,11 +73,11 @@ Feature: ROI Management
     And I select the first vacant plot
     When I click Add ROI button
     And I fill ROI form with following details
-      | rightType         | <TEST_ROI_RIGHT_TYPE>      |
-      | termOfRight       | <TEST_ROI_TERM>            |
-      | fee               | <TEST_ROI_FEE>             |
-      | certificateNumber | <TEST_ROI_CERT_APPLICANT>  |
-      | notes             | <TEST_ROI_NOTES>           |
+      | rightType         | <TEST_ROI_RIGHT_TYPE>     |
+      | termOfRight       | <TEST_ROI_TERM>           |
+      | fee               | <TEST_ROI_FEE>            |
+      | certificateNumber | <TEST_ROI_CERT_APPLICANT> |
+      | notes             | <TEST_ROI_NOTES>          |
     And I add ROI applicant person with following details
       | firstName | <TEST_ROI_APPLICANT_FIRSTNAME> |
       | lastName  | <TEST_ROI_APPLICANT_LASTNAME>  |
@@ -87,11 +97,11 @@ Feature: ROI Management
     And I select the first vacant plot
     When I click Add ROI button
     And I fill ROI form with following details
-      | rightType         | <TEST_ROI_RIGHT_TYPE>      |
-      | termOfRight       | <TEST_ROI_TERM>            |
-      | fee               | <TEST_ROI_FEE>             |
-      | certificateNumber | <TEST_ROI_CERT_BOTH>       |
-      | notes             | <TEST_ROI_NOTES>           |
+      | rightType         | <TEST_ROI_RIGHT_TYPE> |
+      | termOfRight       | <TEST_ROI_TERM>       |
+      | fee               | <TEST_ROI_FEE>        |
+      | certificateNumber | <TEST_ROI_CERT_BOTH>  |
+      | notes             | <TEST_ROI_NOTES>      |
     And I add ROI holder person with following details
       | firstName | <TEST_ROI_HOLDER_FIRSTNAME> |
       | lastName  | <TEST_ROI_HOLDER_LASTNAME>  |
@@ -105,15 +115,6 @@ Feature: ROI Management
     And I save the ROI
     Then the plot status should be "RESERVED"
     And I should see both ROI holder "<TEST_ROI_HOLDER_FIRSTNAME> <TEST_ROI_HOLDER_LASTNAME>" and applicant "<TEST_ROI_APPLICANT_FIRSTNAME> <TEST_ROI_APPLICANT_LASTNAME>"
-
-  @delete-roi-holder @p0
-  Scenario: Delete ROI holder from recently created ROI
-    When I search for "<TEST_ROI_HOLDER_FIRSTNAME> <TEST_ROI_HOLDER_LASTNAME>" in global search
-    And I click on the first search result
-    And I click Edit ROI button
-    And I remove ROI holder "<TEST_ROI_HOLDER_FIRSTNAME> <TEST_ROI_HOLDER_LASTNAME>"
-    And I save the ROI
-    Then I should not see ROI holder "<TEST_ROI_HOLDER_FIRSTNAME> <TEST_ROI_HOLDER_LASTNAME>" in the ROI tab
 
   @delete-roi-applicant @p0
   Scenario: Delete ROI applicant from recently created ROI
@@ -134,7 +135,7 @@ Feature: ROI Management
     And I select the first reserved plot
     And I click Edit ROI button
     And I fill ROI form with following details
-      | fee             | 2000            |
+      | fee               | 2000          |
       | certificateNumber | CERT-EDIT-001 |
     And I save the ROI
     Then the plot status should be "RESERVED"

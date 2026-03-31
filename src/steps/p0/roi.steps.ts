@@ -90,7 +90,10 @@ When('I select the first vacant plot', async function () {
   // Click the plot to navigate to plot detail page
   // Plot items are inside overflow-hidden scroll container — use JS click to bypass visibility checks
   await plotPage.page.getByText(`${plotName} Vacant`).evaluate(el => (el as HTMLElement).click());
-  await NetworkHelper.waitForApiRequestsComplete(plotPage.page, 5000);
+  // Wait for navigation to plot detail page to complete (same as selectFirstReservedPlot)
+  await plotPage.page.waitForURL('**/plots/**');
+  // Wait for plot detail tablist to be visible (Angular components fully initialized)
+  await plotPage.page.locator('[role="tablist"]').waitFor({ state: 'visible' });
 });
 
 When('I select the first reserved plot', async function () {

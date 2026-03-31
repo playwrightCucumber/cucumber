@@ -258,12 +258,11 @@ Then('I should see ROI in the table', async function () {
     // Wait for navigation back to ROI table list after save
     await this.page.waitForURL(/tab=rois/);
 
-    // Wait for ROI table data to load
-    await NetworkHelper.waitForApiEndpoint(this.page, '/adv_table/application_records/');
-
-    // Verify table is populated
+    // API calls already completed before navigation (POST + GET happen during save)
+    // Just wait for table rows to be visible
+    await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
     const tableRows = this.page.locator(RoiTableSelectors.tableRows);
-    await tableRows.first().waitFor({ state: 'visible' });
+    await tableRows.first().waitFor({ state: 'visible', timeout: 15000 });
 });
 
 // ============================================
