@@ -28,10 +28,10 @@ Feature: Login to Chronicle
   Scenario: Login with empty email
     When I enter password "<TEST_PASSWORD>"
     And I click the login button
-    Then the login button should be disabled
+    Then I should see an error message
 
   @login-empty-password @negative
   Scenario: Login with empty password
     When I enter email "<TEST_EMAIL>"
     And I click the login button
-    Then the login button should be disabled
+    Then I should see an error message
