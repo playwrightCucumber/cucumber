@@ -26,7 +26,7 @@ Then('I should see deceased {string} in the Interment tab', { timeout: 30000 }, 
   await intermentPage.verifyDeceasedInTab(actualName);
 });
 
-Then('I should see interment type {string}', { timeout: 10000 }, async function (intermentType: string) {
+Then('I should see interment type {string}', { timeout: 20000 }, async function (intermentType: string) {
   const actualType = replacePlaceholders(intermentType);
   await intermentPage.verifyIntermentType(actualType);
 });

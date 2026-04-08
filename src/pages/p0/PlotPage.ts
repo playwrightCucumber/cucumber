@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 import { RoiSelectors, RoiUrls, PlotStatus } from '../../selectors/p0/roi.selectors.js';
 import { Logger } from '../../utils/Logger.js';
-import { getCustomerOrgUrl } from '../../data/test-data.js';
+import { getCustomerOrgUrl, getCustomerOrgBaseUrl, CEMETERY_CONFIG, BASE_CONFIG } from '../../data/test-data.js';
 
 export class PlotPage {
   readonly page: Page;
@@ -16,7 +16,12 @@ export class PlotPage {
    * Navigate to plots page from dashboard
    */
   async clickSeeAllPlots(): Promise<void> {
+    this.logger.info('Navigating to cemetery page first');
+    const cemeterySlug = `${CEMETERY_CONFIG.uniqueName}_${BASE_CONFIG.region}`;
+    const cemeteryUrl = `${getCustomerOrgBaseUrl()}/customer-organization/${cemeterySlug}`;
+    await this.page.goto(cemeteryUrl, { waitUntil: 'domcontentloaded' });
     this.logger.info('Clicking "See all Plots" button');
+    await this.page.waitForSelector(RoiSelectors.seeAllPlotsButton, { state: 'visible', timeout: 15000 });
     await this.page.click(RoiSelectors.seeAllPlotsButton);
     await this.page.waitForURL(`**${RoiUrls.plotsListPage}`, { timeout: 10000 });
     this.logger.success('Navigated to plots list page');

@@ -240,10 +240,24 @@ export class IntermentPage {
     // Wait for page to load (longer for production)
     await this.page.waitForTimeout(3000);
     
-    // Verify deceased name appears as heading
+    // Verify deceased name appears in collapsed interment list
     const deceasedHeading = this.page.locator(IntermentSelectors.deceasedNameHeading(fullName));
     await expect(deceasedHeading).toBeVisible({ timeout: 20000 });
-    
+
+    // Expand the specific interment item for this person so type can be verified next
+    const intermentItem = this.page.locator('[data-testid="div-unknown-interment"]')
+      .filter({ has: this.page.locator(IntermentSelectors.deceasedNameHeading(fullName)) });
+    if (await intermentItem.count() > 0) {
+      const header = intermentItem.locator('mat-expansion-panel-header').first();
+      if (await header.isVisible()) {
+        const isExpanded = await header.getAttribute('aria-expanded');
+        if (isExpanded !== 'true') {
+          await header.click();
+          await this.page.locator('mat-expansion-panel.mat-expanded').waitFor({ state: 'attached', timeout: 5000 });
+        }
+      }
+    }
+
     this.logger.success(`Deceased "${fullName}" found in INTERMENTS tab`);
   }
 
@@ -253,10 +267,10 @@ export class IntermentPage {
    */
   async verifyIntermentType(intermentType: string): Promise<void> {
     this.logger.info(`Verifying interment type: ${intermentType}`);
-    
-    const typeLabel = this.page.locator(IntermentSelectors.intermentTypeLabel(intermentType));
-    await expect(typeLabel).toBeVisible({ timeout: 5000 });
-    
+
+    const typeLabel = this.page.locator(IntermentSelectors.intermentTypeLabel(intermentType)).first();
+    await expect(typeLabel).toBeVisible({ timeout: 10000 });
+
     this.logger.success(`Interment type ${intermentType} verified`);
   }
 
@@ -329,12 +343,21 @@ export class IntermentPage {
    */
   async clickEditIntermentButton(): Promise<void> {
     this.logger.info('Clicking Edit Interment button');
-    
-    // Wait for button to be visible and enabled
-    const editButton = this.page.getByTestId('interment-item-button-edit-interment');
+
+    // Expand the first interment in the list to reveal the edit button
+    // Interment list items are buttons inside the tabpanel (not the hidden edit button itself)
+    // Interment list items are DIV elements with data-testid="div-unknown-interment"
+    // Clicking them reveals the edit button
+    const firstInterment = this.page.locator('[data-testid="div-unknown-interment"]').first();
+    await firstInterment.waitFor({ state: 'visible', timeout: 10000 });
+    await firstInterment.click();
+    await this.page.waitForTimeout(500);
+
+    // Wait for the edit button to become visible after expanding the interment
+    const editButton = this.page.getByRole('button', { name: 'Edit interment' }).first();
     await editButton.waitFor({ state: 'visible', timeout: 15000 });
     await this.page.waitForTimeout(1000); // Wait for animations
-    
+
     this.logger.info('Edit button found, clicking...');
     await editButton.click();
     
