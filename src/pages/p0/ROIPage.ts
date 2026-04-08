@@ -115,45 +115,21 @@ export class ROIPage {
     if (roiData.rightType) {
       this.logger.info(`Selecting Right Type: ${roiData.rightType}`);
 
-      // CRITICAL: Wait for page to be fully loaded and stable
-      // Wait for network to be idle to ensure all mat-select elements are rendered
+      // Wait for form to be fully loaded
       try {
         await this.page.waitForLoadState('networkidle', { timeout: 10000 });
-        this.logger.info('Network idle - page fully loaded');
       } catch (e) {
         this.logger.warn('Network idle timeout, continuing anyway');
       }
-
-      // Wait for the Plot name to appear in the first mat-select (Event Type)
-      // This ensures the form is fully populated
-      await this.page.waitForSelector('mat-select:has-text("A")', { state: 'visible', timeout: 15000 });
-      this.logger.info('Plot field populated - form is ready');
-
-      // Additional small wait to ensure DOM is stable
       await this.page.waitForTimeout(1000);
 
-      // Now get all mat-select elements - they should be stable now
-      const matSelects = await this.page.locator('mat-select').all();
-      this.logger.info(`Found ${matSelects.length} mat-select elements`);
+      // Click Right type by label — reliable across all environments
+      this.logger.info('Clicking Right Type dropdown...');
+      await this.page.getByLabel('Right type').click();
+      await this.page.waitForTimeout(1000);
 
-      // Validate we have at least 3 mat-selects (Event Type, Right Type, Term of Right)
-      if (matSelects.length < 3) {
-        throw new Error(`Expected at least 3 mat-select elements, found ${matSelects.length}`);
-      }
-
-      // Click the Right Type dropdown (index 1)
-      this.logger.info('Clicking Right Type dropdown (mat-select[1])...');
-      await matSelects[1].click();
-
-      // Wait for dropdown animation and options to appear
-      await this.page.waitForTimeout(2000);
-
-      // Use getByRole which works reliably (tested with MCP Playwright)
       const optionLocator = this.page.getByRole('option', { name: roiData.rightType });
       await optionLocator.waitFor({ state: 'visible', timeout: 10000 });
-      this.logger.info(`Option "${roiData.rightType}" is visible`);
-
-      // Click the option
       await optionLocator.click();
 
       this.logger.success(`Right Type selected: ${roiData.rightType}`);
@@ -163,23 +139,13 @@ export class ROIPage {
     if (roiData.termOfRight) {
       this.logger.info(`Selecting Term of Right: ${roiData.termOfRight}`);
 
-      // Get all mat-select elements again (to be safe after previous interaction)
-      const matSelects = await this.page.locator('mat-select').all();
-      this.logger.info(`Found ${matSelects.length} mat-select elements for Term of Right`);
+      // Click Term of Right by label — reliable across all environments
+      this.logger.info('Clicking Term of Right dropdown...');
+      await this.page.getByLabel('Term of right').click();
+      await this.page.waitForTimeout(1000);
 
-      // Click Term of Right dropdown (index 2)
-      this.logger.info('Clicking Term of Right dropdown (mat-select[2])...');
-      await matSelects[2].click();
-
-      // Wait for dropdown animation and options to fully render
-      await this.page.waitForTimeout(2000);
-
-      // Use getByRole which works reliably
       const termOptionLocator = this.page.getByRole('option', { name: roiData.termOfRight });
       await termOptionLocator.waitFor({ state: 'visible', timeout: 10000 });
-      this.logger.info(`Option "${roiData.termOfRight}" is visible`);
-
-      // Click the option
       await termOptionLocator.click();
 
       this.logger.info(`Term of Right selected: ${roiData.termOfRight}`);

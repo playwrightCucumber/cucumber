@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test';
 import { Logger } from '../../utils/Logger.js';
-import { BASE_CONFIG } from '../../data/test-data.js';
+import { BASE_CONFIG, getCustomerOrgBaseUrl } from '../../data/test-data.js';
 import { NetworkHelper } from '../../utils/NetworkHelper.js';
 import { LoginSelectors, LoginUrls } from '../../selectors/p0/login.selectors.js';
 
@@ -14,9 +14,27 @@ export class LoginPage {
 
   async navigate(): Promise<void> {
     this.logger.info('Navigating to login page');
-    const baseUrl = BASE_CONFIG.baseUrl;
-    this.logger.info(`Using BASE_URL: ${baseUrl}`);
-    await this.page.goto(`${baseUrl}${LoginUrls.loginPage}`, { timeout: 30000 });
+    // Use LOGIN_BASE_URL env var if set, otherwise try BASE_CONFIG.baseUrl first,
+    // then fall back to the regional URL
+    const primaryUrl = process.env.LOGIN_BASE_URL || BASE_CONFIG.baseUrl;
+    const fallbackUrl = getCustomerOrgBaseUrl();
+    this.logger.info(`Using BASE_URL: ${primaryUrl}`);
+    try {
+      await this.page.goto(`${primaryUrl}${LoginUrls.loginPage}`, {
+        timeout: 20000,
+        waitUntil: 'domcontentloaded',
+      });
+    } catch {
+      if (fallbackUrl !== primaryUrl) {
+        this.logger.info(`Primary login URL unreachable, trying regional: ${fallbackUrl}`);
+        await this.page.goto(`${fallbackUrl}${LoginUrls.loginPage}`, {
+          timeout: 20000,
+          waitUntil: 'domcontentloaded',
+        });
+      } else {
+        throw new Error(`Login page unreachable: ${primaryUrl}${LoginUrls.loginPage}`);
+      }
+    }
     await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 });
   }
 

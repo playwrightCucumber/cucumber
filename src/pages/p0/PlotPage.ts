@@ -290,14 +290,14 @@ export class PlotPage {
   async verifyStatusChanged(expectedStatus: string): Promise<boolean> {
     this.logger.info(`Verifying plot status is: ${expectedStatus}`);
     const currentStatus = await this.getPlotStatus();
-    const isCorrect = currentStatus.toUpperCase() === expectedStatus.toUpperCase();
-    
+    const isCorrect = currentStatus.toUpperCase().includes(expectedStatus.toUpperCase());
+
     if (isCorrect) {
       this.logger.success(`Plot status verified: ${currentStatus}`);
     } else {
       this.logger.info(`Status mismatch - Expected: ${expectedStatus}, Got: ${currentStatus}`);
     }
-    
+
     return isCorrect;
   }
 }

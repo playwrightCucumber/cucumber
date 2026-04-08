@@ -19,7 +19,7 @@ export const RoiSelectors = {
 
   // Plot detail page
   plotDetailTitle: 'h1', // Plot name like "A B 3 VACANT"
-  plotStatusBadge: 'span:has-text("VACANT"), span:has-text("RESERVED")',
+  plotStatusBadge: '[data-testid="plot-details-edit-span-plot-status"]',
   addRoiButton: '[data-testid="plot-details-edit-button-add-roi-btn"]',
   editButton: 'button:has-text("Edit")',
   addIntermentButton: 'button:has-text("Add interment")',
