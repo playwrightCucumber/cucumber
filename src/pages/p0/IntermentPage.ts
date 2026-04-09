@@ -344,17 +344,19 @@ export class IntermentPage {
   async clickEditIntermentButton(): Promise<void> {
     this.logger.info('Clicking Edit Interment button');
 
-    // Expand the first interment in the list to reveal the edit button
-    // Interment list items are buttons inside the tabpanel (not the hidden edit button itself)
-    // Interment list items are DIV elements with data-testid="div-unknown-interment"
-    // Clicking them reveals the edit button
-    const firstInterment = this.page.locator('[data-testid="div-unknown-interment"]').first();
-    await firstInterment.waitFor({ state: 'visible', timeout: 10000 });
-    await firstInterment.click();
-    await this.page.waitForTimeout(500);
-
-    // Wait for the edit button to become visible after expanding the interment
+    // Check if edit button is already visible (panel may already be expanded)
     const editButton = this.page.getByRole('button', { name: 'Edit interment' }).first();
+    const isEditVisible = await editButton.isVisible().catch(() => false);
+
+    if (!isEditVisible) {
+      // Panel is collapsed — click to expand
+      const firstInterment = this.page.locator('[data-testid="div-unknown-interment"]').first();
+      await firstInterment.waitFor({ state: 'visible', timeout: 10000 });
+      await firstInterment.click();
+      await this.page.waitForTimeout(500);
+    }
+
+    // Wait for the edit button to become visible
     await editButton.waitFor({ state: 'visible', timeout: 15000 });
     await this.page.waitForTimeout(1000); // Wait for animations
 

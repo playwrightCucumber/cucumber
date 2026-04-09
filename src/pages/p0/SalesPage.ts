@@ -2,6 +2,7 @@ import { Page, expect } from '@playwright/test';
 import { Logger } from '../../utils/Logger.js';
 import { NetworkHelper } from '../../utils/NetworkHelper.js';
 import { salesSelectors } from '../../selectors/p0/sales.selectors.js';
+import { CEMETERY_CONFIG } from '../../data/test-data.js';
 
 export interface SaleItem {
   description: string;
@@ -79,6 +80,24 @@ export class SalesPage {
     await this.page.locator(salesSelectors.createSaleButton).click();
     await this.page.waitForLoadState('domcontentloaded');
     await this.page.waitForTimeout(1000);
+  }
+
+  /**
+   * Select Cemetery from dropdown (required field on Create Sale form)
+   */
+  async selectCemetery(): Promise<void> {
+    this.logger.info(`Selecting cemetery: ${CEMETERY_CONFIG.displayName}`);
+    // Use mat-select with formcontrolname or fallback to first mat-select on page
+    const cemeteryDropdown = this.page.locator('mat-select[formcontrolname="cemetery"]')
+      .or(this.page.locator('mat-select').first());
+    await cemeteryDropdown.first().waitFor({ state: 'visible', timeout: 10000 });
+    await cemeteryDropdown.first().click();
+    await this.page.waitForTimeout(500);
+    const cemeteryOption = this.page.getByRole('option', { name: CEMETERY_CONFIG.displayName }).first();
+    await cemeteryOption.waitFor({ state: 'visible', timeout: 5000 });
+    await cemeteryOption.click();
+    await this.page.waitForTimeout(1000);
+    this.logger.info(`Cemetery "${CEMETERY_CONFIG.displayName}" selected`);
   }
 
   /**
@@ -277,8 +296,8 @@ export class SalesPage {
     // - plot combobox
     // So for item row i: item combobox at index (1 + i*2), plot combobox at index (2 + i*2)
     
-    const itemComboboxIndex = 1 + (index * 2); // Skip owner (0), then item comboboxes at 1, 3, 5...
-    const plotComboboxIndex = 2 + (index * 2); // Plot comboboxes at 2, 4, 6...
+    const itemComboboxIndex = 2 + (index * 2); // Skip cemetery (0) and owner (1), then item comboboxes at 2, 4, 6...
+    const plotComboboxIndex = 3 + (index * 2); // Plot comboboxes at 3, 5, 7...
 
     // 1. Select ITEM from search dropdown
     try {
@@ -293,11 +312,18 @@ export class SalesPage {
       await this.page.waitForTimeout(1500);
       
       // Wait for the search textbox inside the dropdown to appear
-      const itemSearchInput = this.page.locator('input[type="text"]').first();
-      await itemSearchInput.waitFor({ state: 'visible', timeout: 5000 });
-      
+      // Scope to the open overlay panel to avoid picking up stale inputs from previous rows
+      const itemSearchInput = this.page.locator('.cdk-overlay-pane input[type="text"]')
+        .or(this.page.locator('mat-option-container input[type="text"]'))
+        .or(this.page.locator('input[type="text"]').last());
+      await itemSearchInput.first().waitFor({ state: 'visible', timeout: 5000 });
+
+      // Clear any stale search value before typing
+      await itemSearchInput.first().clear();
+      await this.page.waitForTimeout(300);
+
       // Type the item name in the search box
-      await itemSearchInput.fill(item.description);
+      await itemSearchInput.first().fill(item.description);
       await this.page.waitForTimeout(1500);
       
       // Wait for options to appear
@@ -706,8 +732,8 @@ export class SalesPage {
     await this.page.waitForSelector('table', { state: 'visible', timeout: 10000 });
     
     // Get the first row's purchaser cell
-    // Assuming the purchaser column is in the table - adjust selector if needed
-    const firstRowPurchaser = await this.page.locator('table tbody tr').first().locator('td').nth(2).textContent();
+    // Table columns: checkbox(0), Cemetery(1), Sale ID(2), Purchaser(3), Related Plot(s)(4)...
+    const firstRowPurchaser = await this.page.locator('table tbody tr').first().locator('td').nth(3).textContent();
     const trimmedPurchaser = firstRowPurchaser?.trim() || '';
     const trimmedExpected = expectedPurchaserName.trim();
 

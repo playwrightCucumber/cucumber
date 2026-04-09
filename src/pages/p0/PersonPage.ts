@@ -2,6 +2,7 @@ import { Page, expect } from '@playwright/test';
 import { PersonSelectors } from '../../selectors/p0/person.selectors.js';
 import { Logger } from '../../utils/Logger.js';
 import { NetworkHelper } from '../../utils/NetworkHelper.js';
+import { CEMETERY_CONFIG } from '../../data/test-data.js';
 
 export interface PersonData {
   firstName: string;
@@ -80,6 +81,17 @@ export class PersonPage {
    */
   async fillPersonForm(data: PersonData): Promise<void> {
     this.logger.info('Filling person form with data');
+
+    // Select Cemetery (required field added to form)
+    this.logger.info(`Selecting cemetery: ${CEMETERY_CONFIG.displayName}`);
+    const cemeteryDropdown = this.page.getByRole('combobox', { name: 'Cemetery' });
+    await cemeteryDropdown.waitFor({ state: 'visible', timeout: 10000 });
+    await cemeteryDropdown.click();
+    await this.page.waitForTimeout(1000);
+    const cemeteryOption = this.page.getByRole('option', { name: CEMETERY_CONFIG.displayName }).first();
+    await cemeteryOption.waitFor({ state: 'visible', timeout: 10000 });
+    await cemeteryOption.click();
+    await this.page.waitForTimeout(500);
 
     // Required fields
     await this.fillField(PersonSelectors.firstNameInput, data.firstName, 'First Name');
@@ -368,7 +380,7 @@ export class PersonPage {
 
     // Wait for table to finish loading (progressbar elements should disappear)
     try {
-      await this.page.waitForSelector('[role="table"] progressbar', { state: 'detached', timeout: 25000 });
+      await this.page.waitForSelector('[role="table"] progressbar, [role="grid"] progressbar', { state: 'detached', timeout: 25000 });
       this.logger.info('Table loading complete');
     } catch (error) {
       this.logger.info('No loading indicators found or already loaded');
@@ -376,7 +388,7 @@ export class PersonPage {
 
     // Wait for table with actual data rows (not just header)
     await this.page.waitForFunction(`() => {
-      const table = document.querySelector('[role="table"]');
+      const table = document.querySelector('[role="table"]') || document.querySelector('[role="grid"]');
       if (!table) return false;
       const rows = table.querySelectorAll('[role="row"]');
       // Table should have at least 2 rows: 1 header + 1 data row
@@ -387,7 +399,7 @@ export class PersonPage {
 
     // Use evaluate to directly get the first row data (more reliable than locator.waitFor)
     const personData = await this.page.evaluate(() => {
-      const table = document.querySelector('[role="table"]');
+      const table = document.querySelector('[role="table"]') || document.querySelector('[role="grid"]');
       if (!table) {
         return { error: 'Table not found', firstName: '', lastName: '', totalRows: 0 };
       }
@@ -399,11 +411,11 @@ export class PersonPage {
 
       // Get first data row (index 1, index 0 is header)
       const firstDataRow = rows[1];
-      const cells = Array.from(firstDataRow.querySelectorAll('[role="cell"]'));
+      const cells = Array.from(firstDataRow.querySelectorAll('[role="cell"], [role="gridcell"]'));
 
-      // Column 1 = First Name, Column 3 = Last Name
-      const firstName = cells.length > 1 ? cells[1].textContent?.trim() : '';
-      const lastName = cells.length > 3 ? cells[3].textContent?.trim() : '';
+      // Column 2 = First Name, Column 4 = Last Name (Cemetery[0], Plot(s)[1] prepended)
+      const firstName = cells.length > 2 ? cells[2].textContent?.trim() : '';
+      const lastName = cells.length > 4 ? cells[4].textContent?.trim() : '';
 
       return { firstName, lastName, totalRows: rows.length, error: null };
     });
@@ -529,13 +541,13 @@ export class PersonPage {
 
     // Wait for table with actual data rows
     await this.page.waitForFunction(`() => {
-      const table = document.querySelector('[role="table"]');
+      const table = document.querySelector('[role="table"]') || document.querySelector('[role="grid"]');
       if (!table) return false;
       const rows = table.querySelectorAll('[role="row"]');
       return rows.length >= 2;
     }`, { timeout: 10000 });
 
-    const tableLocator = this.page.locator('[role="table"]');
+    const tableLocator = this.page.locator('[role="table"], [role="grid"]').first();
     const firstDataRow = tableLocator.locator('[role="row"]').nth(1);
 
     // Try double click to open edit page
@@ -729,17 +741,19 @@ export class PersonPage {
     }
 
     // Wait for table to be present
-    await this.page.waitForSelector('[role="table"]', { state: 'attached', timeout: 15000 })
-      .catch(() => {
-        this.logger.error('Table element not found in DOM after filter');
-        throw new Error('Table element not found in DOM after filter applied. The filter may have returned no results or the page structure has changed.');
-      });
+    await Promise.any([
+      this.page.waitForSelector('[role="table"]', { state: 'attached', timeout: 15000 }),
+      this.page.waitForSelector('[role="grid"]', { state: 'attached', timeout: 15000 }),
+    ]).catch(() => {
+      this.logger.error('Table element not found in DOM after filter');
+      throw new Error('Table element not found in DOM after filter applied. The filter may have returned no results or the page structure has changed.');
+    });
 
     this.logger.info('Table element found in DOM');
 
     // Check table has data rows using evaluate
     const hasData = await this.page.evaluate(() => {
-      const table = document.querySelector('[role="table"]');
+      const table = document.querySelector('[role="table"]') || document.querySelector('[role="grid"]');
       if (!table) return { found: false, rows: 0 };
       const rows = table.querySelectorAll('[role="row"]');
       return { found: true, rows: rows.length };
@@ -754,7 +768,7 @@ export class PersonPage {
 
       // Check again
       const retryData = await this.page.evaluate(() => {
-        const table = document.querySelector('[role="table"]');
+        const table = document.querySelector('[role="table"]') || document.querySelector('[role="grid"]');
         if (!table) return { found: false, rows: 0 };
         const rows = table.querySelectorAll('[role="row"]');
         return { found: true, rows: rows.length };
@@ -775,7 +789,7 @@ export class PersonPage {
 
     // Get the first row data and verify
     const firstRowPerson = await this.page.evaluate(() => {
-      const table = document.querySelector('[role="table"]');
+      const table = document.querySelector('[role="table"]') || document.querySelector('[role="grid"]');
       if (!table) {
         return { error: 'Table not found', firstName: '', lastName: '', totalRows: 0 };
       }
@@ -786,11 +800,11 @@ export class PersonPage {
       }
 
       const firstDataRow = rows[1];
-      const cells = Array.from(firstDataRow.querySelectorAll('[role="cell"]'));
+      const cells = Array.from(firstDataRow.querySelectorAll('[role="cell"], [role="gridcell"]'));
 
-      // First Name is in column 2 (index 1), Last Name is in column 4 (index 3)
-      const firstName = cells.length > 1 ? cells[1].textContent?.trim() : '';
-      const lastName = cells.length > 3 ? cells[3].textContent?.trim() : '';
+      // Column 2 = First Name, Column 4 = Last Name (Cemetery[0], Plot(s)[1] prepended)
+      const firstName = cells.length > 2 ? cells[2].textContent?.trim() : '';
+      const lastName = cells.length > 4 ? cells[4].textContent?.trim() : '';
 
       return { firstName, lastName, totalRows: rows.length, error: null };
     });
@@ -840,7 +854,7 @@ export class PersonPage {
 
     // Get all person names from the table
     const allNames = await this.page.evaluate(() => {
-      const table = document.querySelector('[role="table"]');
+      const table = document.querySelector('[role="table"]') || document.querySelector('[role="grid"]');
       if (!table) return [];
 
       const rows = Array.from(table.querySelectorAll('[role="row"]'));
@@ -848,10 +862,10 @@ export class PersonPage {
       const dataRows = rows.slice(1);
 
       return dataRows.map((row) => {
-        const cells = Array.from(row.querySelectorAll('[role="cell"]'));
-        // Assuming first name is in column 2, last name is in column 4 (index 1 and 3)
-        const firstName = cells[1]?.textContent?.trim() || '';
-        const lastName = cells[3]?.textContent?.trim() || '';
+        const cells = Array.from(row.querySelectorAll('[role="cell"], [role="gridcell"]'));
+        // Column 2 = First Name, Column 4 = Last Name (Cemetery[0], Plot(s)[1] prepended)
+        const firstName = cells[2]?.textContent?.trim() || '';
+        const lastName = cells[4]?.textContent?.trim() || '';
         return `${firstName} ${lastName}`.trim();
       }).filter(name => name && name !== '--' && name !== '  ');
     });

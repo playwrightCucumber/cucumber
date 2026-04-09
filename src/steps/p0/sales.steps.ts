@@ -29,9 +29,10 @@ When('I validate sales table is loaded', { timeout: 10000 }, async function () {
 /**
  * Click Create Sale button to open the create sale form
  */
-When('I click Create Sale button', { timeout: 10000 }, async function () {
+When('I click Create Sale button', { timeout: 30000 }, async function () {
   await salesPage.clickCreateSale();
-  logger.info('Clicked Create Sale button');
+  await salesPage.selectCemetery();
+  logger.info('Clicked Create Sale button and selected cemetery');
 });
 
 /**

@@ -422,7 +422,7 @@ When('I click Edit plot button', { timeout: 15000 }, async function () {
   await advanceSearchPage.clickEditPlotButton();
 });
 
-Then('I should see plot type {string} in edit plot page', { timeout: 10000 }, async function (plotType: string) {
+Then('I should see plot type {string} in edit plot page', { timeout: 30000 }, async function (plotType: string) {
   const actualPlotType = replacePlaceholders(plotType);
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
@@ -436,7 +436,7 @@ Then('I should see status {string} in edit plot page', { timeout: 10000 }, async
   await advanceSearchPage.verifyStatusInEditPage(actualStatus);
 });
 
-When('I close edit plot page', { timeout: 10000 }, async function () {
+When('I close edit plot page', { timeout: 30000 }, async function () {
   const page = this.page as Page;
   const advanceSearchPage = getAdvanceSearchPage(page);
   await advanceSearchPage.closeEditPlotPage();

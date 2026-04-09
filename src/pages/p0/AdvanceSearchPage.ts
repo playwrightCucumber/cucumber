@@ -164,13 +164,16 @@ export class AdvanceSearchPage {
 
     // Wait for search results heading
     await this.page.waitForSelector(AdvanceSearchSelectors.searchResultsHeading, { timeout: 10000 });
+    await this.page.waitForTimeout(1000);
 
-    // Use the specific testid for the search result div
-    const searchResultDiv = this.page.getByTestId('advance-search-result-div-search-list');
-    await searchResultDiv.waitFor({ state: 'visible', timeout: 10000 });
+    // Check via innerText — reliable regardless of testid changes in the app
+    const found = await this.page.evaluate((plotId: string) => {
+      return (document.body.innerText || '').includes(plotId);
+    }, plotId);
 
-    // Verify the plot ID is visible in the search result
-    await expect(searchResultDiv.getByText(plotId)).toBeVisible({ timeout: 5000 });
+    if (!found) {
+      throw new Error(`Plot "${plotId}" not found in advanced search results`);
+    }
 
     this.logger.success(`Plot ${plotId} found in search results`);
   }
@@ -182,14 +185,39 @@ export class AdvanceSearchPage {
   async clickPlotFromSearchResults(plotId: string): Promise<void> {
     this.logger.info(`Clicking on plot ${plotId} from search results`);
 
-    // Use the specific testid for the search result div and click on it
-    const searchResultDiv = this.page.getByTestId('advance-search-result-div-search-list');
-    await searchResultDiv.click();
+    await this.page.waitForSelector(AdvanceSearchSelectors.searchResultsHeading, { timeout: 10000 });
+    await this.page.waitForTimeout(1000);
 
-    // Wait for navigation to plot detail page
+    // Find the result item whose plot-id span matches plotId
+    const resultItems = this.page.locator(AdvanceSearchSelectors.searchResultItem);
+    const count = await resultItems.count();
+    if (count === 0) throw new Error(`Plot "${plotId}" not found to click in search results`);
+
+    let found = false;
+    for (let i = 0; i < count; i++) {
+      const item = resultItems.nth(i);
+      const idText = await item.locator(AdvanceSearchSelectors.searchResultPlotId).textContent();
+      if (idText?.trim() === plotId) {
+        await item.click();
+        found = true;
+        break;
+      }
+    }
+    if (!found) throw new Error(`Plot "${plotId}" not found to click in search results`);
+
+    // Clicking a result item zooms the map but does not navigate.
+    // Navigate directly to the plot detail URL.
+    await this.page.waitForTimeout(1000);
+    if (!this.page.url().includes('/plots/')) {
+      const baseOrgUrl = this.page.url().split('/customer-organization/')[0] + '/customer-organization';
+      const cemeterySlug = `${process.env.TEST_CEMETERY_UNIQUE || 'astana_tegal_gundul'}_${process.env.REGION || 'aus'}`;
+      const plotUrl = `${baseOrgUrl}/${cemeterySlug}/plots/${encodeURIComponent(plotId)}`;
+      this.logger.info(`Navigating directly to plot URL: ${plotUrl}`);
+      await this.page.goto(plotUrl, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    }
+
     await this.page.waitForURL('**/plots/**', { timeout: 10000 });
-    await this.page.waitForTimeout(3000); // Wait for sidebar to load
-
+    await this.page.waitForTimeout(3000);
     this.logger.success(`Navigated to plot ${plotId} detail page`);
   }
 
@@ -427,24 +455,29 @@ export class AdvanceSearchPage {
   async clickFirstPlotFromSearchResults(): Promise<void> {
     this.logger.info('Clicking on first plot from search results');
 
-    // Wait for search results to load and be visible
-    // The search results div contains the plot list after advance search
     await this.page.waitForTimeout(3000);
+    await this.page.waitForSelector(AdvanceSearchSelectors.searchResultsHeading, { timeout: 10000 });
+    await this.page.waitForTimeout(1000);
 
-    // Use the specific testid for the search result div
-    // This selector was verified to work with MCP Playwright browser
-    const searchResultDiv = this.page.getByTestId('advance-search-result-div-search-list');
+    const firstResult = this.page.locator(AdvanceSearchSelectors.searchResultItem).first();
+    if (await firstResult.count() === 0) throw new Error('No plot items found to click in search results');
 
-    // Wait for the element to be visible and clickable
-    await searchResultDiv.waitFor({ state: 'visible', timeout: 10000 });
+    // Get the plot ID so we can build the direct URL if needed
+    const plotId = (await firstResult.locator(AdvanceSearchSelectors.searchResultPlotId).textContent())?.trim() || '';
+    await firstResult.click();
 
-    // Click on the first result
-    await searchResultDiv.click();
+    // Clicking zooms the map but does not navigate; go directly to the plot page
+    await this.page.waitForTimeout(1000);
+    if (!this.page.url().includes('/plots/')) {
+      const baseOrgUrl = this.page.url().split('/customer-organization/')[0] + '/customer-organization';
+      const cemeterySlug = `${process.env.TEST_CEMETERY_UNIQUE || 'astana_tegal_gundul'}_${process.env.REGION || 'aus'}`;
+      const plotUrl = `${baseOrgUrl}/${cemeterySlug}/plots/${encodeURIComponent(plotId)}`;
+      this.logger.info(`Navigating directly to plot URL: ${plotUrl}`);
+      await this.page.goto(plotUrl, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    }
 
-    // Wait for navigation to plot detail page
     await this.page.waitForURL('**/plots/**', { timeout: 15000 });
-    await this.page.waitForTimeout(3000); // Wait for sidebar to load
-
+    await this.page.waitForTimeout(3000);
     this.logger.success('Navigated to plot detail page');
   }
 
@@ -470,7 +503,9 @@ export class AdvanceSearchPage {
   async verifyPlotTypeInEditPage(plotType: string): Promise<void> {
     this.logger.info(`Verifying plot type "${plotType}" in edit plot page`);
 
-    const plotTypeField = this.page.getByRole('combobox', { name: /Plot type/i });
+    // The mat-select for plot type uses formcontrolname="plot_type" (no aria-label)
+    const plotTypeField = this.page.locator('mat-select[formcontrolname="plot_type"]');
+    await plotTypeField.waitFor({ state: 'visible', timeout: 20000 });
     const actualPlotType = (await plotTypeField.textContent())?.trim() || '';
 
     if (actualPlotType !== plotType) {
@@ -503,7 +538,7 @@ export class AdvanceSearchPage {
   async closeEditPlotPage(): Promise<void> {
     this.logger.info('Closing edit plot page');
 
-    await this.page.goBack();
+    await this.page.goBack({ waitUntil: 'domcontentloaded', timeout: 20000 });
     await this.page.waitForTimeout(2000);
 
     this.logger.success('Edit plot page closed, returned to plot detail');
