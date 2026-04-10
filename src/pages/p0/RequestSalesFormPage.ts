@@ -1033,40 +1033,42 @@ export class RequestSalesFormPage {
 
     this.logger.info('Submit button is enabled, preparing to submit...');
 
-    // Setup wait for submission endpoint BEFORE clicking submit to avoid race condition
-    this.logger.info('Waiting for endpoint: v1_cemetery_request_table_public_plot_purchase_create');
-    const responsePromise = waitForEndpoint(
-      this.page,
-      'v1_cemetery_request_table_public_plot_purchase_create',
-      201  // Changed from 200 to 201 (Created) - the actual response status
+    // Setup listener for ANY response from the purchase endpoint (diagnostic - capture actual status)
+    const endpoint = 'v1_cemetery_request_table_public_plot_purchase_create';
+    this.logger.info(`Waiting for endpoint: ${endpoint}`);
+
+    // Capture any response from the endpoint regardless of status
+    const anyResponsePromise = this.page.waitForResponse(
+      (response) => response.url().includes(endpoint),
+      { timeout: 45000 }
     );
 
     // Click submit
     await submitButton.click();
     this.logger.info('✓ Submit button clicked, waiting for server response...');
 
-    // Wait for the endpoint to respond (45 second timeout)
     try {
-      const response = await Promise.race([
-        responsePromise,
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Endpoint response timeout after 45 seconds')), 45000)
-        )
-      ]);
+      const response = await anyResponsePromise;
       const status = response.status();
-      this.logger.info(`✓ Submission successful! Response status: ${status}`);
+      this.logger.info(`✓ Got response from endpoint! Status: ${status}`);
 
-      // Parse response body if needed
       const responseBody = await response.json().catch(() => null);
       if (responseBody) {
-        this.logger.info(`Response body: ${JSON.stringify(responseBody).substring(0, 200)}`);
+        this.logger.info(`Response body: ${JSON.stringify(responseBody).substring(0, 300)}`);
       }
 
-      // Wait a bit for UI to update after successful submission
+      if (status === 201 || status === 200) {
+        this.logger.info('Submission successful!');
+      } else {
+        this.logger.error(`Submission failed with status ${status}`);
+        throw new Error(`Form submission failed - server returned status ${status}. Body: ${JSON.stringify(responseBody)}`);
+      }
+
       await this.page.waitForTimeout(2000);
     } catch (error) {
+      // If no matching response was found, log ALL recent network calls to help diagnose
       this.logger.error(`Failed to get submission response: ${error}`);
-      throw new Error('Form submission failed - no response from server');
+      throw new Error(`Form submission failed - no response from server. ${error}`);
     }
   }
 

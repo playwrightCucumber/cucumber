@@ -223,7 +223,7 @@ Then('I should see status icon {string} in first result', { timeout: 10000 }, as
   logger.info(`Verifying status icon ${expectedStatus} in first result`);
 
   // Get the icon element from first result
-  const icon = page.locator(AdvanceSearchSelectors.firstResultIcon);
+  const icon = page.locator(AdvanceSearchSelectors.firstResultIcon).first();
   await expect(icon).toBeVisible({ timeout: 5000 });
 
   // Get the class attribute
