@@ -17,43 +17,44 @@ export class ROIPage {
   async clickAddRoi(): Promise<void> {
     this.logger.info('Clicking Add ROI button');
 
+    // Wait for page to stabilize after any preceding navigation (e.g. map search → detail page)
     try {
-      // Wait for button to be visible and clickable
-      await this.page.waitForSelector(RoiSelectors.addRoiButton, { state: 'visible', timeout: 10000 });
-      this.logger.info('Add ROI button found, clicking...');
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 10000 });
+    } catch (e) { /* ignore */ }
+    await this.page.waitForTimeout(2000);
 
-      // Click and wait for navigation in parallel
-      await Promise.all([
-        this.page.waitForURL('**/manage/add/roi', { timeout: 20000 }),
-        this.page.click(RoiSelectors.addRoiButton)
-      ]);
+    // Support two entry points:
+    // 1. Plot detail page (/plots/{uuid})  → selector: plot-details-edit-button-add-roi-btn
+    // 2. Edit plot form (/manage/edit/plot) → selector: plot-edit-div-roi > plus-item-button-plus-button
+    const detailPageBtn = this.page.locator(RoiSelectors.addRoiButton);
+    const editFormBtn = this.page.locator('[data-testid="plot-edit-div-roi"] [data-testid="plus-item-button-plus-button"]'); // scoped to ROI section only
+
+    // Use a longer visibility timeout so the page has time to fully render after navigation
+    const isDetailBtnVisible = await detailPageBtn.isVisible({ timeout: 12000 }).catch(() => false);
+
+    try {
+      if (isDetailBtnVisible) {
+        this.logger.info('Using detail page Add ROI button');
+        await Promise.all([
+          this.page.waitForURL(url => url.href.includes('/manage/add/roi'), { timeout: 20000, waitUntil: 'commit' }),
+          detailPageBtn.click()
+        ]);
+      } else {
+        this.logger.info('Detail page button not found — trying edit form Add ROI button');
+        await editFormBtn.waitFor({ state: 'visible', timeout: 12000 });
+        await Promise.all([
+          this.page.waitForURL(url => url.href.includes('/manage/add/roi'), { timeout: 20000, waitUntil: 'commit' }),
+          editFormBtn.click()
+        ]);
+      }
 
       this.logger.info('✓ Navigated to Add ROI form page');
-
-      // Instead of network idle, wait for specific form element to be ready
       await this.page.waitForSelector(RoiSelectors.roiFormTitle, { state: 'visible', timeout: 15000 });
       this.logger.info('✓ ROI form title loaded');
-
       this.logger.success('Add ROI button clicked and form loaded');
     } catch (e) {
-      // Fallback: try text-based selector
-      this.logger.warn(`Primary selector failed: ${e}`);
-      this.logger.info('Trying fallback selector: button with text "Add ROI"');
-
-      try {
-        await Promise.all([
-          this.page.waitForURL('**/manage/add/roi', { timeout: 20000 }),
-          this.page.getByRole('button', { name: /add roi/i }).click()
-        ]);
-
-        // Wait for form to be ready
-        await this.page.waitForSelector(RoiSelectors.roiFormTitle, { state: 'visible', timeout: 15000 });
-
-        this.logger.success('Add ROI button clicked (fallback)');
-      } catch (e2) {
-        this.logger.error(`Both selectors failed: ${e2}`);
-        throw new Error(`Failed to click Add ROI button and navigate to form: ${e2}`);
-      }
+      this.logger.error(`Failed to click Add ROI button and navigate to form: ${e}`);
+      throw new Error(`Failed to click Add ROI button and navigate to form: ${e}`);
     }
   }
 
@@ -417,10 +418,107 @@ export class ROIPage {
       }
     }
 
-    this.logger.info('Waiting for URL redirect to plot detail page...');
+    this.logger.info('Waiting for URL redirect after ROI save...');
     // Wait for save to complete and redirect back to plot detail
-    await this.page.waitForURL(`**${RoiUrls.plotDetailPattern}**`, { timeout: 30000 });
-    await this.page.waitForTimeout(2000); // Wait for status update
+    // After save, redirect can go to:
+    // 1. /plots/{uuid}        — when coming from plot detail page
+    // 2. /manage/edit/plot    — when coming from edit plot form (backTo parameter)
+    await this.page.waitForURL(
+      url => url.href.includes(RoiUrls.plotDetailPattern) || url.href.includes('/manage/edit/plot'),
+      { timeout: 30000 }
+    );
+    const currentUrl = this.page.url();
+    if (currentUrl.includes('/manage/edit/plot')) {
+      this.logger.info('Redirected to edit form — navigating to plot detail page');
+
+      // Strategy 1: Click the plot ID breadcrumb link (visible as "A B 2" in subtitle)
+      try {
+        const plotIdLink = this.page.locator('[data-testid="plot-details-edit-h3-plot-id"]');
+        if (await plotIdLink.isVisible({ timeout: 3000 }).catch(() => false)) {
+          this.logger.info('Found plot ID link — clicking it');
+          await plotIdLink.click();
+          await this.page.waitForURL(url => url.href.includes('/plots/'), { timeout: 10000 });
+          this.logger.success('Navigated to plot detail via plot ID breadcrumb link');
+          await this.page.waitForTimeout(2000);
+          return;
+        }
+      } catch (e) {
+        this.logger.warn(`Plot ID link approach failed: ${e}`);
+      }
+
+      // Strategy 2: Click Cancel button + handle CanDeactivate guard dialog
+      this.logger.info('Trying Cancel button approach...');
+      try {
+        // Wait for edit form to fully stabilize after backTo redirect
+        await this.page.waitForTimeout(5000);
+
+        const cancelBtn = this.page.locator('[data-testid="toolbar-manage-button-toolbar-button"]');
+        await cancelBtn.waitFor({ state: 'visible', timeout: 5000 });
+        await cancelBtn.click();
+        this.logger.info('Cancel clicked — waiting for navigation or CanDeactivate dialog');
+
+        let navigated = false;
+        // Race: navigation OR dialog appearing (use 'commit' — SPA nav doesn't fire 'load')
+        await Promise.race([
+          this.page.waitForURL(url => url.href.includes('/plots/'), { timeout: 8000, waitUntil: 'commit' })
+            .then(() => { navigated = true; }),
+          this.page.locator('[role="dialog"]').waitFor({ state: 'visible', timeout: 8000 })
+        ]).catch(() => {});
+
+        if (!navigated) {
+          // Handle CanDeactivate confirmation dialog if present
+          const dialog = this.page.locator('[role="dialog"]');
+          if (await dialog.isVisible({ timeout: 1000 }).catch(() => false)) {
+            this.logger.info('CanDeactivate dialog detected — confirming leave');
+            const leaveBtn = dialog.locator('button').filter({ hasText: /leave|yes|confirm|discard|ok/i }).first();
+            if (await leaveBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+              await leaveBtn.click();
+            } else {
+              await dialog.locator('button').first().click();
+            }
+          }
+          await this.page.waitForURL(url => url.href.includes('/plots/'), { timeout: 20000, waitUntil: 'commit' });
+          navigated = true;
+        }
+
+        if (navigated) {
+          this.logger.success('Navigated to plot detail via Cancel button');
+          await this.page.waitForTimeout(2000);
+          return;
+        }
+      } catch (e) {
+        this.logger.warn(`Cancel button approach failed: ${e}`);
+      }
+
+      // Strategy 3: Navigate directly using plot UUID extracted from edit form URL
+      this.logger.info('Fallback: navigating using UUID from edit form URL');
+      const editUrl = this.page.url();
+      // Edit form URL pattern: /customer-organization/{cemeterySlug}/{uuid}/manage/edit/plot
+      const match = editUrl.match(/\/customer-organization\/([^/]+)\/(\w+)\/manage\/edit\/plot/);
+      if (match) {
+        const cemeterySlug = match[1];
+        const plotUuid = match[2];
+        const baseOrigin = new URL(editUrl).origin;
+        const detailUrl = `${baseOrigin}/customer-organization/${cemeterySlug}/plots/${plotUuid}`;
+        this.logger.info(`Navigating directly to: ${detailUrl}`);
+        await this.page.goto(detailUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        await this.page.waitForTimeout(3000);
+        // Verify we're on the right page (not redirected to home)
+        const afterUrl = this.page.url();
+        if (!afterUrl.includes('/plots/')) {
+          this.logger.warn('Direct goto was blocked by route guard — trying cemetery-first approach');
+          // Navigate to cemetery page first to set org context, then to plot detail
+          const cemeteryUrl = `${baseOrigin}/customer-organization/${cemeterySlug}`;
+          await this.page.goto(cemeteryUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
+          await this.page.waitForTimeout(3000);
+          await this.page.goto(detailUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+          await this.page.waitForTimeout(3000);
+        }
+      } else {
+        throw new Error('Cannot extract UUID from edit form URL for fallback navigation');
+      }
+    }
+    await this.page.waitForTimeout(2000);
     this.logger.success('ROI saved successfully');
   }
 

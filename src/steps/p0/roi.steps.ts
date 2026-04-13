@@ -50,24 +50,37 @@ When('I select plot {string}', { timeout: 15000 }, async function (plotName: str
 });
 
 Then('the plot status should be {string}', { timeout: 10000 }, async function (expectedStatus: string) {
+  // Always reinitialize to avoid stale page reference from a previous scenario
+  plotPage = new PlotPage(this.page);
   const isCorrect = await plotPage.verifyStatusChanged(expectedStatus);
   expect(isCorrect).toBeTruthy();
 });
 
 When('I click Add ROI button', { timeout: 50000 }, async function () {
+  // Always reinitialize with the current scenario's page to avoid stale page references
+  roiPage = new ROIPage(this.page);
   await roiPage.clickAddRoi();
 });
 
 When('I click ROI tab', async function () {
+  if (!roiPage) {
+    roiPage = new ROIPage(this.page);
+  }
   await roiPage.clickRoiTab();
 });
 
 When('I click Edit ROI button', { timeout: 50000 }, async function () {
+  if (!roiPage) {
+    roiPage = new ROIPage(this.page);
+  }
   // EDIT ROI button is at bottom of plot detail page, no need to click ROI tab first
   await roiPage.clickEditRoi();
 });
 
 When('I fill ROI form with following details', { timeout: 30000 }, async function (dataTable: any) {
+  if (!roiPage) {
+    roiPage = new ROIPage(this.page);
+  }
   const roiData = dataTable.rowsHash(); // For vertical tables with key-value pairs
   const actualData = replacePlaceholdersInObject(roiData);
   await roiPage.fillRoiForm(actualData);
@@ -107,67 +120,72 @@ When('I search and select ROI holder {string}', { timeout: 15000 }, async functi
   await roiPage.searchAndSelectRoiHolder(personName);
 });
 
-When('I save the ROI', { timeout: 35000 }, async function () {
+When('I save the ROI', { timeout: 120000 }, async function () {
   const page = this.page;
-  
-  await roiPage.saveRoi();
-  
-  // After save, we're redirected to plot detail page
-  // Wait for tab list to be visible
-  await page.locator('[role="tablist"]').waitFor({ state: 'visible', timeout: 8000 });
-  
-  // Click ROI tab explicitly (same as search scenario)
-  const roiTab = page.getByRole('tab', { name: 'ROI' });
-  await roiTab.waitFor({ state: 'visible', timeout: 5000 });
-  await roiTab.click();
-  
-  // Verify ROI tab is actually selected after click (with retry)
-  await page.waitForTimeout(500);
-  const isSelected = await roiTab.getAttribute('aria-selected');
-  
-  if (isSelected !== 'true') {
-    // Tab click didn't work, try again
-    console.log('ROI tab not selected, clicking again...');
-    await roiTab.click();
-    await page.waitForTimeout(500);
+  if (!roiPage) {
+    roiPage = new ROIPage(page);
   }
-  
-  // Wait 2 seconds for ROI data to load completely
+
+  // saveRoi() handles navigation back to plot detail page (or stays on edit form for verification)
+  await roiPage.saveRoi();
+
+  // Wait for page to settle after navigation
   await page.waitForTimeout(2000);
+
+  // If on detail page, click ROI tab for downstream steps that verify ROI data
+  // Check if we're on the detail page (has tablist) or still on edit form
+  const hasTablist = await page.locator('[role="tablist"]').isVisible({ timeout: 3000 }).catch(() => false);
+  if (hasTablist) {
+    // On detail page — click ROI tab for any downstream ROI verification steps
+    const roiTab = page.getByRole('tab', { name: 'ROI' });
+    if (await roiTab.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await roiTab.click();
+      await page.waitForTimeout(500);
+      const isSelected = await roiTab.getAttribute('aria-selected');
+      if (isSelected !== 'true') {
+        await roiTab.click();
+        await page.waitForTimeout(500);
+      }
+      await page.waitForTimeout(2000);
+    }
+  } else {
+    // Still on edit form — ROI was saved but navigation failed, wait for status update
+    await page.waitForTimeout(3000);
+  }
 });
 
 Then('I should see ROI holder {string} in the ROI tab', { timeout: 20000 }, async function (holderName: string) {
   const actualName = replacePlaceholders(holderName);
   const page = this.page;
-  
+
   // Wait for ROI content to load after tab click
   await page.waitForTimeout(3000);
-  
+
   // Verify ROI tab is selected
   const roiTab = page.getByRole('tab', { name: 'ROI' });
   const isSelected = await roiTab.getAttribute('aria-selected');
-  
+
   if (isSelected !== 'true') {
     throw new Error(`❌ ROI tab is not selected (aria-selected=${isSelected})`);
   }
-  
+
   // Get page content and verify both name and role exist
   const pageContent = await page.content();
-  
+
   const hasName = pageContent.includes(actualName);
   const hasRole = pageContent.toUpperCase().includes('ROI HOLDER');
-  
+
   if (!hasName) {
     // Debug: show what's on page
     const bodyText = await page.locator('body').textContent();
     console.log('Page content preview:', bodyText?.substring(0, 500));
     throw new Error(`❌ ROI holder "${actualName}" not found on page`);
   }
-  
+
   if (!hasRole) {
     throw new Error(`❌ Label "ROI HOLDER" not found on page`);
   }
-  
+
   console.log(`✓ ROI holder verified: "${actualName}" with label "ROI HOLDER"`);
 });
 

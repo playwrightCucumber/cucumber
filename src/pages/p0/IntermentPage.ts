@@ -36,34 +36,47 @@ export class IntermentPage {
    */
   async clickAddIntermentButton(): Promise<void> {
     this.logger.info('Clicking Add Interment button');
-    
-    // Wait for button to be visible and clickable
-    const button = this.page.locator(IntermentSelectors.addIntermentButton);
-    await button.waitFor({ state: 'visible', timeout: 15000 });
-    await this.page.waitForTimeout(1000); // Small wait for page to stabilize
-    
-    this.logger.info('Add Interment button found, clicking...');
-    await button.click();
-    
-    // Wait for navigation - try multiple patterns
+
+    // Support multiple entry points:
+    // 1. Plot detail page (/plots/{uuid})          → plot-details-edit-button-add-interment-btn
+    // 2. Edit plot form, occupied plot (has items)  → plot-edit-button-adding
+    // 3. Edit plot form, vacant plot (empty list)   → plot-edit-div-interments > plus-item-button-plus-button-0
+    const detailPageBtn = this.page.locator(IntermentSelectors.addIntermentButton);
+    const editFormBtnOccupied = this.page.locator('[data-testid="plot-edit-button-adding"]');
+    const editFormBtnVacant = this.page.locator('[data-testid="plot-edit-div-interments"] [data-testid="plus-item-button-plus-button-0"]');
+
+    const isDetailVisible = await detailPageBtn.isVisible({ timeout: 3000 }).catch(() => false);
+    const isOccupiedFormVisible = !isDetailVisible
+      ? await editFormBtnOccupied.isVisible({ timeout: 2000 }).catch(() => false)
+      : false;
+
+    if (isDetailVisible) {
+      this.logger.info('Using detail page Add Interment button');
+      await detailPageBtn.click();
+    } else if (isOccupiedFormVisible) {
+      this.logger.info('Using edit form Add Interment button (occupied plot)');
+      await editFormBtnOccupied.click();
+    } else {
+      this.logger.info('Using edit form Add Interment button (vacant plot)');
+      await editFormBtnVacant.waitFor({ state: 'visible', timeout: 10000 });
+      await editFormBtnVacant.click();
+    }
+
+    // Wait for navigation to Add Interment form
     try {
-      await this.page.waitForURL('**/manage/add/interment', { timeout: 15000 });
+      await this.page.waitForURL(url => url.href.includes('/manage/add/interment'), { timeout: 15000 });
       this.logger.info('✓ Navigated to Add Interment form');
     } catch (e) {
-      // Log current URL if navigation fails
       const currentUrl = this.page.url();
       this.logger.info(`Current URL after click: ${currentUrl}`);
-      
-      // Check if we're on any manage page
       if (currentUrl.includes('/manage/')) {
         this.logger.info('On a manage page, proceeding...');
       } else {
         throw new Error(`Failed to navigate to Add Interment form. Current URL: ${currentUrl}`);
       }
     }
-    
-    // Wait for form to be visible
-    await this.page.waitForTimeout(3000); // Wait for form sections to load
+
+    await this.page.waitForTimeout(3000);
     this.logger.success('Add Interment form loaded');
   }
 
@@ -173,15 +186,33 @@ export class IntermentPage {
    */
   async saveInterment(): Promise<void> {
     this.logger.info('Saving interment');
-    
-    // Click save button
+
     await this.page.click(IntermentSelectors.saveButton);
-    
-    // Wait for redirect back to plot detail page (longer timeout for production)
-    await this.page.waitForURL('**/plots/**', { timeout: 35000 });
-    await this.page.waitForTimeout(3000); // Wait for page to fully load
-    
-    this.logger.success('Interment saved and redirected to plot detail');
+
+    // After save, redirect can go to:
+    // 1. /plots/{uuid}        — when coming from plot detail page
+    // 2. /manage/edit/plot    — when coming from edit plot form (backTo parameter)
+    await this.page.waitForURL(
+      url => url.href.includes('/plots/') || url.href.includes('/manage/edit/plot'),
+      { timeout: 35000 }
+    );
+    await this.page.waitForTimeout(2000);
+
+    // If landed on edit form, navigate to plot detail page for verification
+    const currentUrl = this.page.url();
+    if (currentUrl.includes('/manage/edit/plot')) {
+      this.logger.info('Redirected to edit form — clicking Cancel to navigate to plot detail');
+      // Wait for edit form to stabilize after backTo redirect before clicking Cancel
+      await this.page.waitForTimeout(5000);
+      const cancelBtn = this.page.locator('[data-testid="toolbar-manage-button-toolbar-button"]');
+      await cancelBtn.waitFor({ state: 'visible', timeout: 8000 });
+      await cancelBtn.click();
+      // Use waitUntil:'commit' — SPA router navigation does not fire a 'load' event
+      await this.page.waitForURL(url => url.href.includes('/plots/'), { timeout: 20000, waitUntil: 'commit' });
+      await this.page.waitForTimeout(3000);
+    }
+
+    this.logger.success('Interment saved and on plot detail page');
   }
 
   /**

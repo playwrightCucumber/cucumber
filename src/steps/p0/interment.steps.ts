@@ -5,7 +5,7 @@ import { replacePlaceholdersInObject, replacePlaceholders } from '../../utils/Te
 // Initialize page object - Reset for each scenario
 let intermentPage: IntermentPage;
 
-When('I click Add Interment button', { timeout: 15000 }, async function () {
+When('I click Add Interment button', { timeout: 45000 }, async function () {
   const page = this.page;
   intermentPage = new IntermentPage(page);
   await intermentPage.clickAddIntermentButton();
@@ -21,7 +21,7 @@ When('I save the Interment', { timeout: 40000 }, async function () {
   await intermentPage.saveInterment();
 });
 
-Then('I should see deceased {string} in the Interment tab', { timeout: 30000 }, async function (deceasedName: string) {
+Then('I should see deceased {string} in the Interment tab', { timeout: 90000 }, async function (deceasedName: string) {
   const actualName = replacePlaceholders(deceasedName);
   await intermentPage.verifyDeceasedInTab(actualName);
 });
