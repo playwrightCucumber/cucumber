@@ -1,0 +1,155 @@
+- generic [ref=e7]:
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - link [ref=e11] [cursor=pointer]:
+        - /url: /
+      - link:
+        - /url: /
+    - generic [ref=e12]:
+      - button "MORE" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]:
+          - img [ref=e16]: more_vert
+          - text: MORE
+      - button "cancel" [ref=e17] [cursor=pointer]: cancel
+      - button "save" [ref=e18] [cursor=pointer]: save
+  - generic [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22]:
+        - heading "Edit Plot" [level=1] [ref=e23]
+        - generic [ref=e24]:
+          - heading "Astana Tegal Gundul - B G 6" [level=4] [ref=e25]
+          - generic [ref=e26]:
+            - img "icon marker" [ref=e27]
+            - paragraph [ref=e28] [cursor=pointer]: View on map
+      - paragraph [ref=e33] [cursor=pointer]: Create certificate
+    - generic [ref=e34]:
+      - generic [ref=e36]:
+        - generic [ref=e37]:
+          - generic [ref=e41] [cursor=pointer]:
+            - combobox "Status Reserved" [ref=e42]:
+              - generic [ref=e45]: Reserved
+            - generic:
+              - generic: Status *
+          - generic [ref=e51] [cursor=pointer]:
+            - combobox "Plot type Lawn" [ref=e52]:
+              - generic [ref=e55]: Lawn
+            - generic:
+              - generic: Plot type
+        - generic [ref=e58]:
+          - generic [ref=e62]:
+            - spinbutton "Burial capacity" [ref=e63]: "1"
+            - generic:
+              - generic: Burial capacity
+          - generic [ref=e67]:
+            - spinbutton "Entombment capacity" [ref=e68]: "0"
+            - generic:
+              - generic: Entombment capacity
+        - generic [ref=e69]:
+          - generic [ref=e73]:
+            - spinbutton "Cremation capacity" [ref=e74]: "0"
+            - generic:
+              - generic: Cremation capacity
+          - generic [ref=e78]:
+            - spinbutton "Total capacity" [ref=e79]: "1"
+            - generic:
+              - generic: Total capacity
+        - generic [ref=e80]:
+          - generic [ref=e84] [cursor=pointer]:
+            - combobox "Direction West" [ref=e85]:
+              - generic [ref=e88]: West
+            - generic:
+              - generic: Direction
+          - generic [ref=e93]:
+            - generic [ref=e94]: $
+            - generic [ref=e95]:
+              - spinbutton "Price" [ref=e96]: "0"
+              - generic:
+                - generic: Price
+            - generic [ref=e99] [cursor=pointer]:
+              - generic [ref=e100]:
+                - checkbox "Hide" [checked] [ref=e101]
+                - generic:
+                  - img
+              - generic [ref=e102]: Hide
+        - heading "Extra details" [level=6] [ref=e103]
+        - generic [ref=e110]:
+          - textbox "label" [ref=e111]
+          - generic:
+            - generic:
+              - generic: cus_plot
+        - generic [ref=e116]:
+          - generic [ref=e118]:
+            - textbox "label" [ref=e119]
+            - generic:
+              - generic:
+                - generic: plot xx 1
+          - generic [ref=e122]: Will be shown on Vacant plot status only for public
+        - generic [ref=e128]:
+          - generic [ref=e130]:
+            - textbox "label" [ref=e131]
+            - generic:
+              - generic:
+                - generic: xx
+          - generic [ref=e134]: Will be shown on Vacant plot status only for public
+        - generic [ref=e142]:
+          - textbox "label" [ref=e143]
+          - generic:
+            - generic:
+              - generic: xx 2
+        - generic [ref=e150] [cursor=pointer]:
+          - combobox "xx 1" [ref=e151]
+          - generic:
+            - generic:
+              - generic: xx 1
+        - generic [ref=e157]:
+          - heading "Headstone photo" [level=5] [ref=e159]
+          - generic [ref=e160]:
+            - generic [ref=e164]:
+              - img [ref=e166]:
+                - img [ref=e167]
+              - generic [ref=e170]: Use AI to extract details from headstone
+              - img [ref=e172]: close
+            - generic [ref=e174]:
+              - heading [level=4]
+              - generic [ref=e180] [cursor=pointer]:
+                - button "SELECT PHOTO" [ref=e181]:
+                  - generic [ref=e182]:
+                    - img [ref=e183]:
+                      - img [ref=e184]
+                    - text: SELECT PHOTO
+                - paragraph [ref=e187]: or drag it here
+        - generic [ref=e192]:
+          - textbox "Headstone inscription" [ref=e193]
+          - generic:
+            - generic: Headstone inscription
+      - generic [ref=e194]:
+        - generic [ref=e195]:
+          - heading "Right of Interment" [level=4] [ref=e196]
+          - generic [ref=e197] [cursor=pointer]:
+            - generic [ref=e198]: andre galon
+            - paragraph [ref=e199]:
+              - generic [ref=e200]: Burial |
+              - text: Apr 8, 2026
+        - generic [ref=e201]:
+          - heading "Interments" [level=4] [ref=e203] [cursor=pointer]
+          - button "add" [ref=e205] [cursor=pointer]:
+            - generic [ref=e206]: add
+        - button "Add Sale" [ref=e213] [cursor=pointer]:
+          - generic [ref=e214]: Add Sale
+        - generic [ref=e216]:
+          - generic [ref=e217]:
+            - generic [ref=e218]: Activity
+            - listbox "Filter Selection" [ref=e219]:
+              - generic [ref=e220]:
+                - option "Notes" [selected] [ref=e221]: Notes
+                - option "Changes" [ref=e222]: Changes
+                - option "All" [ref=e223]: All
+            - button [ref=e224] [cursor=pointer]:
+              - img [ref=e226]:
+                - img [ref=e227]
+              - generic: "1"
+          - generic [ref=e232]:
+            - textbox "Add Notes" [ref=e234]
+            - img [ref=e236] [cursor=pointer]:
+              - img [ref=e237]
+          - generic [ref=e242]: No previous activity recorded in Chronicle.

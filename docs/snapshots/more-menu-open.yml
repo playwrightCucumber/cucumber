@@ -1,0 +1,289 @@
+- generic [ref=e1]:
+  - generic [ref=e7006]:
+    - generic [ref=e7008]:
+      - link [ref=e7010] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e7011]:
+        - button [expanded] [active] [ref=e7013] [cursor=pointer]:
+          - generic [ref=e7014]:
+            - img [ref=e7015]: more_vert
+            - text: MORE
+        - button [ref=e7016] [cursor=pointer]: cancel
+        - button [ref=e7017] [cursor=pointer]: save
+    - generic [ref=e7021]:
+      - generic [ref=e7022]:
+        - generic [ref=e7023]:
+          - heading [level=1] [ref=e7024]: Edit ROI
+          - generic [ref=e7026]:
+            - heading [level=4] [ref=e7027]: Astana Tegal Gundul - B G 6
+            - generic [ref=e7028]:
+              - img [ref=e7029]
+              - paragraph [ref=e7030] [cursor=pointer]: View on map
+        - paragraph [ref=e7035] [cursor=pointer]: Create certificate
+      - generic [ref=e7036]:
+        - generic [ref=e7038]:
+          - generic [ref=e7039]:
+            - generic [ref=e7043] [cursor=pointer]:
+              - combobox [ref=e7044]:
+                - generic [ref=e7047]: Burial
+              - generic:
+                - generic: Right type *
+            - generic [ref=e7053] [cursor=pointer]:
+              - combobox [ref=e7054]
+              - generic:
+                - generic: Term of right
+          - generic [ref=e7060]:
+            - generic [ref=e7063]:
+              - generic [ref=e7064]: $
+              - generic [ref=e7065]:
+                - spinbutton [ref=e7066]
+                - generic:
+                  - generic: Fee
+            - generic [ref=e7069]:
+              - generic [ref=e7070]:
+                - textbox [ref=e7071]
+                - generic:
+                  - generic: Payment date
+              - button [ref=e7074] [cursor=pointer]:
+                - img [ref=e7075]
+            - generic [ref=e7080] [cursor=pointer]:
+              - switch [ref=e7082]
+              - generic [ref=e7085]: Charged
+          - generic [ref=e7086]:
+            - generic [ref=e7089]:
+              - generic [ref=e7090]:
+                - textbox [ref=e7091]: 08/04/2026
+                - generic:
+                  - generic: Application date
+              - button [ref=e7094] [cursor=pointer]:
+                - img [ref=e7095]
+            - generic [ref=e7099]:
+              - generic [ref=e7102]:
+                - generic [ref=e7103]:
+                  - textbox [ref=e7104]
+                  - generic:
+                    - generic: Expiry Date
+                - button [ref=e7107] [cursor=pointer]:
+                  - img [ref=e7108]
+              - generic [ref=e7113]:
+                - generic [ref=e7114]:
+                  - checkbox [disabled] [ref=e7115]
+                  - generic:
+                    - img
+                - generic [ref=e7116]: Auto add to event calendar
+          - generic [ref=e7117]:
+            - generic [ref=e7121] [cursor=pointer]:
+              - combobox [ref=e7122]
+              - generic:
+                - generic: Service need
+            - generic [ref=e7132]:
+              - textbox [ref=e7133]
+              - generic:
+                - generic: Certificate number
+          - heading [level=6] [ref=e7134]: Extra details
+          - generic [ref=e7141]:
+            - textbox [ref=e7142]
+            - generic:
+              - generic:
+                - generic: cus_roi
+          - generic [ref=e7149]:
+            - spinbutton [ref=e7150]
+            - generic:
+              - generic:
+                - generic: Infusions cost
+          - generic [ref=e7157]:
+            - spinbutton [ref=e7158]
+            - generic:
+              - generic:
+                - generic: Crystal keepsakes cost
+          - generic [ref=e7165]:
+            - spinbutton [ref=e7166]
+            - generic:
+              - generic:
+                - generic: Weekend surcharge cost
+          - generic [ref=e7173]:
+            - textbox [ref=e7174]
+            - generic:
+              - generic:
+                - generic: Digging Fee
+          - generic [ref=e7181]:
+            - textbox [ref=e7182]
+            - generic:
+              - generic:
+                - generic: text area
+          - generic [ref=e7185]:
+            - heading [level=4] [ref=e7186]: Documents
+            - generic [ref=e7192] [cursor=pointer]:
+              - button [ref=e7193]:
+                - generic [ref=e7194]:
+                  - img [ref=e7195]:
+                    - img [ref=e7196]
+                  - text: SELECT FILE
+              - paragraph [ref=e7199]: or drag it here
+              - paragraph [ref=e7200]: "Maximum file size: 8 MB"
+        - generic [ref=e7201]:
+          - generic [ref=e7202]:
+            - button [ref=e7205] [cursor=pointer]:
+              - generic [ref=e7206]: ROI Holder
+            - button [ref=e7209] [cursor=pointer]:
+              - generic [ref=e7210]: ROI Applicant
+          - generic [ref=e7213]:
+            - generic [ref=e7215]:
+              - banner [ref=e7216]:
+                - heading [level=4] [ref=e7218]: ROI Holder
+              - generic [ref=e7219]:
+                - heading [level=2] [ref=e7220]: andre galon
+                - button [ref=e7221] [cursor=pointer]:
+                  - generic [ref=e7223]: EDIT CONTACT INFO
+                - button [ref=e7226] [cursor=pointer]:
+                  - generic [ref=e7228]: REMOVE & REPLACE
+            - generic [ref=e7229]:
+              - paragraph [ref=e7230]: "Also:"
+              - option [ref=e7231] [cursor=pointer]: ROI Applicant
+            - button [ref=e7233] [cursor=pointer]: ADD AS INTERMENT
+          - button [ref=e7240] [cursor=pointer]:
+            - generic [ref=e7241]: Add Sale
+          - generic [ref=e7243]:
+            - generic [ref=e7244]:
+              - generic [ref=e7245]: Activity
+              - listbox [ref=e7246]:
+                - generic [ref=e7247]:
+                  - option [selected] [ref=e7248]: Notes
+                  - option [selected] [ref=e7249]: Changes
+                  - option [ref=e7250]: All
+              - button [ref=e7251] [cursor=pointer]:
+                - img [ref=e7253]:
+                  - img [ref=e7254]
+                - generic: "2"
+            - generic [ref=e7259]:
+              - textbox [ref=e7261]:
+                - /placeholder: Add Notes
+              - img [ref=e7263] [cursor=pointer]:
+                - img [ref=e7264]
+            - generic [ref=e7268]:
+              - generic [ref=e7270]:
+                - generic [ref=e7271]:
+                  - generic [ref=e7272]: Apr 15, 2026 8:33 AM
+                  - generic [ref=e7274]: Juan Francisco fasss
+                - generic [ref=e7275]:
+                  - generic [ref=e7276]: ROI moved from B G 3 to B G 6
+                  - list [ref=e7278]:
+                    - listitem [ref=e7279]: First Name 'andre'
+                    - listitem [ref=e7280]: Last Name 'galon'
+                    - listitem [ref=e7281]: Past Plot ID 'B G 3'
+                    - listitem [ref=e7282]: New Plot ID 'B G 6'
+                    - listitem [ref=e7283]: Moved date '2026-04-15 00:33:04'
+                    - listitem [ref=e7284]: Moved by 'Juan Francisco fasss'
+              - generic [ref=e7285]:
+                - generic [ref=e7286]:
+                  - generic [ref=e7287]: Apr 15, 2026 8:18 AM
+                  - generic [ref=e7289]: Juan Francisco fasss
+                - generic [ref=e7290]:
+                  - generic [ref=e7291]: ROI moved from B G 6 to B G 3
+                  - list [ref=e7293]:
+                    - listitem [ref=e7294]: First Name 'andre'
+                    - listitem [ref=e7295]: Last Name 'galon'
+                    - listitem [ref=e7296]: Past Plot ID 'B G 6'
+                    - listitem [ref=e7297]: New Plot ID 'B G 3'
+                    - listitem [ref=e7298]: Moved date '2026-04-15 00:18:02'
+                    - listitem [ref=e7299]: Moved by 'Juan Francisco fasss'
+              - generic [ref=e7300]:
+                - generic [ref=e7301]:
+                  - generic [ref=e7302]: Apr 14, 2026 4:31 PM
+                  - generic [ref=e7304]: Juan Francisco fasss
+                - generic [ref=e7305]:
+                  - generic [ref=e7306]: ROI moved from B G 8 to B G 6
+                  - list [ref=e7308]:
+                    - listitem [ref=e7309]: First Name 'andre'
+                    - listitem [ref=e7310]: Last Name 'galon'
+                    - listitem [ref=e7311]: Past Plot ID 'B G 8'
+                    - listitem [ref=e7312]: New Plot ID 'B G 6'
+                    - listitem [ref=e7313]: Moved date '2026-04-14 08:31:17'
+                    - listitem [ref=e7314]: Moved by 'Juan Francisco fasss'
+              - generic [ref=e7315]:
+                - generic [ref=e7316]:
+                  - generic [ref=e7317]: Apr 14, 2026 4:29 PM
+                  - generic [ref=e7319]: Juan Francisco fasss
+                - generic [ref=e7320]:
+                  - generic [ref=e7321]: ROI moved from B G 6 to B G 8
+                  - list [ref=e7323]:
+                    - listitem [ref=e7324]: First Name 'andre'
+                    - listitem [ref=e7325]: Last Name 'galon'
+                    - listitem [ref=e7326]: Past Plot ID 'B G 6'
+                    - listitem [ref=e7327]: New Plot ID 'B G 8'
+                    - listitem [ref=e7328]: Moved date '2026-04-14 08:29:14'
+                    - listitem [ref=e7329]: Moved by 'Juan Francisco fasss'
+              - generic [ref=e7330]:
+                - generic [ref=e7331]:
+                  - generic [ref=e7332]: Apr 14, 2026 4:18 PM
+                  - generic [ref=e7334]: Juan Francisco fasss
+                - generic [ref=e7335]:
+                  - generic [ref=e7336]: ROI moved from B G 8 to B G 6
+                  - list [ref=e7338]:
+                    - listitem [ref=e7339]: First Name 'andre'
+                    - listitem [ref=e7340]: Last Name 'galon'
+                    - listitem [ref=e7341]: Past Plot ID 'B G 8'
+                    - listitem [ref=e7342]: New Plot ID 'B G 6'
+                    - listitem [ref=e7343]: Moved date '2026-04-14 08:18:39'
+                    - listitem [ref=e7344]: Moved by 'Juan Francisco fasss'
+              - generic [ref=e7345]:
+                - generic [ref=e7346]:
+                  - generic [ref=e7347]: Apr 14, 2026 2:52 PM
+                  - generic [ref=e7349]: Juan Francisco fasss
+                - generic [ref=e7350]:
+                  - generic [ref=e7351]: ROI moved from B G 6 to B G 8
+                  - list [ref=e7353]:
+                    - listitem [ref=e7354]: First Name 'andre'
+                    - listitem [ref=e7355]: Last Name 'galon'
+                    - listitem [ref=e7356]: Past Plot ID 'B G 6'
+                    - listitem [ref=e7357]: New Plot ID 'B G 8'
+                    - listitem [ref=e7358]: Moved date '2026-04-14 06:52:50'
+                    - listitem [ref=e7359]: Moved by 'Juan Francisco fasss'
+              - generic [ref=e7360]:
+                - generic [ref=e7361]:
+                  - generic [ref=e7362]: Apr 14, 2026 2:25 PM
+                  - generic [ref=e7364]: Juan Francisco fasss
+                - generic [ref=e7365]:
+                  - generic [ref=e7366]: ROI moved from B G 8 to B G 6
+                  - list [ref=e7368]:
+                    - listitem [ref=e7369]: First Name 'andre'
+                    - listitem [ref=e7370]: Last Name 'galon'
+                    - listitem [ref=e7371]: Past Plot ID 'B G 8'
+                    - listitem [ref=e7372]: New Plot ID 'B G 6'
+                    - listitem [ref=e7373]: Moved date '2026-04-14 06:25:53'
+                    - listitem [ref=e7374]: Moved by 'Juan Francisco fasss'
+              - generic [ref=e7375]:
+                - generic [ref=e7376]:
+                  - generic [ref=e7377]: Apr 14, 2026 2:11 PM
+                  - generic [ref=e7379]: Juan Francisco fasss
+                - generic [ref=e7380]:
+                  - generic [ref=e7381]: ROI moved from B G 6 to B G 8
+                  - list [ref=e7383]:
+                    - listitem [ref=e7384]: First Name 'andre'
+                    - listitem [ref=e7385]: Last Name 'galon'
+                    - listitem [ref=e7386]: Past Plot ID 'B G 6'
+                    - listitem [ref=e7387]: New Plot ID 'B G 8'
+                    - listitem [ref=e7388]: Moved date '2026-04-14 06:11:03'
+                    - listitem [ref=e7389]: Moved by 'Juan Francisco fasss'
+  - generic:
+    - dialog [ref=e7393]:
+      - generic [ref=e7395]:
+        - generic [ref=e7396] [cursor=pointer]: clear
+        - generic [ref=e7398]:
+          - banner [ref=e7399]:
+            - heading "ROI Applicant | ROI Holder" [level=4] [ref=e7401]
+          - generic [ref=e7402]:
+            - heading "andre galon" [level=2] [ref=e7403]
+            - button "EDIT CONTACT INFO" [ref=e7404] [cursor=pointer]:
+              - generic [ref=e7406]: EDIT CONTACT INFO
+    - menu [ref=e7410]:
+      - generic [ref=e7411]:
+        - button "Move ROI" [ref=e7412] [cursor=pointer]:
+          - generic [ref=e7413]:
+            - img [ref=e7414]:
+              - img [ref=e7415]
+            - text: Move ROI
+        - menuitem "Delete" [ref=e7418] [cursor=pointer]:
+          - img [ref=e7419]:
+            - img [ref=e7420]
+          - text: Delete
