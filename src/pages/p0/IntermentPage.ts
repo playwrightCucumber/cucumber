@@ -378,96 +378,125 @@ export class IntermentPage {
       await el.click();
     }
 
-    await this.page.waitForTimeout(1200);
+    await this.page.waitForTimeout(2500);
 
-    // Handle sub-options (PERSON / BUSINESS) that may appear after expanding the section.
-    // IMPORTANT: Use CSS :has-text() which is CASE-SENSITIVE — this avoids accidentally
-    // matching "Deceased person" when searching for "PERSON".
-    // getByText({ exact: false }) is case-insensitive and would hit the wrong elements.
+    // Step 2: Click the PERSON or BUSINESS sub-option that appears in the dropdown panel.
+    // After clicking a role button (e.g., "+ INTERMENT APPLICANT"), a small panel appears
+    // with "PERSON" and "BUSINESS" choices (rendered uppercase via CSS). Click the right one.
+    // NOTE: { force: true } is used because Angular Material CDK overlay backdrops can
+    // intercept pointer events even when the target element is visible and stable.
     if (subType) {
-      const subLabel = subType; // 'PERSON' or 'BUSINESS'
+      const subTitle = subType[0] + subType.slice(1).toLowerCase(); // 'Person' or 'Business'
 
-      // The sub-options are <div class="option select"> elements with text "Person"/"Business".
-      // These are displayed as "PERSON"/"BUSINESS" via CSS text-transform:uppercase.
-      // From DOM inspection: data-testid="interment-add-form-div-option-1" for Person.
-      const subLower = subLabel.toLowerCase();  // 'person' or 'business'
-      const subTitle = subLabel[0] + subLabel.slice(1).toLowerCase(); // 'Person' or 'Business'
-
-      // Priority order: exact testid match, then class+text, then broader fallbacks
       const subSelectors = [
-        `[data-testid*="option"]:has-text("${subTitle}")`,   // e.g., data-testid="interment-add-form-div-option-1"
-        `div.option.select:has-text("${subTitle}")`,          // <div class="option select"> with "Person"/"Business" text
-        `div[class*="option"]:has-text("${subTitle}")`,       // any option-classed div with the text
-        `div.option:has-text("${subTitle}")`,                 // option div with title-case text
+        `[data-testid*="option"]:has-text("${subTitle}")`,
+        `div.option.select:has-text("${subTitle}")`,
+        `div[class*="option"]:has-text("${subTitle}")`,
+        `div.option:has-text("${subTitle}")`,
         `button:has-text("${subTitle}")`,
-        `cl-plus-item[text="${subLower}"]`,
         `a:has-text("${subTitle}")`,
+        `mat-menu-item:has-text("${subTitle}")`,
+        `[role="menuitem"]:has-text("${subTitle}")`,
+        `[role="option"]:has-text("${subTitle}")`,
+        `li:has-text("${subTitle}")`,
+        `span:has-text("${subTitle}")`,
       ];
 
       let subClicked = false;
       for (const sel of subSelectors) {
         const el = this.page.locator(sel).first();
-        if (await el.isVisible({ timeout: 1000 }).catch(() => false)) {
-          const html = await el.evaluate((e: Element) => e.outerHTML.substring(0, 300)).catch(() => '?');
-          this.logger.info(`Found "${subLabel}" sub-option with: ${sel} → ${html}`);
-          await el.click();
-          this.logger.info(`Clicked "${subLabel}" sub-option with: ${sel}`);
+        if (await el.isVisible({ timeout: 2000 }).catch(() => false)) {
+          this.logger.info(`Clicking "${subType}" sub-option with: ${sel}`);
+          await el.click({ force: true });
           subClicked = true;
           break;
         }
       }
 
       if (!subClicked) {
-        this.logger.info(`No "${subLabel}" sub-option found, proceeding to search directly`);
-      } else {
-        await this.page.waitForTimeout(1500);
+        // Case-insensitive exact-word regex fallback
+        this.logger.info(`Sub-option selectors failed — trying regex getByText("${subTitle}")`);
+        const el = this.page.getByText(new RegExp(`^${subTitle}$`, 'i')).first();
+        if (await el.isVisible({ timeout: 3000 }).catch(() => false)) {
+          await el.click({ force: true });
+          subClicked = true;
+        }
       }
-    } else {
-      // Auto-detect: check if PERSON sub-option appears using case-sensitive :has-text()
-      const personEl = this.page.locator('[data-testid*="option"]:has-text("Person"), div.option.select:has-text("Person")').first();
-      if (await personEl.isVisible({ timeout: 1500 }).catch(() => false)) {
-        this.logger.info('Auto-clicking PERSON sub-option');
-        await personEl.click();
-        await this.page.waitForTimeout(1000);
-      }
-    }
 
-    // Find the search input. After clicking PERSON sub-option, an "Interment Applicant" dialog
-    // appears — search via the Last name autocomplete field inside the dialog.
-    // For BUSINESS (funeral minister/director), a direct search panel may appear.
-    const searchInputSelectors = [
-      'mat-dialog-container input[formcontrolname="last_name"]',  // Person dialog: Last name
-      '[role="dialog"] input[formcontrolname="last_name"]',        // Dialog last name
-      'mat-dialog-container input[formcontrolname="name"]',        // Business dialog: business name
-      '[role="dialog"] input[formcontrolname="name"]',             // Business dialog name
-      ...IntermentSelectors.relationSearchInput.split(', '),       // Original selectors
-      'input[placeholder*="name"]',
-      'input[placeholder*="Search"]',
-    ];
-
-    let searchInputEl = this.page.locator(searchInputSelectors[0]);
-    for (const sel of searchInputSelectors) {
-      const el = this.page.locator(sel).first();
-      if (await el.isVisible({ timeout: 2000 }).catch(() => false)) {
-        this.logger.info(`Found search input with selector: ${sel}`);
-        searchInputEl = el;
-        break;
+      if (subClicked) {
+        await this.page.waitForTimeout(3000);
       }
     }
-    await searchInputEl.waitFor({ state: 'visible', timeout: 10000 });
-    await searchInputEl.click();
-    await searchInputEl.fill(searchTerm);
-    await this.page.waitForTimeout(1500);
 
-    // Select the first autocomplete suggestion
-    const firstOption = this.page.locator('mat-option').first();
-    await firstOption.waitFor({ state: 'visible', timeout: 10000 });
-    const optionText = await firstOption.textContent();
-    this.logger.info(`Selecting autocomplete option: "${optionText?.trim()}"`);
-    await firstOption.click();
-    await this.page.waitForTimeout(800);
+    // Step 3: Interact with the dialog form that appeared after clicking the sub-option.
+    // Branch explicitly on subType — BUSINESS forms have a "Business name *" required field
+    // at the top, while PERSON forms start with "First name *".
+    const addBtn = this.page.locator(
+      '[role="dialog"] button:has-text("Add"), mat-dialog-container button:has-text("Add")'
+    ).first();
 
-    this.logger.success(`Relation added via search for: "${searchTerm}"`);
+    if (subType === 'BUSINESS') {
+      // Business form: fill the required "Business name" field with searchTerm, then click ADD.
+      // The "Business name *" field is the FIRST input in the dialog.
+      this.logger.info(`Business form — filling Business name: "${searchTerm}"`);
+
+      // Try specific selectors first, then fall back to the first input in dialog
+      const businessNameSelectors = [
+        'mat-dialog-container input[aria-label="Business name"]',
+        '[role="dialog"] input[aria-label="Business name"]',
+        'mat-dialog-container input[formcontrolname="name"]',
+        '[role="dialog"] input[formcontrolname="name"]',
+        'mat-dialog-container input[formcontrolname="business_name"]',
+        '[role="dialog"] input[formcontrolname="business_name"]',
+        'mat-dialog-container mat-form-field:first-of-type input',
+        '[role="dialog"] mat-form-field:first-of-type input',
+      ];
+
+      let businessNameInput = this.page.locator(businessNameSelectors[0]);
+      for (const sel of businessNameSelectors) {
+        const el = this.page.locator(sel).first();
+        if (await el.isVisible({ timeout: 2000 }).catch(() => false)) {
+          this.logger.info(`Found business name input with: ${sel}`);
+          businessNameInput = el;
+          break;
+        }
+      }
+      await businessNameInput.waitFor({ state: 'visible', timeout: 10000 });
+      await businessNameInput.click({ clickCount: 3 });
+      await businessNameInput.fill(searchTerm);
+      await this.page.waitForTimeout(500);
+      await addBtn.waitFor({ state: 'visible', timeout: 8000 });
+      await addBtn.click();
+      await this.page.waitForTimeout(1000);
+      this.logger.success(`Business relation added: "${searchTerm}"`);
+      return;
+    }
+
+    // PERSON form: fill First name (required) + Last name (searchTerm), then click ADD.
+    this.logger.info(`Person form — filling First name "Test" + Last name "${searchTerm}"`);
+    const firstNameInput = this.page.locator([
+      'mat-dialog-container input[aria-label="First name"]',
+      '[role="dialog"] input[aria-label="First name"]',
+      'mat-dialog-container input[formcontrolname="first_name"]',
+      '[role="dialog"] input[formcontrolname="first_name"]',
+    ].join(', ')).first();
+    await firstNameInput.waitFor({ state: 'visible', timeout: 12000 });
+    await firstNameInput.click({ clickCount: 3 });
+    await firstNameInput.fill('Test');
+
+    const lastNameInput = this.page.locator([
+      'mat-dialog-container input[aria-label="Last name"]',
+      '[role="dialog"] input[aria-label="Last name"]',
+      'mat-dialog-container input[formcontrolname="last_name"]',
+      '[role="dialog"] input[formcontrolname="last_name"]',
+    ].join(', ')).first();
+    await lastNameInput.click({ clickCount: 3 });
+    await lastNameInput.fill(searchTerm);
+    await this.page.waitForTimeout(500);
+    await addBtn.waitFor({ state: 'visible', timeout: 8000 });
+    await addBtn.click();
+    await this.page.waitForTimeout(1000);
+    this.logger.success(`Person relation added: Test ${searchTerm}`);
   }
 
   /**
@@ -496,43 +525,45 @@ export class IntermentPage {
 
   /**
    * Confirm the interment deletion dialog and wait for navigation away from the manage page.
-   * Handles a secondary dialog that may ask "This plot is empty. Keep the plot status as occupied?"
+   *
+   * Flow after clicking "Delete" from MORE menu:
+   *   1st dialog: "Delete Interment — Are you sure? CANCEL / DELETE"
+   *   2nd dialog (if plot is now empty): "This plot is empty. Keep the plot status as occupied? YES / NO"
+   *     YES → navigates immediately  |  NO → submenu ("Change to vacant"/"Change to reserved")
    */
   async confirmIntermentDeletion(): Promise<void> {
     this.logger.info('Confirming interment deletion');
 
-    // Click primary delete confirmation button if a dialog is showing
-    const confirmBtn = this.page.locator(IntermentSelectors.confirmDeleteIntermentButton).first();
-    if (await confirmBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await confirmBtn.click();
-      this.logger.success('Clicked primary delete confirmation');
+    // Step 1: Click the DELETE button in the primary "Are you sure?" dialog
+    const deleteBtn = this.page.locator(
+      '[role="dialog"] button:has-text("DELETE"), [role="dialog"] button:has-text("Delete")'
+    ).first();
+    await deleteBtn.waitFor({ state: 'visible', timeout: 10000 });
+    await deleteBtn.click();
+    this.logger.info('Clicked DELETE in primary confirmation dialog');
+    await this.page.waitForTimeout(1500);
+
+    // Step 2: Handle the secondary "This plot is empty — keep as occupied?" dialog.
+    // The dialog appears after the DELETE API call completes (may take several seconds on staging).
+    // Clicking NO opens a submenu: "Change to vacant" / "Change to reserved".
+    // We click NO then "Change to vacant" so the plot is freed for subsequent tests.
+    const secondaryNoBtn = this.page.locator(
+      'mat-dialog-container button:has-text("NO"), mat-dialog-container button:has-text("No"), ' +
+      '[role="dialog"] button:has-text("NO"), [role="dialog"] button:has-text("No")'
+    ).first();
+    if (await secondaryNoBtn.isVisible({ timeout: 15000 }).catch(() => false)) {
+      await secondaryNoBtn.click();
+      this.logger.info('Clicked NO — waiting for "Change to vacant" submenu option');
+      await this.page.waitForTimeout(500);
+
+      // After NO, a submenu appears with "Change to vacant" and "Change to reserved"
+      const changeToVacantBtn = this.page.locator('button:has-text("Change to vacant")').first();
+      await changeToVacantBtn.waitFor({ state: 'visible', timeout: 5000 });
+      await changeToVacantBtn.click();
+      this.logger.info('Clicked "Change to vacant" — plot will return to vacant status');
+      await this.page.waitForTimeout(1000);
     } else {
-      this.logger.info('No primary confirmation dialog found — proceeding');
-    }
-
-    await this.page.waitForTimeout(1000);
-
-    // Handle secondary dialog: "This plot is empty. Would you like to keep the plot status as occupied?"
-    const secondaryDialog = this.page.locator('[role="dialog"]');
-    if (await secondaryDialog.isVisible({ timeout: 3000 }).catch(() => false)) {
-      this.logger.info('Secondary "keep occupied" dialog appeared');
-      // Click "No" to set plot as vacant; fall back to "Yes" if No is absent
-      const noBtn = this.page.locator('[role="dialog"] button:has-text("No")').first();
-      const yesBtn = this.page.locator('[role="dialog"] button:has-text("Yes")').first();
-
-      if (await noBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await noBtn.click();
-        this.logger.info('Clicked "No" in secondary dialog');
-      } else if (await yesBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await yesBtn.click();
-        this.logger.info('Clicked "Yes" in secondary dialog');
-      } else {
-        const anyBtn = this.page.locator('[role="dialog"] button').first();
-        if (await anyBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-          await anyBtn.click();
-          this.logger.info('Clicked first available dialog button');
-        }
-      }
+      this.logger.info('Secondary "This plot is empty?" dialog did not appear — proceeding');
     }
 
     // Wait for navigation away from the interment manage page
@@ -557,21 +588,43 @@ export class IntermentPage {
   }
 
   /**
-   * In the move interment dialog, search for and select a target plot by its ID
+   * In the Move Interment dialog, select the target plot from the "Plott *" mat-select.
+   * The dialog has: Cemetery (1st mat-select, pre-filled) + Plott (2nd mat-select) + CANCEL / ASSIGN.
+   *
+   * The Plott mat-select has an integrated search: clicking it opens a CDK overlay panel that
+   * contains a search input at the top. You type the plot ID there to filter results, then click
+   * the matching mat-option.
    */
   async searchAndSelectMoveTargetPlot(plotId: string): Promise<void> {
-    this.logger.info(`Searching for plot to move interment to: "${plotId}"`);
-    const searchInput = this.page.locator(IntermentSelectors.movePlotSearchInput).first();
-    await searchInput.waitFor({ state: 'visible', timeout: 10000 });
-    await searchInput.click();
-    await searchInput.fill(plotId);
-    await this.page.waitForTimeout(1500);
+    this.logger.info(`Searching for target plot in Move dialog: "${plotId}"`);
 
-    const option = this.page.locator(IntermentSelectors.autocompleteOption(plotId)).first();
-    await option.waitFor({ state: 'visible', timeout: 10000 });
+    // Wait for the Move dialog to fully render
+    await this.page.waitForTimeout(1000);
+
+    // Click the Plott mat-select (2nd mat-select in the dialog) to open the CDK overlay
+    const plotSelect = this.page.locator('[role="dialog"] mat-select').nth(1);
+    await plotSelect.waitFor({ state: 'visible', timeout: 10000 });
+    await plotSelect.click();
+    this.logger.info('Clicked Plott mat-select — waiting for CDK overlay search input');
+
+    // The overlay panel opens outside the dialog in .cdk-overlay-container.
+    // It has a search input at the top — wait for it to become visible.
+    const overlayInput = this.page.locator('.cdk-overlay-container input').first();
+    await overlayInput.waitFor({ state: 'visible', timeout: 8000 });
+    this.logger.info('CDK overlay search input visible — typing plot ID');
+
+    // Type using pressSequentially to fire real key events (Angular valueChanges / API search)
+    await overlayInput.click();
+    await overlayInput.pressSequentially(plotId, { delay: 80 });
+    this.logger.info(`Typed "${plotId}" into overlay search input`);
+
+    // Wait for the matching mat-option to appear (API call may take a few seconds)
+    const option = this.page.locator(`mat-option:has-text("${plotId}")`).first();
+    await option.waitFor({ state: 'visible', timeout: 15000 });
     await option.click();
+    this.logger.success(`Plot "${plotId}" selected`);
+
     await this.page.waitForTimeout(500);
-    this.logger.success(`Target plot "${plotId}" selected`);
   }
 
   /**
@@ -579,9 +632,27 @@ export class IntermentPage {
    */
   async confirmIntermentMove(): Promise<void> {
     this.logger.info('Confirming interment move');
-    const confirmBtn = this.page.locator(IntermentSelectors.moveConfirmButton).first();
-    await confirmBtn.waitFor({ state: 'visible', timeout: 10000 });
-    await confirmBtn.click();
+
+    // Wait for any dropdown overlays to fully close and the ASSIGN button to become active
+    await this.page.waitForTimeout(1500);
+
+    // Try to find and click the ASSIGN/confirm button
+    // First try getByRole for reliability; fall back to locator
+    let clicked = false;
+
+    const dialogAssign = this.page.locator('mat-dialog-container').getByRole('button', { name: /assign/i });
+    if (await dialogAssign.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await dialogAssign.click({ force: true });
+      clicked = true;
+      this.logger.info('Clicked ASSIGN button via getByRole');
+    }
+
+    if (!clicked) {
+      const confirmBtn = this.page.locator(IntermentSelectors.moveConfirmButton).first();
+      await confirmBtn.waitFor({ state: 'visible', timeout: 15000 });
+      await confirmBtn.click({ force: true });
+      this.logger.info('Clicked ASSIGN/confirm button via locator');
+    }
 
     // After move, expect to land on the target plot detail page
     try {
@@ -617,41 +688,33 @@ export class IntermentPage {
   }
 
   /**
-   * Click INTERMENTS tab on plot detail page (for edit flow)
+   * Click INTERMENTS tab on plot detail page (for edit flow).
+   *
+   * Chronicle shows two layouts depending on the plot type:
+   *   - Tabbed layout (catalog plots): DETAILS | INTERMENTS | MAP | DOCUMENTS tabs
+   *   - MAP layout (map plots): sidebar with [aria-label="INTERMENTS"] chip + TARGETS/ACTIVITY tabs
+   *
+   * Both layouts have an element with [aria-label="INTERMENTS"] that reveals the interment list.
+   * Using the aria-label selector handles both cases.
    */
   async clickIntermentTab(): Promise<void> {
-    this.logger.info('Clicking INTERMENTS tab');
+    this.logger.info('Clicking INTERMENTS tab/chip');
 
-    // Wait for page to be ready - ensure tablist is loaded
-    await this.page.waitForSelector('[role="tablist"]', { state: 'visible', timeout: 10000 });
-
-    // Wait for tab to be visible first
-    const intermentsTab = this.page.getByRole('tab', { name: /INTERMENTS/i });
-    await intermentsTab.waitFor({ state: 'visible', timeout: 10000 });
+    // [aria-label="INTERMENTS"] matches both the standard tab in tabbed layout
+    // and the chip in MAP layout. Use .first() to handle multiple matches safely.
+    const intermentsEl = this.page.locator(IntermentSelectors.intermentsTab).first();
+    await intermentsEl.waitFor({ state: 'visible', timeout: 15000 });
     await this.page.waitForTimeout(500);
 
-    // Click the tab
-    await intermentsTab.click();
-    this.logger.info('INTERMENTS tab clicked, waiting for content to load...');
+    await intermentsEl.click();
+    this.logger.info('INTERMENTS element clicked, waiting for content to load...');
 
-    // Wait for tab to be selected
     await this.page.waitForTimeout(2000);
 
-    // Verify tab is selected
-    const isSelected = await intermentsTab.getAttribute('aria-selected');
-    if (isSelected === 'true') {
-      this.logger.success('INTERMENTS tab selected successfully');
-    } else {
-      this.logger.info('Retrying tab click...');
-      await intermentsTab.click();
-      await this.page.waitForTimeout(2000);
-    }
-
-    // Wait for content to stabilize - wait for network to be idle
+    // Allow network to settle
     try {
       await this.page.waitForLoadState('networkidle', { timeout: 5000 });
     } catch {
-      // Network idle timeout is ok, continue
       this.logger.info('Network idle timeout, continuing...');
     }
     await this.page.waitForTimeout(2000);

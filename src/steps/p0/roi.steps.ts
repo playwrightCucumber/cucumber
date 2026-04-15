@@ -99,7 +99,7 @@ When('I select the first reserved plot', { timeout: 15000 }, async function () {
   this.selectedPlotName = plotName; // Store for later reference
 });
 
-When('I select the first occupied plot', { timeout: 15000 }, async function () {
+When('I select the first occupied plot', { timeout: 60000 }, async function () {
   const plotName = await plotPage.selectFirstOccupiedPlot();
   this.selectedPlotName = plotName; // Store for later reference
 });
