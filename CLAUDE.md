@@ -1,6 +1,63 @@
 # CLAUDE.md
 
 Always address the user as "Mr Deden" at the beginning of every sentence or answer.
+
+## Scenario Runner — Wajib Baca Sebelum Run
+
+**TRIGGER**: Kapanpun user mengirimkan tiket/skenario pengujian (berisi langkah-langkah bernomor, kata "Skenario", "validate", "verify", atau deskripsi flow yang harus di-test), WAJIB tanya dua hal ini TERLEBIH DAHULU sebelum menjalankan apapun:
+
+### Pertanyaan Wajib (tanya ketiganya sekaligus dalam satu pesan):
+
+```
+1. Di environment mana skenario ini akan dijalankan?
+   (contoh: dev / staging / prod — atau URL lengkap seperti https://dev.chronicle.rip https://staging.chronicle.rip  https://map.chronicle.rip )
+
+2. Akun apa yang akan digunakan?
+   (email + password)
+
+3. Cemetery mana yang akan digunakan?
+   (contoh: Astana Tegal Gundul / nama cemetery lainnya)
+```
+
+**JANGAN langsung open browser atau jalankan playwright-cli sebelum ketiga pertanyaan ini dijawab.**
+
+### Setelah Mendapat Jawaban — Aturan Eksekusi:
+
+1. **Gunakan playwright-cli** untuk semua interaksi browser (open, click, fill, snapshot, dll.) 
+2. **simpan snapshoot** sebagai knowledbase jika tidak ada, namun jika ternyata ada gunakan yg sudah ada. jadi anda sblm run biar g muter2 cari konteks bisa paka reference dari folder `docs/snapshots/<feature>/` dan refrence cara simpan snapshot jika ada flow baru bisa dari instruksi ## Debug Snapshots, instruksi tsb ada di file CLAUDE.md ini 
+
+2. **entry point** fitur yang sering di butuhkan dalam pencarian interment dan roi perlu awal dari plot. entry point plot bisa dari advance table, map view, searchbox di header atau dari advance search di header juga, tergantung tiketnya jika tidak di sebutkan dari mana maka bebas pilih yang mana saja, status plot occupied (ada interment, mungkin bisa jadi ada ROI), status plot forsale dan vacant (tidak ada interment, tidak ada ROI), status plot reserved (tidak ada interment, ada ROI)
+4. **Buat daftar assertion SEBELUM mulai eksekusi** — baca tiket, petakan setiap ekspektasi:
+
+   Untuk setiap assertion, tentukan:
+   - **Elemen apa** yang membuktikan assertion ini. catatan jika panel tsb memiliki sub menu atau tab maka pilih dahulu tabnya baru screenshot untuk crop "PASTIKAN TARGET SCREENSHOT TIDAK TERTUTUP OLEH DIALOG ATAU POP UP LAINNYA"** — jangan campur urutan.
+   - **Perlu BEFORE?** → Ya, jika assertion memvalidasi *perubahan* (sesuatu yang tadinya kosong/berbeda lalu berubah)
+   - **Perlu AFTER?** → Selalu ya
+
+5. **Capture ekspetasi BEFORE terlebih dahulu**, baru eksekusi aksi
+6. **capture ekspetasi AFTER**, baru eksekusi aksi lanjutan
+
+7. **Screenshot wajib di-crop hanya untuk elemen ekspektasi, tidak untuk prekondisi tidak perlu di crop** — pakai `playwright-cli screenshot e{ref}` untuk element screenshot, atau `clip` jika butuh presisi lebih:
+   ```js
+   const box = await page.locator('[data-testid="target"]').boundingBox();
+   await page.screenshot({ path: 'path.png', clip: { x: box.x - 10, y: box.y - 10, width: box.width + 20, height: box.height + 20 } });
+   ```
+
+8. **Penamaan file**: `s{skenario}_{step}_BEFORE_{deskripsi}.png` / `s{skenario}_{step}_AFTER_{deskripsi}.png` — pakai sufiks BEFORE/AFTER agar laporan langsung terbaca.
+
+9. **Simpan ke** `docs/snapshots/evidence/`
+
+10. **Laporkan setiap assertion** dengan format PASS/FAIL + pasangan screenshot BEFORE → AFTER
+
+### Format Laporan:
+
+| Assertion | Elemen | Status | BEFORE | AFTER |
+|-----------|--------|--------|--------|-------|
+| ROI muncul di plot tujuan | Right of Interment panel | PASS | s1_01_BEFORE_dest_roi.png | s1_01_AFTER_dest_roi.png |
+| ROI hilang dari plot asal | Right of Interment panel | PASS | s1_02_BEFORE_src_roi.png | s1_02_AFTER_src_roi.png |
+| Activity log mencatat move | Activity/Changes panel | PASS | s1_03_BEFORE_activity.png | s1_03_AFTER_activity.png |
+| Dialog konfirmasi muncul | Dialog modal | PASS | — | s1_04_AFTER_dialog.png |
+
 ## Context
 
 **Chronicle** is a cemetery management system. This repo is its BDD test suite (Cucumber + Playwright + TypeScript).
@@ -102,137 +159,3 @@ docs/snapshots/
 ## Environment
 
 `.env` files: `.env` (active), `.env.chronicle` (staging), `.env.chronicle.prod` (prod), `.env.dev`, `.env.map`. Never commit `.env`.
-
-<!-- rtk-instructions v2 -->
-# RTK (Rust Token Killer) - Token-Optimized Commands
-
-## Golden Rule
-
-**Always prefix commands with `rtk`**. If RTK has a dedicated filter, it uses it. If not, it passes through unchanged. This means RTK is always safe to use.
-
-**Important**: Even in command chains with `&&`, use `rtk`:
-```bash
-# ❌ Wrong
-git add . && git commit -m "msg" && git push
-
-# ✅ Correct
-rtk git add . && rtk git commit -m "msg" && rtk git push
-```
-
-## RTK Commands by Workflow
-
-### Build & Compile (80-90% savings)
-```bash
-rtk cargo build         # Cargo build output
-rtk cargo check         # Cargo check output
-rtk cargo clippy        # Clippy warnings grouped by file (80%)
-rtk tsc                 # TypeScript errors grouped by file/code (83%)
-rtk lint                # ESLint/Biome violations grouped (84%)
-rtk prettier --check    # Files needing format only (70%)
-rtk next build          # Next.js build with route metrics (87%)
-```
-
-### Test (90-99% savings)
-```bash
-rtk cargo test          # Cargo test failures only (90%)
-rtk vitest run          # Vitest failures only (99.5%)
-rtk playwright test     # Playwright failures only (94%)
-rtk test <cmd>          # Generic test wrapper - failures only
-```
-
-### Git (59-80% savings)
-```bash
-rtk git status          # Compact status
-rtk git log             # Compact log (works with all git flags)
-rtk git diff            # Compact diff (80%)
-rtk git show            # Compact show (80%)
-rtk git add             # Ultra-compact confirmations (59%)
-rtk git commit          # Ultra-compact confirmations (59%)
-rtk git push            # Ultra-compact confirmations
-rtk git pull            # Ultra-compact confirmations
-rtk git branch          # Compact branch list
-rtk git fetch           # Compact fetch
-rtk git stash           # Compact stash
-rtk git worktree        # Compact worktree
-```
-
-Note: Git passthrough works for ALL subcommands, even those not explicitly listed.
-
-### GitHub (26-87% savings)
-```bash
-rtk gh pr view <num>    # Compact PR view (87%)
-rtk gh pr checks        # Compact PR checks (79%)
-rtk gh run list         # Compact workflow runs (82%)
-rtk gh issue list       # Compact issue list (80%)
-rtk gh api              # Compact API responses (26%)
-```
-
-### JavaScript/TypeScript Tooling (70-90% savings)
-```bash
-rtk pnpm list           # Compact dependency tree (70%)
-rtk pnpm outdated       # Compact outdated packages (80%)
-rtk pnpm install        # Compact install output (90%)
-rtk npm run <script>    # Compact npm script output
-rtk npx <cmd>           # Compact npx command output
-rtk prisma              # Prisma without ASCII art (88%)
-```
-
-### Files & Search (60-75% savings)
-```bash
-rtk ls <path>           # Tree format, compact (65%)
-rtk read <file>         # Code reading with filtering (60%)
-rtk grep <pattern>      # Search grouped by file (75%)
-rtk find <pattern>      # Find grouped by directory (70%)
-```
-
-### Analysis & Debug (70-90% savings)
-```bash
-rtk err <cmd>           # Filter errors only from any command
-rtk log <file>          # Deduplicated logs with counts
-rtk json <file>         # JSON structure without values
-rtk deps                # Dependency overview
-rtk env                 # Environment variables compact
-rtk summary <cmd>       # Smart summary of command output
-rtk diff                # Ultra-compact diffs
-```
-
-### Infrastructure (85% savings)
-```bash
-rtk docker ps           # Compact container list
-rtk docker images       # Compact image list
-rtk docker logs <c>     # Deduplicated logs
-rtk kubectl get         # Compact resource list
-rtk kubectl logs        # Deduplicated pod logs
-```
-
-### Network (65-70% savings)
-```bash
-rtk curl <url>          # Compact HTTP responses (70%)
-rtk wget <url>          # Compact download output (65%)
-```
-
-### Meta Commands
-```bash
-rtk gain                # View token savings statistics
-rtk gain --history      # View command history with savings
-rtk discover            # Analyze Claude Code sessions for missed RTK usage
-rtk proxy <cmd>         # Run command without filtering (for debugging)
-rtk init                # Add RTK instructions to CLAUDE.md
-rtk init --global       # Add RTK to ~/.claude/CLAUDE.md
-```
-
-## Token Savings Overview
-
-| Category | Commands | Typical Savings |
-|----------|----------|-----------------|
-| Tests | vitest, playwright, cargo test | 90-99% |
-| Build | next, tsc, lint, prettier | 70-87% |
-| Git | status, log, diff, add, commit | 59-80% |
-| GitHub | gh pr, gh run, gh issue | 26-87% |
-| Package Managers | pnpm, npm, npx | 70-90% |
-| Files | ls, read, grep, find | 60-75% |
-| Infrastructure | docker, kubectl | 85% |
-| Network | curl, wget | 65-70% |
-
-Overall average: **60-90% token reduction** on common development operations.
-<!-- /rtk-instructions -->
