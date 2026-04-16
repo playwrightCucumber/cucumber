@@ -40,6 +40,7 @@ When('I click Create Sale button', { timeout: 30000 }, async function () {
  * Supports placeholders like <TEST_SALES_REFERENCE>
  */
 When('I fill sale reference with {string}', async function (reference: string) {
+  if (!salesPage) salesPage = new SalesPage(this.page);
   const actualReference = replacePlaceholders(reference);
   await salesPage.fillReference(actualReference);
   logger.info(`Filled reference: ${actualReference}`);
