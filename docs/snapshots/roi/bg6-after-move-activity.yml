@@ -1,0 +1,394 @@
+- generic [ref=e14]:
+  - generic [ref=e16]:
+    - generic [ref=e19]:
+      - generic [ref=e20]: hahahahaha
+      - generic [ref=e24]:
+        - generic [ref=e26]:
+          - img [ref=e28]:
+            - img [ref=e29]
+          - textbox "Search" [ref=e34]
+        - generic [ref=e38]:
+          - generic [ref=e39]:
+            - generic [ref=e40]:
+              - img [ref=e41]:
+                - img [ref=e42]
+              - generic [ref=e45]: People
+            - generic [ref=e46]:
+              - img [ref=e47]:
+                - img [ref=e48]
+              - generic [ref=e53]: Plots
+          - heading "within Astana Tegal Gundul" [level=5] [ref=e54]
+      - generic [ref=e55]:
+        - button "Advanced" [ref=e56] [cursor=pointer]:
+          - generic [ref=e59]: Advanced
+        - generic [ref=e62]:
+          - button "Notifications - 2 unread" [ref=e63] [cursor=pointer]:
+            - img "Notification bell" [ref=e65]
+          - generic [ref=e66]: "2"
+    - button "hahahahaha faris+astanaorg@chronicle.rip" [ref=e69] [cursor=pointer]:
+      - generic [ref=e72]:
+        - paragraph [ref=e73]: hahahahaha
+        - generic [ref=e74]: faris+astanaorg@chronicle.rip
+  - generic:
+    - generic [ref=e76]:
+      - generic:
+        - generic:
+          - generic:
+            - img
+        - generic:
+          - generic:
+            - generic [ref=e290] [cursor=pointer]:
+              - generic [ref=e291]:
+                - generic [ref=e292]: B F 5
+                - img [ref=e294]
+              - list [ref=e295]:
+                - listitem [ref=e296]: A. Rugaiyah
+            - generic [ref=e297] [cursor=pointer]:
+              - generic [ref=e298]:
+                - generic [ref=e299]: B F 6
+                - img [ref=e301]
+              - list [ref=e302]:
+                - listitem [ref=e303]: A. Handayani
+            - generic [ref=e304] [cursor=pointer]:
+              - generic [ref=e305]:
+                - generic [ref=e306]: B F 7
+                - img [ref=e308]
+              - list [ref=e309]:
+                - listitem [ref=e310]: A. Prabowo
+            - generic [ref=e311] [cursor=pointer]:
+              - generic [ref=e313]: B F 8
+              - list [ref=e314]:
+                - listitem [ref=e315]: A. Putri
+            - generic [ref=e316] [cursor=pointer]:
+              - generic [ref=e318]: B F 9
+              - list [ref=e319]:
+                - listitem [ref=e320]: A. Joko
+            - generic [ref=e321] [cursor=pointer]:
+              - generic [ref=e323]: B F 10
+              - list [ref=e324]:
+                - listitem [ref=e325]: A. Raka
+            - generic [ref=e326] [cursor=pointer]:
+              - generic [ref=e328]: B G 1
+              - list [ref=e329]:
+                - listitem [ref=e330]: j. liebert
+            - generic [ref=e331] [cursor=pointer]:
+              - generic [ref=e333]: B G 2
+              - list
+            - generic [ref=e334] [cursor=pointer]:
+              - generic [ref=e336]: B G 3
+              - list [ref=e337]:
+                - listitem [ref=e338]: a. galon
+            - generic [ref=e339] [cursor=pointer]:
+              - generic [ref=e341]: B G 4
+              - list
+            - generic [ref=e342] [cursor=pointer]:
+              - generic [ref=e344]: B G 5
+              - list
+            - generic [ref=e345] [cursor=pointer]:
+              - generic [ref=e347]: B G 6
+              - list [ref=e348]:
+                - listitem [ref=e349]: P. Star
+            - generic [ref=e350] [cursor=pointer]:
+              - generic [ref=e352]: B G 7
+              - list
+            - generic [ref=e353] [cursor=pointer]:
+              - generic [ref=e355]: B G 8
+              - list [ref=e356]:
+                - listitem [ref=e357]: S. Salahuddin
+                - listitem [ref=e358]: C. Black eduted
+            - generic [ref=e359] [cursor=pointer]:
+              - generic [ref=e361]: B G 9
+              - list [ref=e362]:
+                - listitem [ref=e363]: J. Doe
+            - generic [ref=e364] [cursor=pointer]:
+              - generic [ref=e366]: B G 10
+              - list [ref=e367]:
+                - listitem [ref=e368]: D. Pratama
+                - listitem [ref=e369]: W. Santoso
+            - generic [ref=e370] [cursor=pointer]:
+              - generic [ref=e372]: B G 11
+              - list [ref=e373]:
+                - listitem [ref=e374]: W. Santoso
+            - generic [ref=e375] [cursor=pointer]:
+              - generic [ref=e377]: B G 12
+              - list [ref=e378]:
+                - listitem [ref=e379]: B. Wijaya
+      - generic:
+        - generic:
+          - button [ref=e381] [cursor=pointer]
+          - button [ref=e382] [cursor=pointer]
+        - generic:
+          - link "Current location" [ref=e78] [cursor=pointer]:
+            - /url: "#"
+          - generic [ref=e79]:
+            - button "Zoom in" [disabled] [ref=e80]: +
+            - button "Zoom out" [ref=e81] [cursor=pointer]: −
+          - generic [ref=e82]:
+            - link "Leaflet" [ref=e83] [cursor=pointer]:
+              - /url: https://leafletjs.com
+              - img [ref=e84]
+              - text: Leaflet
+            - text: "| Map data ©"
+            - link "OpenStreetMap" [ref=e88] [cursor=pointer]:
+              - /url: https://www.openstreetmap.org/
+            - text: contributors,
+            - link "CC-BY-SA" [ref=e89] [cursor=pointer]:
+              - /url: https://creativecommons.org/licenses/by-sa/2.0/
+    - button [ref=e92] [cursor=pointer]:
+      - img [ref=e94]:
+        - img [ref=e95]
+  - generic [ref=e98]:
+    - generic [ref=e103] [cursor=pointer]:
+      - group [ref=e105]:
+        - button "Map" [pressed] [ref=e106]:
+          - generic [ref=e107]:
+            - img [ref=e109]:
+              - img [ref=e110]
+            - generic [ref=e112]: Map
+        - button "Tables" [ref=e113]:
+          - generic [ref=e114]:
+            - img [ref=e116]:
+              - img [ref=e117]
+            - generic [ref=e120]: Tables
+        - button "Calendar" [ref=e121]:
+          - generic [ref=e122]:
+            - img [ref=e124]:
+              - img [ref=e383]
+            - generic [ref=e125]: Calendar
+        - button "Request 57" [ref=e126]:
+          - generic [ref=e127]:
+            - img [ref=e129]:
+              - img [ref=e130]
+            - generic [ref=e133]: Request
+            - generic [ref=e134]: "57"
+        - button "Reports" [ref=e135]:
+          - generic [ref=e136]:
+            - img [ref=e138]:
+              - img [ref=e139]
+            - generic [ref=e142]: Reports
+      - group [disabled] [ref=e144]:
+        - button "help" [disabled] [ref=e145]:
+          - link "help" [disabled] [ref=e147]:
+            - /url: https://help.chronicle.rip/
+            - img "help" [ref=e148]
+        - button "home" [disabled] [ref=e149]:
+          - link "home" [disabled] [ref=e151]:
+            - /url: https://chronicle.rip/
+            - img "home" [ref=e152]
+    - generic [ref=e165]:
+      - button "Choose File" [ref=e168]
+      - img [ref=e169] [cursor=pointer]:
+        - img [ref=e170]
+      - generic [ref=e173]:
+        - generic [ref=e174]:
+          - generic [ref=e175]:
+            - paragraph [ref=e177]: Astana Tegal Gundul
+            - heading "B G 6 DIPESAN" [level=3] [ref=e179]:
+              - generic [ref=e181]: B G 6
+              - generic [ref=e182]: DIPESAN
+            - generic [ref=e184]:
+              - generic [ref=e186]: "- / 1"
+              - generic [ref=e189]: "- / 1"
+              - generic [ref=e191]:
+                - generic [ref=e192]: west
+                - generic [ref=e193]: W
+              - generic [ref=e196]: Lawn
+          - button "Edit" [ref=e198] [cursor=pointer]:
+            - paragraph [ref=e200]: Edit
+        - paragraph [ref=e202]
+        - generic [ref=e205]:
+          - button "Requests" [ref=e206] [cursor=pointer]:
+            - img [ref=e207]:
+              - img [ref=e208]
+            - text: Requests
+            - img [ref=e210]:
+              - img [ref=e211]
+          - button [ref=e213] [cursor=pointer]:
+            - img [ref=e215]:
+              - img [ref=e216]
+          - button [ref=e219] [cursor=pointer]:
+            - img [ref=e221]: share_outlined
+        - generic [ref=e223]:
+          - tablist [ref=e226]:
+            - generic [ref=e227]:
+              - tab "ROI" [ref=e228] [cursor=pointer]:
+                - generic [ref=e229]: ROI
+              - tab "EVENTS" [ref=e230] [cursor=pointer]:
+                - generic [ref=e231]: EVENTS
+              - tab "ACTIVITY" [active] [selected] [ref=e232] [cursor=pointer]:
+                - generic [ref=e233]: ACTIVITY
+          - generic [ref=e235]:
+            - tabpanel "ROI" [ref=e236]
+            - tabpanel "EVENTS" [ref=e251]
+            - tabpanel "ACTIVITY" [ref=e252]:
+              - generic [ref=e389]:
+                - generic [ref=e390]:
+                  - generic [ref=e391]:
+                    - generic [ref=e392]: Apr 15, 2026 9:18 AM
+                    - generic [ref=e394]: Juan Francisco fasss
+                  - generic [ref=e395]:
+                    - generic [ref=e396]: ROI moved from B G 6 to B G 3
+                    - list [ref=e398]:
+                      - listitem [ref=e399]: First Name 'andre'
+                      - listitem [ref=e400]: Last Name 'galon'
+                      - listitem [ref=e401]: Past Plot ID 'B G 6'
+                      - listitem [ref=e402]: New Plot ID 'B G 3'
+                      - listitem [ref=e403]: Moved date '2026-04-15 01:18:40'
+                      - listitem [ref=e404]: Moved by 'Juan Francisco fasss'
+                - generic [ref=e405]:
+                  - generic [ref=e406]:
+                    - generic [ref=e407]: Apr 15, 2026 8:33 AM
+                    - generic [ref=e409]: Juan Francisco fasss
+                  - generic [ref=e410]:
+                    - generic [ref=e411]: ROI moved from B G 3 to B G 6
+                    - list [ref=e413]:
+                      - listitem [ref=e414]: First Name 'andre'
+                      - listitem [ref=e415]: Last Name 'galon'
+                      - listitem [ref=e416]: Past Plot ID 'B G 3'
+                      - listitem [ref=e417]: New Plot ID 'B G 6'
+                      - listitem [ref=e418]: Moved date '2026-04-15 00:33:04'
+                      - listitem [ref=e419]: Moved by 'Juan Francisco fasss'
+                - generic [ref=e420]:
+                  - generic [ref=e421]:
+                    - generic [ref=e422]: Apr 15, 2026 8:18 AM
+                    - generic [ref=e424]: Juan Francisco fasss
+                  - generic [ref=e425]:
+                    - generic [ref=e426]: ROI moved from B G 6 to B G 3
+                    - list [ref=e428]:
+                      - listitem [ref=e429]: First Name 'andre'
+                      - listitem [ref=e430]: Last Name 'galon'
+                      - listitem [ref=e431]: Past Plot ID 'B G 6'
+                      - listitem [ref=e432]: New Plot ID 'B G 3'
+                      - listitem [ref=e433]: Moved date '2026-04-15 00:18:02'
+                      - listitem [ref=e434]: Moved by 'Juan Francisco fasss'
+                - generic [ref=e435]:
+                  - generic [ref=e436]:
+                    - generic [ref=e437]: Apr 14, 2026 4:31 PM
+                    - generic [ref=e439]: Juan Francisco fasss
+                  - generic [ref=e440]:
+                    - generic [ref=e441]: ROI moved from B G 8 to B G 6
+                    - list [ref=e443]:
+                      - listitem [ref=e444]: First Name 'andre'
+                      - listitem [ref=e445]: Last Name 'galon'
+                      - listitem [ref=e446]: Past Plot ID 'B G 8'
+                      - listitem [ref=e447]: New Plot ID 'B G 6'
+                      - listitem [ref=e448]: Moved date '2026-04-14 08:31:17'
+                      - listitem [ref=e449]: Moved by 'Juan Francisco fasss'
+                - generic [ref=e450]:
+                  - generic [ref=e451]:
+                    - generic [ref=e452]: Apr 14, 2026 4:29 PM
+                    - generic [ref=e454]: Juan Francisco fasss
+                  - generic [ref=e455]:
+                    - generic [ref=e456]: ROI moved from B G 6 to B G 8
+                    - list [ref=e458]:
+                      - listitem [ref=e459]: First Name 'andre'
+                      - listitem [ref=e460]: Last Name 'galon'
+                      - listitem [ref=e461]: Past Plot ID 'B G 6'
+                      - listitem [ref=e462]: New Plot ID 'B G 8'
+                      - listitem [ref=e463]: Moved date '2026-04-14 08:29:14'
+                      - listitem [ref=e464]: Moved by 'Juan Francisco fasss'
+                - generic [ref=e465]:
+                  - generic [ref=e466]:
+                    - generic [ref=e467]: Apr 14, 2026 4:18 PM
+                    - generic [ref=e469]: Juan Francisco fasss
+                  - generic [ref=e470]:
+                    - generic [ref=e471]: ROI moved from B G 8 to B G 6
+                    - list [ref=e473]:
+                      - listitem [ref=e474]: First Name 'andre'
+                      - listitem [ref=e475]: Last Name 'galon'
+                      - listitem [ref=e476]: Past Plot ID 'B G 8'
+                      - listitem [ref=e477]: New Plot ID 'B G 6'
+                      - listitem [ref=e478]: Moved date '2026-04-14 08:18:39'
+                      - listitem [ref=e479]: Moved by 'Juan Francisco fasss'
+                - generic [ref=e480]:
+                  - generic [ref=e481]:
+                    - generic [ref=e482]: Apr 14, 2026 2:52 PM
+                    - generic [ref=e484]: Juan Francisco fasss
+                  - generic [ref=e485]:
+                    - generic [ref=e486]: ROI moved from B G 6 to B G 8
+                    - list [ref=e488]:
+                      - listitem [ref=e489]: First Name 'andre'
+                      - listitem [ref=e490]: Last Name 'galon'
+                      - listitem [ref=e491]: Past Plot ID 'B G 6'
+                      - listitem [ref=e492]: New Plot ID 'B G 8'
+                      - listitem [ref=e493]: Moved date '2026-04-14 06:52:50'
+                      - listitem [ref=e494]: Moved by 'Juan Francisco fasss'
+                - generic [ref=e495]:
+                  - generic [ref=e496]:
+                    - generic [ref=e497]: Apr 14, 2026 2:25 PM
+                    - generic [ref=e499]: Juan Francisco fasss
+                  - generic [ref=e500]:
+                    - generic [ref=e501]: ROI moved from B G 8 to B G 6
+                    - list [ref=e503]:
+                      - listitem [ref=e504]: First Name 'andre'
+                      - listitem [ref=e505]: Last Name 'galon'
+                      - listitem [ref=e506]: Past Plot ID 'B G 8'
+                      - listitem [ref=e507]: New Plot ID 'B G 6'
+                      - listitem [ref=e508]: Moved date '2026-04-14 06:25:53'
+                      - listitem [ref=e509]: Moved by 'Juan Francisco fasss'
+                - generic [ref=e510]:
+                  - generic [ref=e511]:
+                    - generic [ref=e512]: Apr 14, 2026 2:11 PM
+                    - generic [ref=e514]: Juan Francisco fasss
+                  - generic [ref=e515]:
+                    - generic [ref=e516]: ROI moved from B G 6 to B G 8
+                    - list [ref=e518]:
+                      - listitem [ref=e519]: First Name 'andre'
+                      - listitem [ref=e520]: Last Name 'galon'
+                      - listitem [ref=e521]: Past Plot ID 'B G 6'
+                      - listitem [ref=e522]: New Plot ID 'B G 8'
+                      - listitem [ref=e523]: Moved date '2026-04-14 06:11:03'
+                      - listitem [ref=e524]: Moved by 'Juan Francisco fasss'
+                - generic [ref=e525]:
+                  - generic [ref=e526]:
+                    - generic [ref=e527]: Apr 14, 2026 2:08 PM
+                    - generic [ref=e529]: Juan Francisco fasss
+                  - generic [ref=e530]:
+                    - generic [ref=e531]: ROI moved from B G 8 to B G 6
+                    - list [ref=e533]:
+                      - listitem [ref=e534]: First Name 'andre'
+                      - listitem [ref=e535]: Last Name 'galon'
+                      - listitem [ref=e536]: Past Plot ID 'B G 8'
+                      - listitem [ref=e537]: New Plot ID 'B G 6'
+                      - listitem [ref=e538]: Moved date '2026-04-14 06:08:09'
+                      - listitem [ref=e539]: Moved by 'Juan Francisco fasss'
+                - generic [ref=e540]:
+                  - generic [ref=e541]:
+                    - generic [ref=e542]: Apr 13, 2026 4:59 PM
+                    - generic [ref=e544]: Juan Francisco fasss
+                  - generic [ref=e545]:
+                    - generic [ref=e546]: ROI moved from B G 7 to B G 6
+                    - list [ref=e548]:
+                      - listitem [ref=e549]: First Name 'andre'
+                      - listitem [ref=e550]: Last Name 'galon'
+                      - listitem [ref=e551]: Past Plot ID 'B G 7'
+                      - listitem [ref=e552]: New Plot ID 'B G 6'
+                      - listitem [ref=e553]: Moved date '2026-04-13 08:59:56'
+                      - listitem [ref=e554]: Moved by 'Juan Francisco fasss'
+                - generic [ref=e555]:
+                  - generic [ref=e556]:
+                    - generic [ref=e557]: Apr 7, 2026 4:08 PM
+                    - generic [ref=e559]: Juan Francisco fasss
+                  - generic [ref=e560]:
+                    - generic [ref=e561]: ROI Holder 'Patrick Star' added
+                    - list [ref=e563]:
+                      - listitem [ref=e564]: Added First name 'Patrick'
+                      - listitem [ref=e565]: Added Last name 'Star'
+                - generic [ref=e566]:
+                  - generic [ref=e567]:
+                    - generic [ref=e568]: Apr 7, 2026 11:58 AM
+                    - generic [ref=e570]: Juan Francisco fasss
+                  - generic [ref=e571]:
+                    - generic [ref=e572]: ROI moved from B G 5 to B G 6
+                    - list [ref=e574]:
+                      - listitem [ref=e575]: First Name 'johan'
+                      - listitem [ref=e576]: Last Name 'liebert'
+                      - listitem [ref=e577]: Past Plot ID 'B G 5'
+                      - listitem [ref=e578]: New Plot ID 'B G 6'
+                      - listitem [ref=e579]: Moved date '2026-04-07 03:58:19'
+                      - listitem [ref=e580]: Moved by 'Juan Francisco fasss'
+      - generic [ref=e254]:
+        - button "Add interment" [ref=e256] [cursor=pointer]:
+          - generic [ref=e257]: Add interment
+        - button "Edit ROI" [ref=e258] [cursor=pointer]:
+          - generic [ref=e259]: Edit ROI

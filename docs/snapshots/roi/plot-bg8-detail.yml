@@ -1,0 +1,240 @@
+- generic [ref=e2068]:
+  - generic [ref=e2070]:
+    - generic [ref=e2073]:
+      - generic [ref=e2074]: hahahahaha
+      - generic [ref=e2078]:
+        - generic [ref=e2080]:
+          - img [ref=e2082]:
+            - img [ref=e2083]
+          - textbox "Search" [ref=e2088]
+        - generic [ref=e2092]:
+          - generic [ref=e2093]:
+            - generic [ref=e2094]:
+              - img [ref=e2095]:
+                - img [ref=e2096]
+              - generic [ref=e2099]: People
+            - generic [ref=e2100]:
+              - img [ref=e2101]:
+                - img [ref=e2102]
+              - generic [ref=e2107]: Plots
+          - heading "within Astana Tegal Gundul" [level=5] [ref=e2108]
+      - generic [ref=e2109]:
+        - button "Advanced" [ref=e2110] [cursor=pointer]:
+          - generic [ref=e2113]: Advanced
+        - generic [ref=e2116]:
+          - button "Notifications - 2 unread" [ref=e2117] [cursor=pointer]:
+            - img "Notification bell" [ref=e2119]
+          - generic [ref=e2120]: "2"
+    - button "hahahahaha faris+astanaorg@chronicle.rip" [ref=e2123] [cursor=pointer]:
+      - generic [ref=e2126]:
+        - paragraph [ref=e2127]: hahahahaha
+        - generic [ref=e2128]: faris+astanaorg@chronicle.rip
+  - generic:
+    - generic [active] [ref=e2130]:
+      - generic:
+        - generic:
+          - generic:
+            - img
+        - generic:
+          - generic:
+            - generic [ref=e2453] [cursor=pointer]:
+              - generic [ref=e2454]:
+                - generic [ref=e2455]: B F 7
+                - img [ref=e2457]
+              - list [ref=e2458]:
+                - listitem [ref=e2459]: A. Prabowo
+            - generic [ref=e2460] [cursor=pointer]:
+              - generic [ref=e2462]: B F 8
+              - list [ref=e2463]:
+                - listitem [ref=e2464]: A. Putri
+            - generic [ref=e2465] [cursor=pointer]:
+              - generic [ref=e2467]: B F 9
+              - list [ref=e2468]:
+                - listitem [ref=e2469]: A. Joko
+            - generic [ref=e2470] [cursor=pointer]:
+              - generic [ref=e2472]: B F 10
+              - list [ref=e2473]:
+                - listitem [ref=e2474]: A. Raka
+            - generic [ref=e2475] [cursor=pointer]:
+              - generic [ref=e2477]: B F 11
+              - list [ref=e2478]:
+                - listitem [ref=e2479]: A. Gibran
+            - generic [ref=e2480] [cursor=pointer]:
+              - generic [ref=e2482]: B F 12
+              - list [ref=e2483]:
+                - listitem [ref=e2484]: A. Kaesang
+            - generic [ref=e2485] [cursor=pointer]:
+              - generic [ref=e2487]: B G 2
+              - list
+            - generic [ref=e2488] [cursor=pointer]:
+              - generic [ref=e2490]: B G 3
+              - list [ref=e2491]:
+                - listitem [ref=e2492]: a. galon
+            - generic [ref=e2493] [cursor=pointer]:
+              - generic [ref=e2495]: B G 4
+              - list [ref=e2496]:
+                - listitem [ref=e2497]: P. Star
+            - generic [ref=e2498] [cursor=pointer]:
+              - generic [ref=e2500]: B G 5
+              - list
+            - generic [ref=e2501] [cursor=pointer]:
+              - generic [ref=e2503]: B G 6
+              - list
+            - generic [ref=e2504] [cursor=pointer]:
+              - generic [ref=e2506]: B G 7
+              - list
+            - generic [ref=e2507] [cursor=pointer]:
+              - generic [ref=e2509]: B G 8
+              - list [ref=e2510]:
+                - listitem [ref=e2511]: S. Salahuddin
+                - listitem [ref=e2512]: C. Black eduted
+            - generic [ref=e2513] [cursor=pointer]:
+              - generic [ref=e2515]: B G 9
+              - list [ref=e2516]:
+                - listitem [ref=e2517]: J. Doe
+            - generic [ref=e2518] [cursor=pointer]:
+              - generic [ref=e2520]: B G 10
+              - list [ref=e2521]:
+                - listitem [ref=e2522]: D. Pratama
+                - listitem [ref=e2523]: W. Santoso
+            - generic [ref=e2524] [cursor=pointer]:
+              - generic [ref=e2526]: B G 11
+              - list [ref=e2527]:
+                - listitem [ref=e2528]: W. Santoso
+            - generic [ref=e2529] [cursor=pointer]:
+              - generic [ref=e2531]: B G 12
+              - list [ref=e2532]:
+                - listitem [ref=e2533]: B. Wijaya
+            - generic [ref=e2534] [cursor=pointer]:
+              - generic [ref=e2536]: B G 13
+              - list [ref=e2537]:
+                - listitem [ref=e2538]: E. Wijaya
+      - generic:
+        - generic:
+          - button [ref=e2540] [cursor=pointer]
+          - button [ref=e2541] [cursor=pointer]
+        - generic:
+          - link "Current location" [ref=e2243] [cursor=pointer]:
+            - /url: "#"
+          - generic [ref=e2244]:
+            - button "Zoom in" [disabled] [ref=e2245]: +
+            - button "Zoom out" [ref=e2246] [cursor=pointer]: −
+          - generic [ref=e2247]:
+            - link "Leaflet" [ref=e2248] [cursor=pointer]:
+              - /url: https://leafletjs.com
+              - img [ref=e2249]
+              - text: Leaflet
+            - text: "| Map data ©"
+            - link "OpenStreetMap" [ref=e2253] [cursor=pointer]:
+              - /url: https://www.openstreetmap.org/
+            - text: contributors,
+            - link "CC-BY-SA" [ref=e2254] [cursor=pointer]:
+              - /url: https://creativecommons.org/licenses/by-sa/2.0/
+    - button [ref=e2257] [cursor=pointer]:
+      - img [ref=e2259]:
+        - img [ref=e2260]
+  - generic [ref=e2263]:
+    - generic [ref=e2268] [cursor=pointer]:
+      - group [ref=e2270]:
+        - button "Map" [pressed] [ref=e2271]:
+          - generic [ref=e2272]:
+            - img [ref=e2274]:
+              - img [ref=e2275]
+            - generic [ref=e2277]: Map
+        - button "Tables" [ref=e2278]:
+          - generic [ref=e2279]:
+            - img [ref=e2281]:
+              - img [ref=e2282]
+            - generic [ref=e2285]: Tables
+        - button "Calendar" [ref=e2286]:
+          - generic [ref=e2287]:
+            - img [ref=e2289]:
+              - img [ref=e2290]
+            - generic [ref=e2292]: Calendar
+        - button "Request 57" [ref=e2293]:
+          - generic [ref=e2294]:
+            - img [ref=e2296]:
+              - img [ref=e2297]
+            - generic [ref=e2300]: Request
+            - generic [ref=e2301]: "57"
+        - button "Reports" [ref=e2302]:
+          - generic [ref=e2303]:
+            - img [ref=e2305]:
+              - img [ref=e2306]
+            - generic [ref=e2309]: Reports
+      - group [disabled] [ref=e2311]:
+        - button "help" [disabled] [ref=e2312]:
+          - link "help" [disabled] [ref=e2314]:
+            - /url: https://help.chronicle.rip/
+            - img "help" [ref=e2315]
+        - button "home" [disabled] [ref=e2316]:
+          - link "home" [disabled] [ref=e2318]:
+            - /url: https://chronicle.rip/
+            - img "home" [ref=e2319]
+    - generic [ref=e2332]:
+      - button "Choose File" [ref=e2335]
+      - img [ref=e2336] [cursor=pointer]:
+        - img [ref=e2337]
+      - generic [ref=e2340]:
+        - generic [ref=e2341]:
+          - generic [ref=e2342]:
+            - paragraph [ref=e2344]: Astana Tegal Gundul
+            - heading "B G 8" [level=3] [ref=e2549]:
+              - generic [ref=e2348]: B G 8
+            - generic [ref=e2351]:
+              - generic [ref=e2353]: 2 / 15
+              - generic [ref=e2356]: "- / 5"
+              - generic [ref=e2551]: 2 / 5
+              - generic [ref=e2554]: "- / 5"
+              - generic [ref=e2358]:
+                - generic [ref=e2359]: west
+                - generic [ref=e2360]: W
+              - generic [ref=e2363]: Lawn
+          - button "Edit" [ref=e2365] [cursor=pointer]:
+            - paragraph [ref=e2367]: Edit
+        - paragraph [ref=e2369]
+        - generic [ref=e2372]:
+          - button "Requests" [ref=e2373] [cursor=pointer]:
+            - img [ref=e2374]:
+              - img [ref=e2375]
+            - text: Requests
+            - img [ref=e2377]:
+              - img [ref=e2378]
+          - button [ref=e2556] [cursor=pointer]:
+            - img [ref=e2558]:
+              - img [ref=e2559]
+          - button [ref=e2386] [cursor=pointer]:
+            - img [ref=e2388]: share_outlined
+        - generic [ref=e2562]:
+          - tablist [ref=e2565]:
+            - generic [ref=e2566]:
+              - tab "INTERMENTS" [selected] [ref=e2567] [cursor=pointer]:
+                - generic [ref=e2568]: INTERMENTS
+              - tab "EVENTS" [ref=e2569] [cursor=pointer]:
+                - generic [ref=e2570]: EVENTS
+              - tab "ACTIVITY" [ref=e2571] [cursor=pointer]:
+                - generic [ref=e2572]: ACTIVITY
+          - generic [ref=e2574]:
+            - tabpanel "INTERMENTS" [ref=e2575]:
+              - generic [ref=e2578]:
+                - button "Cat Brown Black eduted n/a - n/a (n/a y.o)" [ref=e2583] [cursor=pointer]:
+                  - generic [ref=e2584]:
+                    - img [ref=e2586]:
+                      - img [ref=e2587]
+                    - generic [ref=e2591]:
+                      - heading "Cat Brown Black eduted" [level=3] [ref=e2593]
+                      - paragraph [ref=e2594]: n/a - n/a (n/a y.o)
+                - button "Sandiaga Uno Salahuddin n/a - n/a (n/a y.o)" [ref=e2599] [cursor=pointer]:
+                  - generic [ref=e2600]:
+                    - img [ref=e2602]:
+                      - img [ref=e2603]
+                    - generic [ref=e2607]:
+                      - heading "Sandiaga Uno Salahuddin" [level=3] [ref=e2609]
+                      - paragraph [ref=e2610]: n/a - n/a (n/a y.o)
+            - tabpanel "EVENTS" [ref=e2611]
+            - tabpanel "ACTIVITY" [ref=e2612]
+      - generic [ref=e2416]:
+        - button "Add interment" [ref=e2418] [cursor=pointer]:
+          - generic [ref=e2419]: Add interment
+        - button "Add ROI" [ref=e2421] [cursor=pointer]:
+          - generic [ref=e2422]: Add ROI

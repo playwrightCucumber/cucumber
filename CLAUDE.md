@@ -30,7 +30,7 @@ Always address the user as "Mr Deden" at the beginning of every sentence or answ
 4. **Buat daftar assertion SEBELUM mulai eksekusi** — baca tiket, petakan setiap ekspektasi:
 
    Untuk setiap assertion, tentukan:
-   - **Elemen apa** yang membuktikan assertion ini. catatan jika panel tsb memiliki sub menu atau tab maka pilih dahulu tabnya baru screenshot untuk crop "PASTIKAN TARGET SCREENSHOT TIDAK TERTUTUP OLEH DIALOG ATAU POP UP LAINNYA"** — jangan campur urutan.
+   - **Elemen apa** yang membuktikan assertion ini. Jika panel memiliki sub-menu atau tab, pilih tab yang **relevan dengan konteks tiket** (bukan tab default) sebelum screenshot — konsisten untuk BEFORE maupun AFTER. "PASTIKAN TARGET SCREENSHOT TIDAK TERTUTUP OLEH DIALOG ATAU POP UP LAINNYA"** — jangan campur urutan.
    - **Perlu BEFORE?** → Ya, jika assertion memvalidasi *perubahan* (sesuatu yang tadinya kosong/berbeda lalu berubah)
    - **Perlu AFTER?** → Selalu ya
 

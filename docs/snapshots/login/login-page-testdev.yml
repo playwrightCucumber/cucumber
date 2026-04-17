@@ -1,0 +1,59 @@
+- main [ref=e3]:
+  - generic [ref=e414]:
+    - img "Cemetery" [ref=e416]
+    - generic [ref=e418]:
+      - generic [ref=e419]:
+        - img "Logo" [ref=e420]
+        - heading "Login to your account" [level=1] [ref=e421]
+        - heading "Login to your account" [level=2] [ref=e422]
+        - generic [ref=e423]:
+          - paragraph [ref=e424]: Continue with
+          - generic [ref=e425]:
+            - generic [ref=e426] [cursor=pointer]:
+              - img "google" [ref=e427]
+              - generic [ref=e428]: google
+            - generic [ref=e429] [cursor=pointer]:
+              - img "microsoft" [ref=e430]
+              - generic [ref=e431]: microsoft
+            - generic [ref=e432] [cursor=pointer]:
+              - img "sso" [ref=e433]
+              - generic [ref=e434]: sso
+        - generic [ref=e435]:
+          - paragraph [ref=e436]: Or use Chronicle account
+          - generic [ref=e437]:
+            - generic [ref=e440]:
+              - img [ref=e442]:
+                - img [ref=e443]
+              - generic [ref=e446]:
+                - textbox "Email" [ref=e447]
+                - generic:
+                  - generic: Email *
+            - generic [ref=e453]:
+              - img [ref=e455]:
+                - img [ref=e456]
+              - generic [ref=e459]:
+                - textbox "Password" [ref=e460]
+                - generic:
+                  - generic: Password *
+              - button "Hide password" [pressed] [ref=e462] [cursor=pointer]:
+                - img [ref=e464]:
+                  - img [ref=e465]
+          - generic [ref=e470]:
+            - button "LOGIN" [ref=e471] [cursor=pointer]: Login
+            - generic [ref=e472]:
+              - generic [ref=e473]:
+                - generic [ref=e475] [cursor=pointer]:
+                  - generic [ref=e476]:
+                    - checkbox "Remember me" [checked] [ref=e477]
+                    - generic:
+                      - img
+                  - generic [ref=e478]: Remember me
+                - img [ref=e479]: info
+              - button "Forgot password?" [ref=e480] [cursor=pointer]: Forgot password?
+            - generic [ref=e481]:
+              - paragraph [ref=e482]: Don’t have a cemetery organization yet?
+              - button "Sign up for free" [ref=e483] [cursor=pointer]: Sign up for free
+      - button "Back to app" [ref=e485] [cursor=pointer]:
+        - generic [ref=e486]:
+          - img [ref=e487]: west
+          - text: Back to app
