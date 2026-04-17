@@ -103,4 +103,12 @@ export const RoiSelectors = {
   // Remove Confirmation Dialog
   removeDialogCancelButton: '[data-testid="remove-roi-holder-dialog-button-cancel"]',
   removeDialogConfirmButton: '[data-testid="remove-roi-holder-dialog-button-remove"]',
+
+  // Autocomplete suggestion list (articles in dropdown)
+  autocompleteSuggestionList: 'article[role="option"], article[cursor="pointer"], article',
+
+  // Activity log
+  activityFilterListbox: '[role="listbox"]',
+  activityLogContainer: '[data-testid="user-log-activity-div-chronicle-container"]',
+  activityLogEntries: '[data-testid^="user-log-activity-div-chronicle-item"]',
 };

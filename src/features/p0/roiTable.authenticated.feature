@@ -52,3 +52,28 @@ Feature: ROI Table Menu Management
             | fee | 2500 |
         And I save the ROI from table
         Then I should see updated ROI in the table
+
+    # PRE-CONDITION: plot <TEST_ROI_REPLACE_PLOT_ID> must be a reserved plot with any existing holder.
+    # New holder name is generated randomly each run — no hardcoded existing person required.
+    @remove-replace-holder @smoke @roi-remove-replace
+    Scenario: Replace ROI holder with a new person and verify activity log
+        When I click the sidebar table menu
+        And I click the ROIs tab
+        And I open the ROI edit form for plot "<TEST_ROI_REPLACE_PLOT_ID>"
+        Then I should see the Edit ROI form
+
+        # Replace current holder by creating a brand-new person (random name each run)
+        When I replace ROI holder with new person "<TEST_ROI_NEW_HOLDER_FIRSTNAME>" "<TEST_ROI_NEW_HOLDER_LASTNAME>"
+
+        # Verify the new holder appears in the form
+        Then I should see ROI holder "<TEST_ROI_NEW_HOLDER_FIRSTNAME> <TEST_ROI_NEW_HOLDER_LASTNAME>" in the edit form
+
+        # Save from the table-edit view — redirects to advance-table?tab=rois
+        When I save the ROI from table edit view
+        Then I should see the tables page
+
+        # Navigate back and validate activity log under Changes filter
+        When I click the ROIs tab
+        And I open the ROI edit form for plot "<TEST_ROI_REPLACE_PLOT_ID>"
+        And I switch activity filter to "Changes"
+        Then I should see activity log entry containing "<TEST_ROI_NEW_HOLDER_FIRSTNAME>"

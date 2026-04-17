@@ -325,3 +325,27 @@ Then('I should see fee {string} in the ROI row', async function (expectedFee: st
     const feeText = this.page.locator(`text=${expectedFee}`);
     await expect(feeText).toBeVisible();
 });
+
+When('I open the ROI edit form for plot {string}', async function (plotId: string) {
+    const actualPlotId = replacePlaceholders(plotId);
+
+    // Wait for the specific plot ID cell to be visible — Playwright retries until timeout
+    const plotIdCell = this.page
+        .locator('.mat-cell.mat-column-plotId')
+        .filter({ hasText: actualPlotId })
+        .first();
+
+    await plotIdCell.waitFor({ state: 'visible', timeout: 20000 });
+    await plotIdCell.scrollIntoViewIfNeeded();
+    await plotIdCell.click();
+
+    try {
+        await this.page.waitForURL(/\/edit\/roi\//, { timeout: 15000 });
+    } catch {
+        await plotIdCell.click();
+        await this.page.waitForURL(/\/edit\/roi\//, { timeout: 30000 });
+    }
+
+    await NetworkHelper.waitForApiRequestsComplete(this.page, 10000);
+    Logger.info(`[ROITable] Opened edit form for plot "${actualPlotId}"`);
+});

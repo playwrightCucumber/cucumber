@@ -66,6 +66,11 @@ const PLACEHOLDER_MAP: Record<string, string> = {
   '<TEST_ROI_APPLICANT_PHONE>': TEST_DATA.roi.applicant.phone,
   '<TEST_ROI_APPLICANT_EMAIL>': TEST_DATA.roi.applicant.email,
 
+  // ROI Remove & Replace data
+  '<TEST_ROI_REPLACE_PLOT_ID>': TEST_DATA.roi.removeReplace.plotId,
+  '<TEST_ROI_NEW_HOLDER_FIRSTNAME>': TEST_DATA.roi.removeReplace.newHolderFirstName,
+  '<TEST_ROI_NEW_HOLDER_LASTNAME>': TEST_DATA.roi.removeReplace.newHolderLastName,
+
   // ROI Table Menu data
   '<TEST_ROI_TABLE_RIGHT_TYPE>': TEST_DATA.roi.tableMenu.rightType,
   '<TEST_ROI_TABLE_TERM>': TEST_DATA.roi.tableMenu.termOfRight,

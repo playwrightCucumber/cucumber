@@ -288,6 +288,13 @@ export const ROI_DATA = {
     rightType: process.env.TEST_ROI_TABLE_RIGHT_TYPE || 'Burial',
     termOfRight: process.env.TEST_ROI_TABLE_TERM || 'Perpetual',
     fee: process.env.TEST_ROI_TABLE_FEE || '1500'
+  },
+
+  // ROI Remove & Replace scenario — creates a brand-new person each run (random name)
+  removeReplace: {
+    plotId: process.env.TEST_ROI_REPLACE_PLOT_ID || 'B G 13',
+    newHolderFirstName: process.env.TEST_ROI_NEW_HOLDER_FIRSTNAME || randomFirstName(),
+    newHolderLastName: process.env.TEST_ROI_NEW_HOLDER_LASTNAME || randomLastName()
   }
 };
 

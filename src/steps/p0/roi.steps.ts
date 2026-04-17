@@ -277,3 +277,64 @@ Then('I should not see ROI applicant {string} in the ROI tab', async function (a
     throw new Error(`❌ ROI applicant "${actualName}" is still present in ROI tab after removal`);
   }
 });
+
+// ============================================
+// REMOVE & REPLACE ROI HOLDER STEPS
+// ============================================
+
+When('I replace ROI holder {string} with existing person {string} {string}', async function (
+  currentHolder: string,
+  firstName: string,
+  lastName: string
+) {
+  ensurePageObjects(this.page);
+  await roiPage.replaceRoiHolderWithExistingPerson(
+    replacePlaceholders(currentHolder),
+    replacePlaceholders(firstName),
+    replacePlaceholders(lastName)
+  );
+});
+
+When('I replace ROI holder with new person {string} {string}', async function (firstName: string, lastName: string) {
+  ensurePageObjects(this.page);
+  await roiPage.replaceRoiHolderWithNewPerson(
+    replacePlaceholders(firstName),
+    replacePlaceholders(lastName)
+  );
+});
+
+When('I save the ROI from table edit view', async function () {
+  ensurePageObjects(this.page);
+  await roiPage.saveRoiFromTableEditView();
+});
+
+When('I switch activity filter to {string}', async function (filter: string) {
+  ensurePageObjects(this.page);
+  await roiPage.switchActivityFilter(filter as 'Notes' | 'Changes' | 'All');
+});
+
+Then('I should see activity log entry containing {string}', async function (expectedText: string) {
+  ensurePageObjects(this.page);
+  const found = await roiPage.verifyActivityContainsText(replacePlaceholders(expectedText));
+  if (!found) {
+    throw new Error(`❌ Activity log does not contain entry: "${expectedText}"`);
+  }
+});
+
+Then('I should see ROI holder {string} in the edit form', async function (holderName: string) {
+  ensurePageObjects(this.page);
+  const actualName = replacePlaceholders(holderName);
+  const found = await roiPage.verifyRoiHolderInEditForm(actualName);
+  if (!found) {
+    throw new Error(`❌ ROI holder "${actualName}" not found in edit form`);
+  }
+});
+
+Then('I should not see ROI holder {string} in the edit form', async function (holderName: string) {
+  ensurePageObjects(this.page);
+  const actualName = replacePlaceholders(holderName);
+  const found = await roiPage.verifyRoiHolderInEditForm(actualName);
+  if (found) {
+    throw new Error(`❌ ROI holder "${actualName}" is still visible in edit form`);
+  }
+});

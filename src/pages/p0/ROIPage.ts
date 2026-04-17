@@ -968,6 +968,202 @@ export class ROIPage {
   }
 
   /**
+   * Replace an ROI holder with an existing person via autocomplete search.
+   * Flow: REMOVE & REPLACE → Remove and replace with another person → confirm → fill autocomplete → select person
+   * The dialog closes automatically after selection (backend saves the replacement).
+   * Caller MUST still call saveRoiFromTableEditView() to persist to the server.
+   */
+  async replaceRoiHolderWithExistingPerson(
+    currentHolderName: string,
+    replacementFirstName: string,
+    replacementLastName: string
+  ): Promise<void> {
+    this.logger.info(`Replacing ROI holder "${currentHolderName}" with "${replacementFirstName} ${replacementLastName}"`);
+
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
+
+    // Match by any word of the holder name (handles title prefix + middle names)
+    const nameWords = currentHolderName.trim().split(/\s+/);
+    const personHeading = this.page.locator('h2').filter({
+      hasText: new RegExp(nameWords.map(w => `(?=.*${w})`).join(''), 'i')
+    }).first();
+    await personHeading.waitFor({ state: 'visible' });
+
+    const targetCard = personHeading.locator('xpath=ancestor::*[contains(@data-testid, "roi-form-div-roi-holder")]');
+
+    const removeReplaceBtn = targetCard.getByRole('button', { name: 'REMOVE & REPLACE' });
+    await removeReplaceBtn.scrollIntoViewIfNeeded();
+    await removeReplaceBtn.click();
+    this.logger.info('Clicked REMOVE & REPLACE');
+
+    const replaceWithPersonBtn = targetCard.getByRole('button', { name: /Remove and replace with another person/i });
+    await replaceWithPersonBtn.waitFor({ state: 'visible' });
+    await replaceWithPersonBtn.click();
+    this.logger.info('Clicked "Remove and replace with another person"');
+
+    const dialog = this.page.getByRole('dialog');
+    await dialog.waitFor({ state: 'visible' });
+    const confirmBtn = dialog.getByRole('button', { name: 'remove' });
+    await confirmBtn.click();
+    this.logger.info('Confirmed removal in dialog');
+
+    // Replacement form appears — fill first name then last name to trigger autocomplete
+    const firstNameInput = this.page.locator(RoiSelectors.roiHolderFirstNameInput);
+    await firstNameInput.waitFor({ state: 'visible' });
+    await firstNameInput.click();
+    await firstNameInput.fill(replacementFirstName);
+
+    const lastNameInput = this.page.locator(RoiSelectors.roiHolderLastNameInput);
+    await lastNameInput.click();
+    await lastNameInput.fill(replacementLastName);
+
+    // Wait for autocomplete suggestions to appear
+    const suggestionArticle = this.page.locator('article').filter({ hasText: replacementFirstName });
+    await suggestionArticle.first().waitFor({ state: 'visible', timeout: 10000 });
+    await suggestionArticle.first().click();
+    this.logger.info(`Selected "${replacementFirstName} ${replacementLastName}" from autocomplete`);
+
+    // Wait for the new holder heading to appear (confirmation dialog already closed before this step)
+    await this.page.locator(`h2:has-text("${replacementFirstName}")`).first().waitFor({ state: 'visible', timeout: 10000 });
+    await NetworkHelper.waitForApiRequestsComplete(this.page, 3000);
+
+    this.logger.success(`ROI holder replaced with "${replacementFirstName} ${replacementLastName}"`);
+  }
+
+  /**
+   * Replace ROI holder by creating a brand-new person via the "Remove and replace" dialog.
+   * Flow: REMOVE & REPLACE → Remove and replace with another person → confirm → fill form → add
+   * No autocomplete selection — fills First name + Last name and clicks "add" to create new person.
+   */
+  async replaceRoiHolderWithNewPerson(firstName: string, lastName: string): Promise<void> {
+    this.logger.info(`Replacing ROI holder with new person "${firstName} ${lastName}"`);
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 500, maxWait: 3000 });
+
+    const removeReplaceBtn = this.page.getByRole('button', { name: 'REMOVE & REPLACE' }).first();
+    await removeReplaceBtn.scrollIntoViewIfNeeded();
+    await removeReplaceBtn.click();
+    this.logger.info('Clicked REMOVE & REPLACE');
+
+    const replaceWithPersonBtn = this.page.getByRole('button', { name: /Remove and replace with another person/i });
+    await replaceWithPersonBtn.waitFor({ state: 'visible' });
+    await replaceWithPersonBtn.click();
+
+    // Confirm dialog
+    const confirmDialog = this.page.getByRole('dialog');
+    await confirmDialog.waitFor({ state: 'visible' });
+    await confirmDialog.getByRole('button', { name: 'remove' }).click();
+    this.logger.info('Confirmed removal, waiting for new person form');
+
+    // New person form dialog — wait for First name field to be active
+    const personDialog = this.page.getByRole('dialog');
+    const firstNameInput = personDialog.getByRole('textbox', { name: 'First name' });
+    await firstNameInput.waitFor({ state: 'visible', timeout: 10000 });
+    await firstNameInput.fill(firstName);
+
+    const lastNameInput = personDialog.getByRole('textbox', { name: 'Last name' });
+    await lastNameInput.fill(lastName);
+
+    // Click add — creates new person without selecting from autocomplete
+    const addBtn = personDialog.getByRole('button', { name: 'add' });
+    await addBtn.waitFor({ state: 'visible', timeout: 5000 });
+    await addBtn.click();
+
+    // Wait for dialog to close then new holder h2 to appear
+    await personDialog.waitFor({ state: 'hidden', timeout: 10000 });
+    await this.page.locator(`h2:has-text("${firstName}")`).first().waitFor({ state: 'visible', timeout: 10000 });
+    await NetworkHelper.waitForApiRequestsComplete(this.page, 3000);
+
+    this.logger.success(`ROI holder replaced with new person "${firstName} ${lastName}"`);
+  }
+
+  /**
+   * Save ROI from the table-edit view.
+   * Unlike saveRoi() which waits for /plots/ URL, the table-edit flow redirects to /advance-table?tab=rois.
+   */
+  async saveRoiFromTableEditView(): Promise<void> {
+    this.logger.info('Saving ROI from table edit view');
+
+    const saveBtn = this.page.locator('button[data-testid="toolbar-manage-button-toolbar-button-1"]')
+      .or(this.page.locator('button').filter({ hasText: /^save$/ }).filter({ hasNotText: /interment/i }));
+
+    await saveBtn.first().click();
+
+    await this.page.waitForURL(/advance-table.*tab=rois|tab=rois/, { timeout: 30000 });
+    await NetworkHelper.waitForApiRequestsComplete(this.page, 5000);
+
+    this.logger.success('ROI saved and redirected to ROI table');
+  }
+
+  /**
+   * Switch the Activity log filter in the ROI edit form.
+   * @param filter - 'Notes', 'Changes', or 'All'
+   */
+  async switchActivityFilter(filter: 'Notes' | 'Changes' | 'All'): Promise<void> {
+    this.logger.info(`Switching activity filter to "${filter}"`);
+
+    const filterOption = this.page.getByRole('option', { name: filter });
+    await filterOption.click();
+
+    await NetworkHelper.waitForStabilization(this.page, { minWait: 300, maxWait: 2000 });
+    this.logger.success(`Activity filter set to "${filter}"`);
+  }
+
+  /**
+   * Verify that the activity log contains an entry with the given text.
+   * Assumes the caller has already switched to the correct activity filter.
+   */
+  async verifyActivityContainsText(expectedText: string): Promise<boolean> {
+    this.logger.info(`Verifying activity log contains: "${expectedText}"`);
+
+    try {
+      const entry = this.page.getByText(expectedText, { exact: false }).first();
+      await entry.waitFor({ state: 'visible', timeout: 10000 });
+      this.logger.success(`✓ Activity log entry found: "${expectedText}"`);
+      return true;
+    } catch {
+      this.logger.info(`❌ Activity log entry not found: "${expectedText}"`);
+      return false;
+    }
+  }
+
+  /**
+   * Verify the ROI holder shown in the edit form is the expected person.
+   * Matches any h2 in the ROI Holder section that contains ALL words of expectedName.
+   * Handles title prefix (Bapak/Ibu) and middle name in the heading.
+   */
+  async verifyRoiHolderInEditForm(expectedName: string): Promise<boolean> {
+    this.logger.info(`Verifying ROI holder in edit form: "${expectedName}"`);
+
+    try {
+      const words = expectedName.trim().split(/\s+/);
+      // Find h2 headings in the ROI holder section that contain all words of the expected name
+      const allH2 = this.page.locator(
+        `[data-testid*="roi-form-div-roi-holder"] h2, [data-testid*="roi-holder"] h2`
+      );
+      const count = await allH2.count();
+
+      // Fallback: search any h2 on page
+      const allH2Fallback = count > 0 ? allH2 : this.page.locator('h2');
+      const h2Count = await allH2Fallback.count();
+
+      for (let i = 0; i < h2Count; i++) {
+        const text = (await allH2Fallback.nth(i).textContent()) ?? '';
+        const allWordsMatch = words.every(w => text.toLowerCase().includes(w.toLowerCase()));
+        if (allWordsMatch) {
+          this.logger.success(`✓ ROI holder "${expectedName}" found in edit form (heading: "${text.trim()}")`);
+          return true;
+        }
+      }
+
+      this.logger.info(`❌ ROI holder "${expectedName}" not found in edit form`);
+      return false;
+    } catch (e) {
+      this.logger.error(`verifyRoiHolderInEditForm error: ${e}`);
+      return false;
+    }
+  }
+
+  /**
    * Get certificate number from ROI tab content on plot detail page
    */
   async getCertificateNumberFromRoiTab(): Promise<string> {
